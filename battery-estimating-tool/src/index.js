@@ -12,6 +12,7 @@ import Registration from './Webpages/Registration';
 import Submissions from './Webpages/Submissions';
 import SubmitModel from './Webpages/SubmitModel';
 import Login from './Webpages/Login'
+import ModelComparison from './Webpages/ModelComparison';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -24,7 +25,10 @@ root.render(
         <Route path="/registration" element={<Registration />} />
         <Route path="/submissions" element={<Submissions />} />
         <Route path="/submit-model" element={<SubmitModel />} />
+        <Route path="/model-comparison" element={<ModelComparison />} />
+
         <Route path="/login" element={<Login />} />
+
       </Routes>
     </Router>
   </React.StrictMode>
