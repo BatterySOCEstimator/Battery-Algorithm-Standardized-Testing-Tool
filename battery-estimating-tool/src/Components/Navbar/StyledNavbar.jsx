@@ -7,15 +7,16 @@ const StyledNavbar = () =>{
   return (
     <Navbar bg="dark" expand="lg" data-bs-theme="dark">
       <Container>
-        <Navbar.Brand href="#home">SOCAlgoTestingPlatform</Navbar.Brand>
+        <Navbar.Brand href="/">SOCAlgoTestingPlatform</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="leaderboards">Leaderboards</Nav.Link>
-            <Nav.Link href="#link">Download Data</Nav.Link>
             <Nav.Link href="/submit-model">Submit Model</Nav.Link>
             <Nav.Link href="/submissions">Submissions</Nav.Link>
+            <Nav.Link href="/model-comparison">Model Comparison</Nav.Link>
             <Nav.Link href="/help">Help</Nav.Link>
+
             {/* <NavDropdown title="Dropdown" id="basic-nav-dropdown">
               <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
               <NavDropdown.Item href="#action/3.2">
@@ -29,7 +30,7 @@ const StyledNavbar = () =>{
             </NavDropdown> */}
           </Nav>
           <Button href="/registration" variant="outline-success">Register</Button>
-          <Button href="/login" variant="light">Login</Button>
+          <Button style={{"marginLeft": "8px"}} href="/login" variant="light">Login</Button>
 
         </Navbar.Collapse>
       </Container>
