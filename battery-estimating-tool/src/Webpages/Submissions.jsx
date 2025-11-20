@@ -67,7 +67,9 @@ const FiltersLabel = styled.div`
   margin-bottom: 8px;
 `;
 
-const Submissions = () => {
+const Submissions = ({estimatedSOC, setEstimatedSOC}) => {
+    console.log(estimatedSOC)
+
   return (
     <>
       <StyledNavbar />
@@ -84,7 +86,7 @@ const Submissions = () => {
           <LabeledSelect label={"Model Type"} options={modelTypes} />
         </FlexBox>
 
-        <MetricsTable headers={columns}/>
+        <MetricsTable estimatedSOC={estimatedSOC} headers={columns}/>
       </Container>
     </>
   );
