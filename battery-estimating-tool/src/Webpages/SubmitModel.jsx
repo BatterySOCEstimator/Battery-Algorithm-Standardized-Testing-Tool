@@ -5,6 +5,64 @@ import styled from "styled-components";
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import { Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
+
+const modelTypes = [
+  "All Model Types",
+  "Machine Learning",
+  "Kalman Filter",
+  "Extended Kalman Filter",
+  "Other Kalman Filter",
+  "FNN",
+  "LSTM",
+  "GRU",
+  "NARX",
+  "Transformer",
+  "Other Neural Network",
+  "Coulomb Counter",
+  "Hybrid Model",
+  "Not Specified"
+];
+const columns = [
+    'Submission',
+    'Model Name',
+    'Model Type',
+    'Status',
+    'Visibility',
+    'Submitted at',
+    'Completed at',
+    'Weighted Error',
+    'All Cells',
+    'Blind Cells',
+    'Non-Blinded Cells',
+    'Charging',
+    '80kg Payload',
+    '448kg Payload with HVAC',
+    '448kg Payload no HVAC',
+    '1000kg Payload',
+    'Standard Cycles',
+    'Custom Cycles',
+    'n20C',
+    'n10C',
+    '0C',
+    '10C',
+    '25C',
+    '40C',
+    'iSOC Error',
+    'Current Sensor Error',
+    'All Drive Cycles Average RMSE',
+    'All Drive Cycles Average MAE',
+    'All Drive Cycles Average MAXE'
+  ];
+
+  const FlexBox = styled.div`
+    display:flex;
+    gap: 24px;
+`
+
+const Container = styled.div`
+  padding: 20px;
+`;
 
 const FullscreenContainer = styled.div`
   height: 100vh;
@@ -79,11 +137,61 @@ const newItem = {
 const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
   const navigate = useNavigate();
 
-  const changeSOC = () => {
-    setEstimatedSOC(prev => [...prev, newItem])
-    setTimeout(1000)
-    navigate("/submissions");
-}
+  const [selectedAuthor, setSelectedAuthor] = useState("All authors");
+  const [selectedAffiliation, setSelectedAffiliation] = useState("All Academic Affiliations");
+  const [selectedModelType, setSelectedModelType] = useState(modelTypes[0]); // or whatever default
+
+  const changeSOC = async() => {
+    try {
+
+      if (!file) {
+        alert("Please upload a file first!");
+        return;
+      }
+      
+      // Get selected values
+      const author = selectedAuthor;
+      const affiliation = selectedAffiliation;
+      const modelType = selectedModelType;
+      
+      // Construct form data
+      const formData = new FormData();
+      formData.append("model", file);
+      formData.append("author", author);
+      formData.append("academic_affiliation", affiliation);
+      formData.append("model_type", modelType);
+
+      console.log("Sending file:", {
+        filename: file.name,
+        author: selectedAuthor,
+        affiliation: selectedAffiliation,
+        modelType: selectedModelType
+      });
+
+      const response = await fetch("http://localhost:5000/evaluate", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log("Response:", result);
+
+
+      setEstimatedSOC(prev => [...prev, newItem])
+      //setTimeout(1000)
+      navigate("/submissions");
+
+    } catch (error) {
+    console.error("Upload failed:", error);
+    alert("Failed to upload file: " + error.message);
+  }
+  }
+
   const [file, setFile] = useState(null);
   console.log(estimatedSOC)
   const onDrop = useCallback((acceptedFiles) => {
@@ -102,6 +210,26 @@ const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
       <StyledNavbar />
 
       <FullscreenContainer>
+
+        {/* Filters Row */}
+        <FlexBox>
+            <LabeledSelect 
+              label={"Author"} 
+              options={["All authors", "Paarth"]} 
+              value={selectedAuthor}
+              onChange={(e) => setSelectedAuthor(e.target.value)} />
+            <LabeledSelect 
+              label={"Academic Affiliation"} 
+              options={["All Academic Affiliations", "McMaster"]} 
+              value={selectedAffiliation}
+              onChange={(e) => setSelectedAffiliation(e.target.value)} />
+            <LabeledSelect 
+              label={"Model Type"} 
+              options={modelTypes} 
+              value={selectedModelType}
+              onChange={(e) => setSelectedModelType(e.target.value)}/>
+        </FlexBox>
+
         <Button onClick={changeSOC} style={{marginBottom: "16px"}}>Submit Model</Button>
 
         {/* Mini card showing file name */}

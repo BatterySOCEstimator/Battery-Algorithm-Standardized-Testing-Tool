@@ -2,6 +2,7 @@
 
 # dependencies
 /battery-estimating-tool/node_modules
+/battery-estimating-tool/backend/node_modules
 /.pnp
 .pnp.js
 

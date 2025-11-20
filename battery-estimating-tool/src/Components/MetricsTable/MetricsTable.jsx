@@ -1,7 +1,7 @@
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const MetricsTable = ({ headers, estimatedSOC }) => {
+const MetricsTable = ({ headers, estimatedSOC = [] }) => {
   return (
     <div style={{ overflowX: 'auto', width: '100%' }}>
       <Table style={{ textAlign: 'center' }} striped bordered hover>
