@@ -51,7 +51,9 @@ const FiltersLabel = styled.div`
   margin-bottom: 8px;
 `;
 
-const ModelComparison = () => {
+const ModelComparison = ({estimatedSOC, setEstimatedSOC}) => {
+    console.log(estimatedSOC)
+
   return (
     <>
       <StyledNavbar />
@@ -74,7 +76,7 @@ const ModelComparison = () => {
             <LabeledSelect label={"Model Type"} options={modelTypes} />
         </FlexBox>
 
-        <MetricsTable headers={tableHeaders} />
+        <MetricsTable estimatedSOC={estimatedSOC} headers={tableHeaders} />
         
         <ModelNumber>Model 2</ModelNumber>
 
@@ -87,7 +89,7 @@ const ModelComparison = () => {
             <LabeledSelect label={"Model Type"} options={modelTypes} />
         </FlexBox>
 
-        <MetricsTable headers={tableHeaders} />
+        <MetricsTable estimatedSOC={estimatedSOC} headers={tableHeaders} />
         
 
       </Container>

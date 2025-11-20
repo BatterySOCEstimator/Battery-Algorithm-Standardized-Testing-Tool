@@ -67,7 +67,9 @@ const FiltersLabel = styled.div`
   margin-bottom: 8px;
 `;
 
-const Leaderboards = () => {
+const Leaderboards = ({estimatedSOC, setEstimatedSOC}) => {
+    console.log(estimatedSOC)
+
   return (
     <>
       <StyledNavbar />
@@ -86,7 +88,7 @@ const Leaderboards = () => {
             <LabeledSelect label={"Model Type"} options={modelTypes} />
         </FlexBox>
 
-        <MetricsTable headers={columns}/>
+        <MetricsTable estimatedSOC={estimatedSOC} headers={columns}/>
       </Container>
     </>
   );
