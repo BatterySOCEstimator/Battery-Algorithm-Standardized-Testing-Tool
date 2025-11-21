@@ -213,7 +213,7 @@ const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
 
         {/* Filters Row */}
         <FlexBox>
-            <LabeledSelect 
+            {/* <LabeledSelect 
               label={"Author"} 
               options={["All authors", "Paarth"]} 
               value={selectedAuthor}
@@ -222,7 +222,7 @@ const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
               label={"Academic Affiliation"} 
               options={["All Academic Affiliations", "McMaster"]} 
               value={selectedAffiliation}
-              onChange={(e) => setSelectedAffiliation(e.target.value)} />
+              onChange={(e) => setSelectedAffiliation(e.target.value)} /> */}
             <LabeledSelect 
               label={"Model Type"} 
               options={modelTypes} 

@@ -1,6 +1,6 @@
 import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
-// import deskImage from "../assets/images/desk.png"; // <-- replace with your own image path
+import picture from "../assets/images/registrationpage.png"
 
 const Registration = () => {
   return (
@@ -101,7 +101,7 @@ const Registration = () => {
             className="d-none d-md-flex align-items-center justify-content-center"
           >
             <img
-              
+              src={picture}
               alt="Illustration"
               className="img-fluid p-4"
               style={{ maxHeight: "350px" }}

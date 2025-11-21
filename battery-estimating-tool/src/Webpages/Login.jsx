@@ -1,6 +1,7 @@
 import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
-// import deskImage from "../assets/images/desk.png"; // <-- replace with your own image path
+import picture from "../assets/images/registrationpage.png"
+
 
 const Login = () => {
   return (
@@ -15,7 +16,7 @@ const Login = () => {
         <Row className="g-0 align-items-center">
           {/* Left side - Form */}
           <Col md={6} className="p-5">
-            <h2 className="fw-bold mb-4">Sign up</h2>
+            <h2 className="fw-bold mb-4">Sign in</h2>
             <Form>
               
               {/* Email */}
@@ -63,7 +64,7 @@ const Login = () => {
             className="d-none d-md-flex align-items-center justify-content-center"
           >
             <img
-              
+              src={picture}
               alt="Illustration"
               className="img-fluid p-4"
               style={{ maxHeight: "350px" }}
