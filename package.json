@@ -1,0 +1,20 @@
+{
+  "name": "battery-algorithm-standardized-testing-tool",
+  "version": "1.0.0",
+  "description": "Battery Algorithm Standardized Testing Tool - Cloud Implementation for a state of charge estimation algorithm submission and evaluation portal",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dason-IsopodOverseer/Battery-Algorithm-Standardized-Testing-Tool.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dason-IsopodOverseer/Battery-Algorithm-Standardized-Testing-Tool/issues"
+  },
+  "homepage": "https://github.com/Dason-IsopodOverseer/Battery-Algorithm-Standardized-Testing-Tool#readme"
+}

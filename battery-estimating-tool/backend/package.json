@@ -1,25 +1,38 @@
 {
-  "name": "backend",
+  "name": "battery-estimating-tool-backend",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "node --watch app.js"
+    "dev": "concurrently \"npm run db:start\" \"npm run server:dev\"",
+    "db:start": "docker compose up -d",
+    "db:stop": "docker compose down",
+    "server:dev": "tsx watch src/server.ts",
+    "server:start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "better-sqlite3": "^12.4.1",
+    "better-auth": "^1.4.18",
     "child_process": "^1.0.2",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
     "express": "^5.2.1",
     "fs": "^0.0.1-security",
     "multer": "^2.0.2",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "pg": "^8.18.0"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.2.0",
+    "@types/pg": "^8.16.0",
+    "concurrently": "^9.2.1",
+    "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0"
   }
 }

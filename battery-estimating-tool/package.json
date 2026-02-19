@@ -1,50 +1,16 @@
 {
   "name": "battery-estimating-tool",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "bootstrap": "^5.3.8",
-    "lucide-react": "^0.553.0",
-    "react": "^19.2.0",
-    "react-bootstrap": "^2.10.10",
-    "react-dom": "^19.2.0",
-    "react-dropzone": "^14.3.8",
-    "react-icons": "^3.11.0",
-    "react-router-dom": "^7.9.5",
-    "react-scripts": "5.0.1",
-    "styled-components": "^6.1.19",
-    "web-vitals": "^2.1.4"
-  },
+  "version": "1.0.0",
+  "description": "",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "dev:frontend": "npm start", 
-    "dev:backend": "cd backend && npm run dev",
-    "install:all": "npm install && cd backend && npm install"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently -n CLIENT,SERVER -c blue,green \"npm run dev -w client\" \"npm run dev -w backend\"",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.2.1"
   }
 }
