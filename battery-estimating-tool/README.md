@@ -15,3 +15,10 @@
 4. CD back into the root folder and run `npm run dev` 
 
 After, simply running `npm run dev` from project root will run the app.
+
+## TODO:
+- Change password
+- Verify email
+- Change email
+- SSO ?
+- Cookies/Sessions

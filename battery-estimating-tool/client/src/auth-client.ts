@@ -74,7 +74,7 @@ export async function login(options: {
             {
                 username,
                 password,
-                callbackURL: "/leaderboards", 
+                callbackURL: "/leaderboards",
             },
             {
                 onRequest: () => console.log("Logging in..."),
@@ -92,7 +92,7 @@ export async function logout() {
     try {
         const session = await authClient.getSession();
 
-        if (!session) {
+        if (!session?.data?.user) {
             console.log("No user currently logged in.");
             return; // don't call signOut
         }
@@ -100,7 +100,7 @@ export async function logout() {
         await authClient.signOut(); // Clear session
         console.log("Logout successful");
 
-        // Optionally redirect manually
+        // Redirect manually
         window.location.href = "/";
     } catch (err: any) {
         console.error("Logout failed:", err);
@@ -109,17 +109,15 @@ export async function logout() {
 }
 
 // Get currently logged in user's email
-export async function whoAmI(): Promise<string | null> {
-  try {
-    const session = await authClient.getSession();
+type AuthUser = Awaited<
+    ReturnType<typeof authClient.getSession>
+>["data"] extends { user: infer U } ? U : never;
 
-    if (!session || !session.data?.user) {
-      return null; // no logged-in user
+export async function getUserInfo(): Promise<AuthUser | null> {
+    try {
+        const session = await authClient.getSession();
+        return session?.data?.user ?? null;
+    } catch {
+        return null;
     }
-
-    return session.data.user.email;
-  } catch (err: any) {
-    console.error("Failed to get current user:", err);
-    return null;
-  }
 }

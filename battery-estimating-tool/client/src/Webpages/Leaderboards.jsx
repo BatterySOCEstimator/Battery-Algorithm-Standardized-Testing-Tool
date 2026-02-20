@@ -3,12 +3,12 @@ import MetricsTable from "../Components/MetricsTable/MetricsTable"
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 // EXPOSED FUNCTIONS FOR TESTING
-import { signUp, login, logout, whoAmI } from "../auth-client.ts";
+import { signUp, login, logout, getUserInfo } from "../auth-client.ts";
 
 (window).signUp = signUp;
 window.login = login;
 window.logout = logout;
-window.whoAmI = whoAmI;
+window.getUserInfo = getUserInfo;
 
 const modelTypes = [
   "All Model Types",

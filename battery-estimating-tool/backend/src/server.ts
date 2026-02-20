@@ -3,6 +3,7 @@ import "dotenv/config";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.routes";
+import modelRoutes from "./routes/model.routes"
 
 const app = express();
 const port = 8000;
@@ -22,6 +23,8 @@ app.use(express.json());
 
 // Mount betterauth routes
 app.use("/api/auth", authRoutes);
+
+app.use("/api/model", modelRoutes);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
