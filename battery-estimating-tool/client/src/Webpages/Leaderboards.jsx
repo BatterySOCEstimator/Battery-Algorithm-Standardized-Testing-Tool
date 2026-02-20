@@ -2,6 +2,14 @@ import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
 import MetricsTable from "../Components/MetricsTable/MetricsTable"
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
+// EXPOSED FUNCTIONS FOR TESTING
+import { signUp, login, logout, whoAmI } from "../auth-client.ts";
+
+(window).signUp = signUp;
+window.login = login;
+window.logout = logout;
+window.whoAmI = whoAmI;
+
 const modelTypes = [
   "All Model Types",
   "Machine Learning",

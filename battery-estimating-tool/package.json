@@ -2,6 +2,7 @@
   "name": "battery-estimating-tool",
   "version": "1.0.0",
   "description": "",
+  "workspaces": ["client", "backend"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently -n CLIENT,SERVER -c blue,green \"npm run dev -w client\" \"npm run dev -w backend\"",

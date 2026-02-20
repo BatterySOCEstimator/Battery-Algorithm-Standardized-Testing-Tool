@@ -25,3 +25,20 @@ export const validateSignUp = (req: Request, res: Response, next: NextFunction) 
 
   next(); // all good, proceed to the controller
 };
+
+// Middleware to validate login request
+export const validateLogin = (req: Request, res: Response, next: NextFunction) => {
+  const { email, username, password } = req.body;
+
+  const errors: string[] = [];
+
+  if (!password) errors.push("Password is required");
+
+  if (!email && !username) errors.push("Either email or username is required");
+
+  if (errors.length > 0) {
+    return res.status(400).json({ ok: false, errors });
+  }
+
+  next(); // all good, proceed to the controller
+};
