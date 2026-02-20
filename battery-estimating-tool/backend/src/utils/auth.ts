@@ -9,9 +9,27 @@ export const auth = betterAuth({
         provider: "pg",
     }),
     user: {
-        validate: ({ password }) => {
+        validate: ({ email, firstName, lastName, academicAffiliation, password }) => {
             const errors: string[] = [];
 
+            // BLOCK DISPOSABLE EMAILS
+            const blocked = ["mailinator.com", "10minutemail.com"]; // TODO: ADD MORE?
+            const domain = email.split("@")[1];
+
+            if (blocked.includes(domain)) {
+                errors.push("Disposable emails not allowed");
+            }
+
+            // NAME
+            const nameRegex = /^[a-zA-ZÀ-ÿ' -]{1,50}$/;
+            if (!firstName || !nameRegex.test(firstName)) {
+                errors.push("Invalid first name");
+            }
+            if (!lastName || !nameRegex.test(lastName)) {
+                errors.push("Invalid last name");
+            }
+
+            // PASSWORD
             if (!password) errors.push("Password is required");
             else {
                 if (password.length < 8) errors.push("Password must be at least 8 characters");
@@ -20,9 +38,16 @@ export const auth = betterAuth({
                 if (!/[0-9]/.test(password)) errors.push("Must contain a number");
                 if (!/[!@#$%^&*]/.test(password)) errors.push("Must contain a special character");
             }
+
+            // ACADEMIC AFFILIATION 
+            const affiliationRegex = /^[a-zA-Z0-9 .,'&()-]{1,100}$/;
+            if (!academicAffiliation || !affiliationRegex.test(academicAffiliation)) {
+                errors.push("Invalid academic affiliation");
+            }
+
             if (errors.length > 0) throw new Error(errors.join(", "));
         },
-        additionalFields: {
+        additionalFields: { // ALLOWS US TO PASS CUSTOM FIELDS INTO USER CREATION
             firstName: { type: "string", required: true, input: true, fieldName: "first_name" },
             lastName: { type: "string", required: true, input: true, fieldName: "last_name" },
             academicAffiliation: { type: "string", required: true, input: true, fieldName: "academic_affiliation" }
@@ -31,10 +56,17 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
+    session: {
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60,
+            strategy: "jwt" 
+        }
+    },
     plugins: [
         bearer(),
         admin(),
-        username({
+        username({ // USERNAME SETTINGS FOR VALIDATION AND NORMALIZATION
             validationOrder: {
                 username: "post-normalization",
             },
@@ -53,7 +85,7 @@ export const auth = betterAuth({
             usernameNormalization: (username) => username.toLowerCase(), // Normalize username
         }),
     ],
-    rateLimit: {
+    rateLimit: { // RATE LIMITING
         window: 10, // time window in seconds
         max: 100, // max requests in the window
         customRules: {
