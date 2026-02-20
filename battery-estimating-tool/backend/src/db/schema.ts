@@ -8,9 +8,6 @@ import { pgTable, text, timestamp, boolean, index, serial } from "drizzle-orm/pg
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  firstName: text("first_name").default('').notNull(),
-  lastName: text("last_name").default('').notNull(),
-  academicAffiliation: text("academic_affiliation").default('').notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
@@ -25,6 +22,9 @@ export const user = pgTable("user", {
   banExpires: timestamp("ban_expires"),
   username: text("username").unique(),
   displayUsername: text("display_username"),
+  first_name: text("first_name").notNull(),
+  last_name: text("last_name").notNull(),
+  academic_affiliation: text("academic_affiliation").notNull(),
 });
 
 export const session = pgTable(
