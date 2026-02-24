@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOCAlgoTestingPlatform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            position: fixed; 
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 15;
+            width: 100%;
+            box-sizing: border-box; 
+            overflow: hidden; 
+            white-space: nowrap; 
+        }
+        .navbar .title {
+            color: blue;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .navbar .links {
+            display: flex;
+            justify-content: center;
+            flex-grow: 1;
+            gap: 25px;
+        }
+        .navbar .links a {
+            text-decoration: none;
+            color: black;
+            font-weight: normal;
+        }
+        .navbar .links a.active {
+            text-decoration: underline;
+        }
+        .navbar .signout {
+            text-decoration: none;
+            color: black;
+        }
+        .container {
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .video-placeholder {
+            width: 100%;
+            max-width: 500px;
+            height: 280px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        .faq {
+            font-weight: bold;
+        }
+        .title a {
+            text-decoration: none;
+            color: #20BEFF;
+        }
+
+        .switch-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        .switch-container a {
+            text-decoration: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 50px;
+            transition: 0.3s;
+        }
+
+        .register-btn { 
+            background: black; 
+            color: white; 
+        }
+
+        .register-btn:hover { 
+            background: #20BEFF; 
+            color: white; 
+        }
+
+        .login-btn { 
+            background: white;  
+            color: black; 
+        }
+
+        .login-btn:hover { 
+            background: #20BEFF; 
+        }
+
+
+</style>
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="title">
+            <a href="/home">SOCAlgoTestingPlatform</a>
+        </div>
+        <div class="links">
+            <a href="/leaderboard" class="{% if request.path == '/leaderboard/' %}active{% endif %}">View Leaderboard</a>
+            <a href="https://borealisdata.ca/dataset.xhtml?persistentId=doi:10.5683/SP3/ZVTR4B" target="_blank" {% if request.path == '/data/' %}active{% endif %}">Download Data</a>
+            <a href="/submissions" class="{% if request.path == '/submissions/' %}active{% endif %}">Submit Model</a>
+            <a href="/submissions/submissionsPage" class="{% if request.path == '/submissions/submissionsPage' %}active{% endif %}">View Submissions</a>
+            <a href="/home/help" class="{% if request.path == '/home/help' %}active{% endif %}">Help/Getting Started</a>
+        </div>
+        <div class="switch-container">
+            <a href="/accounts/login" class="login-btn">Sign In</a>
+            <a href="/authentication/register" class="register-btn">Register</a>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>

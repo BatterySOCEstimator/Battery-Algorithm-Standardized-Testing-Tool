@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visibility</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .centered-image {
+            display: block;
+            margin: 0 auto;
+            border: 5px solid black;
+        }
+
+    </style>
+</head>
+{% extends "Intro_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Visibility</div>
+        <div class="content">
+            <p>The view submissions page contains an extra column that is not on the leaderboard named "Visibility".</p>
+            <p>This column will provide whether each submission made is public and on the leaderboard or private and only visible to the user that submitted it</p>
+        </div>
+        <img src="/media/images/visibility.png" alt="Visibility" class="centered-image">
+    </div>
+
+{% endblock %}
+</body>
+</html>

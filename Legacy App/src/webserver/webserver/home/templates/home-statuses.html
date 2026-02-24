@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statuses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .pending {
+            color: orange;
+        }
+
+        .started {
+            color: blue;
+        }
+
+        .completed {
+            color: green;
+        }
+
+        .failed {
+            color: red;
+        }
+
+    </style>
+</head>
+{% extends "Webpage_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Submission Statuses</div>
+        <div class="content">
+            <p>When a model has been submitted to the system, there are four statuses of the submission that can be displayed on the view submissions page.</p>
+            <p>These statuses will be displayed under the "Status" column and include the following:</p>
+            <ul>
+                <li class="file-types"><span class="pending">pending</span> - the submission is waiting for the system to begin executing it</li>
+                <li class="file-types"><span class="started">started</span> - the system has began executing the submission</li>
+                <li class="file-types"><span class="completed">completed</span> - the submission successfully completed and results are now visible</li>
+                <li class="file-types"><span class="failed">failed</span> - the submission failed and results will not be shown</li>
+            </ul>
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>
