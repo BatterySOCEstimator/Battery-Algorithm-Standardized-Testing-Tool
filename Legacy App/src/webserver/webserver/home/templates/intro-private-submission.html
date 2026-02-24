@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Submission vs Private Submission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .centered-image {
+            display: block;
+            margin: 0 auto;
+            border: 5px solid black;
+        }
+
+    </style>
+</head>
+{% extends "Intro_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Public/Private Submissions</div>
+        <div class="content">
+            <p>When submitting a model to the system, there are two options for how your submission will be displayed.</p>
+            <h3>Public Submission</h3>
+            <p>This is the default appearance of submissions and will result in the submission being displayed on the leaderboard along with the user's details.</p>
+            <h3>Private Submission</h3>
+            <p>
+                This is an additional setting based on user preference that results in a submission not being displayed on the leaderboard. This submission and all of the stats
+                assoicated with it will only be visible to the user that submitted it. 
+            </p>
+            <h3>Toggle</h3>
+            <p>When making a submission, you will notice a toggle that will allow you to chose between these two options.</p>
+            <img src="/media/images/Toggle.png" alt="Help for forgot password" class="centered-image">
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>

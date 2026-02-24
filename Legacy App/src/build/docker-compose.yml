@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:17.0
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    networks:
+      - service_net
+    # volumes:
+      # uncomment this line to persist db
+      # - ./tmp/db:/var/lib/postgresql/data
+
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    # volumes: 
+    #   - cache:/data
+
+  django:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+      target: server
+    ports:
+      - "8000:8000"
+    environment:
+      SOC_DB_HOST: db
+    volumes:
+      - ../webserver/webserver/media:/app/media
+    networks:
+      - service_net
+
+  django-workers:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+      target: workers 
+    environment:
+      - SOC_DB_HOST=db
+    volumes:
+      - ../webserver/webserver/media:/app/media
+    networks:
+      - service_net
+
+
+networks:
+  service_net:
+    driver: bridge
