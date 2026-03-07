@@ -140,6 +140,7 @@ const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
   const [selectedAuthor, setSelectedAuthor] = useState("All authors");
   const [selectedAffiliation, setSelectedAffiliation] = useState("All Academic Affiliations");
   const [selectedModelType, setSelectedModelType] = useState(modelTypes[0]); // or whatever default
+  const [file, setFile] = useState(null);
 
   const changeSOC = async() => {
     try {
