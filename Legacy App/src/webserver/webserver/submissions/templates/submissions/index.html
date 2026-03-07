@@ -1,0 +1,235 @@
+<style>
+  body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+  }
+
+  .form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 320px;
+    margin: 50px auto;
+  }
+  .form-title {
+    color: #20BEFF;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  .model-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .upload-box {
+    border: 2px dashed #ccc;
+    padding: 30px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    cursor: pointer;
+    color: #666;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .file-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 5px;
+    opacity: 0.7;
+  }
+  .upload-text {
+    font-size: 12px;
+    color: #888;
+  }
+  .submit-button {
+    background: #ddd;
+    color: #333;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .submit-button:hover {
+    background: #ccc;
+  }
+  .error-message {
+    color: red;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 14px; 
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer; 
+    text-align: center;
+    text-align-last: center; 
+  }
+
+  label {
+      color: #333;
+      margin-bottom: 5px;
+      display: block;
+  }
+
+  footer {
+    background-color: #f1f1f1;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid #ccc;
+    left: 0;
+    }
+
+  .visibility-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    gap: 10px; 
+    margin-bottom: 15px;
+    font-size: 14px; 
+    color: #333;
+  }
+
+  .visibility-container input {
+      margin: 0;
+  }
+
+  .visibility-container label {
+      margin: 0;
+  }
+</style>
+
+
+{% extends "Webpage_Base.html" %}
+
+{% block title %}
+    <title>Submission and Results</title>
+{% endblock %}
+
+{% block content %}
+  <body>
+    <div class="form-container">
+      <h1 class="form-title">Upload Your File</h1>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'index' %}">
+          {% csrf_token %}
+
+          <input type="text" name="model_name" placeholder="Enter model name" required class="model-input">
+
+          <label for="model_type">Model Type:</label>
+          <select id="model_type" name="model_type">
+              <option value="ML">Machine Learning</option>
+              <option value="KF">Kalman Filter</option>
+              <option value="NA">Not Specified</option>
+              <option value="EKF">Extended Kalman Filter</option>
+              <option value="OKF">Other Kalman Filter</option>
+              <option value="FNN">FNN</option>
+              <option value="LSTM">LSTM</option>
+              <option value="GRU">GRU</option>
+              <option value="NARX">NARX</option>
+              <option value="T">Transformer</option>
+              <option value="ONN">Other Neural Network</option>
+              <option value="HM">Hybrid Model</option>
+              <option value="CC">Coulomb Counter</option>
+          </select>
+
+          <label for="visibility">Visibility:</label>
+          <div class="visibility-container">
+              <input type="radio" id="private" name="visibility" value="private" required>
+              <label for="private">Private</label>
+              
+              <input type="radio" id="public" name="visibility" value="public" checked required>
+              <label for="public">Public</label>
+          </div>
+
+          <div id="dropZone" class="upload-box">
+              <img src="/media/images/file_icon.png" class="file-icon" alt="File Icon">
+              <p class="upload-text">Drag and drop files here</p>
+              <input type="file" name="file" id="fileInput" hidden>
+          </div>
+
+          <div id="file-error" class="error-message" style="display: none"></div>
+
+          <button type="submit" class="submit-button">Submit</button>
+        </form>
+    </div>
+    <footer>
+      <p>
+        <strong>Code Ownership Disclaimer:</strong>  
+        All code submitted through this platform remains the property of the original author. By submitting code, you confirm that you have the rights to the code and grant us permission to process it for evaluation purposes only. We do not claim ownership of any submitted code.
+      </p>
+    </footer>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const allowedExtensions = ["m", "mat"];
+      const fileInput = document.getElementById("fileInput");
+      const dropZone = document.getElementById("dropZone");
+      const errorMessage = document.getElementById("file-error");
+
+      // validate file is matlab
+      function validateFile(file) {
+        const fileExtension = file.name.split(".").pop().toLowerCase();
+        if (!allowedExtensions.includes(fileExtension)) {
+          errorMessage.textContent = "File not supported. Please upload a MATLAB (.mat or .m) file.";
+          errorMessage.style.display = "block";
+          fileInput.value = "";
+          setTimeout(() => (errorMessage.style.display = "none"), 3000);
+          return false;
+        }
+        errorMessage.style.display = "none";
+        return true;
+      }
+
+      // update ui with file uploaded
+      fileInput.addEventListener("change", function () {
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          if (validateFile(file)) {
+            dropZone.innerHTML = `<img src="/media/images/file_icon.png" class="file-icon" alt="File Icon">
+                                  <p class="upload-text">${file.name}</p>`;
+            dropZone.appendChild(fileInput);
+          }
+        }
+      });
+
+      // drag and drop
+      dropZone.addEventListener("click", () => fileInput.click());
+
+      dropZone.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          dropZone.style.background = "#ddd";
+      });
+
+      dropZone.addEventListener("dragleave", () => {
+          dropZone.style.background = "#f1f1f1";
+      });
+    });
+  </script>
+  </body>
+</html>
+
+{% endblock %}
