@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .centered-image {
+            display: block;
+            margin: 0 auto;
+            border: 5px solid black;
+        }
+
+    </style>
+</head>
+{% extends "Webpage_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Sorting</div>
+        <div class="content">
+            <p>The leaderboard page and the view submissions page contains the ability to sort by any of the columns and the sorting can be done either in ascending or descending order.</p>
+            <p>
+                To sort the leaderboard or your submissions, simply select the column you would like to sort by from the drop down menu pictured below while on the leaderboard page
+                and it will automatically be sorted.
+            </p>
+            <img src="/media/images/Sorting.png" alt="Filtering" class="centered-image">
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Username</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .centered-image {
+            display: block;
+            margin: 0 auto;
+            border: 5px solid black;
+        }
+
+        .button-container {
+            text-align: center; 
+            margin-top: 50px;
+        }
+
+        button {
+            padding: 20px 40px; 
+            justify-content: center;
+            font-size: 18px; 
+            cursor: pointer; 
+            border: 2px solid #000;
+            background-color: #20beff;
+            color: white; 
+            border-radius: 10px; 
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+{% extends "Webpage_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Forgot Username</div>
+        <div class="content">
+        <p>
+        In the event that you are unable to recall the username you registered your account with you can click on the button below and input your email.
+        </p>
+        <p>As long as the email you input is registered to an account, your current username will be emailed to you.</p>
+        </div>
+        <div class="button-container">
+            <button onclick="">Get Username</button>
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>

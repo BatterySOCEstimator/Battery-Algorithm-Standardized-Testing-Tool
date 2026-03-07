@@ -1,0 +1,95 @@
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home-Help</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 50px auto 0;
+            padding: 20px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease-in-out;
+        }
+        .section:hover {
+            transform: translateY(-5px);
+        }
+        .main-header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .second-header h2 {
+            font-size: 1.2rem;
+            color: #000000;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: color 0.3s;
+        }
+        .second-header h2:hover {
+            color: #000000;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+{% extends "Intro_Base.html" %}
+<body>
+   {% block title %}Homepage{% endblock %}
+   {% block content %}
+       <div class="container">
+           <div class="section">
+               <div class="main-header">Submitting a Model</div>
+               <div class="second-header">
+                  <h2><a href="/home/help/submission-process" style="text-decoration: none; color: inherit;">Submission Process</a></h2>
+                  <h2><a href="/home/help/valid-files" style="text-decoration: none; color: inherit;">Valid Files</a></h2>
+                  <h2><a href="/home/help/code-ownership" style="text-decoration: none; color: inherit;">Code Ownership</a></h2>
+                  <h2><a href="/home/help/public-private-submission" style="text-decoration: none; color: inherit;">Public Submission vs Private Submission</a></h2>
+               </div>
+           </div>
+
+           <div class="section">
+               <div class="main-header">Account</div>
+               <div class="second-header">
+                   <h2><a href="/home/help/account-verification" style="text-decoration: none; color: inherit;">Account Verification</a></h2>
+                   <h2><a href="/home/help/forgot-password" style="text-decoration: none; color: inherit;">Forgot Password</a></h2>
+               </div>
+           </div>
+
+           <div class="section">
+               <div class="main-header">Leaderboard</div>
+               <div class="second-header">
+                <h2><a href="/home/help/leaderboard-views" style="text-decoration: none; color: inherit;">Condensed vs Detailed Views</a></h2>
+                <h2><a href="/home/help/filtering-leaderboard" style="text-decoration: none; color: inherit;">Filtering</a></h2>
+                <h2><a href="/home/help/sorting" style="text-decoration: none; color: inherit;">Sorting</a></h2>
+                <h2><a href="/home/help/export-csv" style="text-decoration: none; color: inherit;">Exporting CSV</a></h2>
+            </div>
+           </div>
+
+           <div class="section">
+               <div class="main-header">Viewing Submissions</div>
+               <div class="second-header">
+                    <h2><a href="/home/help/submission-statuses" style="text-decoration: none; color: inherit;">Submission Statuses</a></h2>
+                    <h2><a href="/home/help/filtering-submissions" style="text-decoration: none; color: inherit;">Filtering</a></h2>
+                    <h2><a href="/home/help/sorting" style="text-decoration: none; color: inherit;">Sorting</a></h2>
+                    <h2><a href="/home/help/visibility" style="text-decoration: none; color: inherit;">Visibility</a></h2>
+               </div>
+           </div>
+       </div>
+   {% endblock %}
+</body>
+</html>

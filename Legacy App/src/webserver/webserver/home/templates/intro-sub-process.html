@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Process</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .centered-image {
+            display: block;
+            margin: 0 auto;
+            border: 5px solid black;
+            max-width: 100%;
+        }
+
+    </style>
+</head>
+{% extends "Intro_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Submission Process</div>
+        <div class="content">
+            <p>Below you will find the required steps to successfully submit a model to this system.</p>
+            <h3>Step 1:</h3>
+            <p>Create the SOC estimator function that you want to submit to be tested and ensure it is in the form of a .m or .mat file.</p>
+            <img src="/media/images/Submission_process.png" alt="Submission" class="centered-image">
+            <h3>Step 2:</h3>
+            <p>
+                Navigate to the "Submit Model" page and using either drag and drop or selecting the file, upload the .m or .mat file. Create a name for the model in
+                the "Model name" field and select the model type that you are uploading from the "Model Type" drop down menu. Lastly, decide if you would like your submission
+                to be displayed on the leaderboard or not. An example is provided below of a complete submission. 
+            </p>
+            <img src="/media/images/Example.png" alt="Example" class="centered-image">
+            <h3>Step 3:</h3>
+            <p>
+                Navigate to the "View Submissions" page and you will be able to check the status of your submission. Once the tests have been completed, this page will show all of 
+                the results of the submission includng helpful graphs to illustrate these results. 
+            </p>
+            <h3>Step 4:</h3>
+            <p>
+                If during the submission process, the "public" option was chosen, check the leaderboard to see how you rank compared to others that have made a submission.  
+            </p>
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>
