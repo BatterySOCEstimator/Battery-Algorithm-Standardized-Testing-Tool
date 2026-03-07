@@ -67,7 +67,7 @@ const FiltersLabel = styled.div`
   margin-bottom: 8px;
 `;
 
-const Leaderboards = () => {
+const Leaderboards = ({estimatedSOC}) => {
   return (
     <>
       <StyledNavbar />
