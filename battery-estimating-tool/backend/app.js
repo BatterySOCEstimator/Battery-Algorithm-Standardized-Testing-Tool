@@ -228,6 +228,11 @@ app.post("/evaluate", upload.single("model"), (req, res) => {
 
       // Catch JSON parse errors
     } catch (e) {
+      // Clean up temp file on error
+      fs.unlink(modelPath, (err) => {
+        if (err) console.error("Failed to delete temp file:", err);
+      });
+
       res.status(500).json({
         error: "Failed to parse JSON output",
         parseError: e.message,

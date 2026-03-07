@@ -46,9 +46,9 @@ const Banner = () => {
   return (
     <Container>
       <Content>
-        <Title>SOC Estimator Testing Tool</Title>
+        <Title>Benchmark SOC Models Against Industry Standards.</Title>
         <SubTitle>
-          Repository for easy visualization, analysis, and comparison of battery state of charge algorithms across institutions.
+         Upload, evaluate, and rank your State of Charge AI model using standardized datasets and metrics trusted by researchers and industry.
         </SubTitle>
         <BatteryIcon />
       </Content>

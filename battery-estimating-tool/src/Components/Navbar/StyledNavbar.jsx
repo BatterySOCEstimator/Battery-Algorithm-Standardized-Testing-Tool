@@ -31,8 +31,8 @@ const StyledNavbar = () =>{
               </NavDropdown.Item>
             </NavDropdown> */}
           </Nav>
-          <Button href="/registration" variant="outline-success">Register</Button>
-          <Button style={{"marginLeft": "8px"}} href="/login" variant="light">Login</Button>
+          <Button href="/registration" target="_blank" rel="noopener noreferrer" variant="outline-success">Register</Button>
+          <Button style={{"marginLeft": "8px"}} href="/login" target="_blank" rel="noopener noreferrer" variant="light">Login</Button>
 
         </Navbar.Collapse>
       </Container>

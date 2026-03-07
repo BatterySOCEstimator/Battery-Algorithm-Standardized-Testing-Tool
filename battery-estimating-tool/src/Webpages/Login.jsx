@@ -2,7 +2,7 @@ import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import picture from "../assets/images/registrationpage.png"
 
-
+import { Link } from "react-router-dom";
 const Login = () => {
   return (
     <Container
@@ -52,7 +52,7 @@ const Login = () => {
 
               <div className="text-center">
                 <small className="text-muted">
-                   Create an account
+            <Link to="/registration" style={{ color: "inherit", textDecoration: "none" }}>Create an account</Link>
                 </small>
               </div>
             </Form>
