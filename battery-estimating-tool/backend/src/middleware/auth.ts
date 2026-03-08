@@ -13,10 +13,18 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
     // Otherwise attach user to request
     (req as any).user = session.user;
+    next();
   } catch (err) {
-    res.status(401).json({ ok: false, message: "Invalid session" });
+      return res.status(401).json({ ok: false, message: "Invalid session" });
   }
 }
+
+// Check if user is banned
+export const checkBanStatus = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+  if (!user || user.banned == true) return res.status(403).json({ ok: false, message: "Forbidden" });
+  next();
+};
 
 // Checks whether or not a user has a given role
 export const requireRole = (role: string) => {
