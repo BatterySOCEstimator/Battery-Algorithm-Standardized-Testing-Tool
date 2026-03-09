@@ -1,8 +1,4 @@
 import { Request, Response } from "express";
-import { eq } from "drizzle-orm";
-import { auth } from "@/utils/auth"
-import { db } from "@/db"; // your Drizzle instance
-import { user } from "@/db/schema";
 
 /**
  * Dummy controller: return fake user info
