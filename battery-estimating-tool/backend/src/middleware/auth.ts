@@ -1,21 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import { auth } from "@/utils/auth"
 
-export async function requireAuth(req: Request, res: Response, next: NextFunction){
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    const cookieHeader = req.headers.cookie; // Get cookie
 
-    const session = await auth.api.getSession({ headers: { cookie: cookieHeader || "" } }); // Get session from cookie
-  
-    // If user not logged in
+    const session = await auth.api.getSession({
+      headers: new Headers(req.headers as Record<string, string>)
+    });
+
     if (!session?.user) {
       return res.status(401).json({ ok: false, message: "Unauthorized" });
     }
-    // Otherwise attach user to request
     (req as any).user = session.user;
     next();
   } catch (err) {
-      return res.status(401).json({ ok: false, message: "Invalid session" });
+    return res.status(401).json({ ok: false, message: "Invalid session" });
   }
 }
 
