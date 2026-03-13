@@ -75,5 +75,33 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
         .limit(parsedLimit)
         .offset(parsedOffset);
 
-    return res.json({ data, limit: parsedLimit, offset: parsedOffset, order: order, sortBy: sortBy });
+    return res.json({ data, limit: parsedLimit, offset: parsedOffset, order: order, sortBy: sortBy, results: data.length });
+};
+
+
+// Get a model by id
+export const fetchModelData = async (req: Request, res: Response) => {
+  const id  = req.params.id as string;
+
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
+    return res.status(400).json({ error: 'Model ID must be a number' });
+  }
+
+  try {
+    const data = await db
+      .select()
+      .from(models)
+      .where(eq(models.id, parsedId))
+      .limit(1);
+
+    if (data.length === 0) {
+      return res.status(404).json({ error: 'Model not found' });
+    }
+
+    return res.json({ data: data[0] });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 };
