@@ -1,10 +1,14 @@
 import { Router } from "express"; 
-import { fetchLeaderboardData } from "@/controllers/data.controller";
+import { fetchLeaderboardData, fetchModelData } from "@/controllers/data.controller";
 import { requireAuth, checkBanStatus } from "@/middleware/auth";
 
 const router = Router();
 
+// Fetch many models 
 router.get("/fetchLeaderboardData", requireAuth, checkBanStatus, fetchLeaderboardData)
+// Fetch one model
+router.get("/fetchModelData/:id", requireAuth, checkBanStatus, fetchModelData)
+
 // router.post("/fetchVisualizerData", fetchVisualizerData)
 
 export default router;
