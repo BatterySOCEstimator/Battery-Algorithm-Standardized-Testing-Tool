@@ -5,7 +5,7 @@ import { models } from "../db/schema";
 const userId = process.argv[2];
 
 if (!userId) {
-  console.error("❌ Please provide a userId: npx tsx src/utils/seed.ts <userId>");
+  console.error("Please provide a userId: npx tsx src/utils/seed.ts <userId>");
   process.exit(1);
 }
 
@@ -754,7 +754,7 @@ async function seed() {
     .values(seedModels)
     .returning({ id: models.id, name: models.name });
 
-  console.log("✅ Seeded models:");
+  console.log("Seeded models:");
   inserted.forEach((m) => console.log(`  - [${m.id}] ${m.name}`));
 
   console.log("Seed complete.");
@@ -762,6 +762,6 @@ async function seed() {
 }
 
 seed().catch((err) => {
-  console.error("❌ Seed failed:", err);
+  console.error("Seed failed:", err);
   process.exit(1);
 });
