@@ -57,6 +57,13 @@
       "when": 1771571721474,
       "tag": "0007_aromatic_alex_wilder",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773004815736,
+      "tag": "0008_talented_lifeguard",
+      "breakpoints": true
     }
   ]
 }

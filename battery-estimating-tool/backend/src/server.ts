@@ -4,6 +4,8 @@ import cors from "cors";
 
 import authRoutes from "./routes/auth.routes";
 import modelRoutes from "./routes/model.routes"
+import dataRoutes from "./routes/data.routes"
+
 
 const app = express();
 const port = 8000;
@@ -23,7 +25,8 @@ app.use(express.json());
 
 // Mount betterauth routes
 app.use("/api/auth", authRoutes);
-
+// Mount data routes 
+app.use("/api/data", dataRoutes);
 app.use("/api/model", modelRoutes);
 
 app.get("/health", (_req, res) => {
