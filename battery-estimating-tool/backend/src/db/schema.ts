@@ -125,6 +125,10 @@ export const models = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
     modelType: modelTypeEnum('model_type').notNull().default('Not Specified'),
+    filePath: text("file_path").notNull().default(''),
+    status: text("status", { enum: ["pending", "processing", "ready", "error"] })
+      .notNull()
+      .default("pending"),
 
     // DATA 
     alreadyEvaluated: boolean('already_evaluated').default(false), // Has the model been evaluated?

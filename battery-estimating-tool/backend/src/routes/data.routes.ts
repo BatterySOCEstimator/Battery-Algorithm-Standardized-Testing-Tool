@@ -1,6 +1,6 @@
 import { Router } from "express"; 
 import { fetchLeaderboardData, fetchModelData } from "@/controllers/data.controller";
-import { requireAuth, checkBanStatus } from "@/middleware/auth";
+import { requireAuth, checkBanStatus } from "@/middleware/auth.middleware";
 
 const router = Router();
 

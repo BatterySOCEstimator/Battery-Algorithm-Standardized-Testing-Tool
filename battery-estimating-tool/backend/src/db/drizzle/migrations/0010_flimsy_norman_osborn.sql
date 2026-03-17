@@ -1,0 +1,1 @@
+ALTER TABLE "models" ALTER COLUMN "file_path" DROP NOT NULL;

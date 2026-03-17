@@ -2,7 +2,7 @@ import { Router } from "express";
 import authRoutes from "./auth.routes";
 import modelRoutes from "./model.routes";
 import dataRoutes from "./data.routes";
-import { checkBanStatus, requireAuth, requireRole } from "@/middleware/auth"
+import { checkBanStatus, requireAuth, requireRole } from "@/middleware/auth.middleware"
 
 const router = Router();
 
