@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import 'dotenv/config'
+import { config } from '@/config/app.config';
 // File imports
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
@@ -10,21 +11,15 @@ import { models } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Only allow Python and MATLAB files
-const ALLOWED_EXTENSIONS = ['.py', '.m'];
-const ALLOWED_MIMETYPES = [
-  'text/x-python',
-  'text/x-python-script',
-  'application/x-python-code',
-  'text/plain',             // .m files often come through as plain text
-  'application/octet-stream', // fallback for some uploads
-];
+const ALLOWED_EXTENSIONS = config.upload.allowedExtensions;
+const ALLOWED_MIMETYPES = config.upload.allowedMimetypes;
 
 // Configure where and how files are saved on disk
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
     // Pull user and model name to build a scoped upload path
-    const userId = "e61tIWQu45pnJew9tti6zaY5FYIBuK0f" // FOR TESTING
-    // const userId = (req as any).user?.id;
+    // const userId = "e61tIWQu45pnJew9tti6zaY5FYIBuK0f" // FOR TESTING
+    const userId = (req as any).user?.id;
     const modelName = req.body.name;
 
     if (!userId) return cb(new Error('No User found.'), '');
@@ -63,9 +58,9 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCall
 // Multer instance: max 10 files, 1MB each, scoped to the 'files' field name
 const upload = multer({
   storage,
-  limits: { fileSize: 1_000_000 },
+  limits: { fileSize: config.upload.maxFileSizeMb },
   fileFilter,
-}).array('files', 10);
+}).array('files', config.upload.maxFiles);
 
 // Wrap multer so its errors return JSON instead of crashing the request
 export const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -86,7 +81,7 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
 
 export const checkModelNameUnique = async (req: Request, res: Response, next: NextFunction) => {
   const name = req.query.name as string;
-  const userId = (req as any).user?.id ?? 'e61tIWQu45pnJew9tti6zaY5FYIBuK0f';
+  const userId = (req as any).user?.id ?? 'e61tIWQu45pnJew9tti6zaY5FYIBuK0f'; // For testing
 
   if (!name) {
     res.status(400).json({ error: 'Model name is required.' });

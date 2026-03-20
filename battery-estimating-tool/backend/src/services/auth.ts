@@ -3,13 +3,26 @@ import { bearer, admin, username } from "better-auth/plugins"
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db"
 import { user } from "@/db/schema";
+import { sendEmail } from "./email.service";
 
 export const auth = betterAuth({
+    baseURL: process.env.BETTER_AUTH_URL,
+    trustedOrigins: [process.env.REACT_APP_FRONTEND_URL!],
     database: drizzleAdapter(db, {
         provider: "pg",
     }),
+    emailVerification: {
+        sendVerificationEmail: async ({ user, url }) => {
+            console.log("Sending verification email to", user.email, url); // keep until confirmed working
+            void sendEmail(
+                user.email,
+                "Verify your email address",
+                `<p><a href="${url}">Click here to verify</a></p>`
+            );
+        },
+    },
     user: {
-        validate: ({ email, firstName, lastName, academicAffiliation, password }) => {
+        validate: ({ email, username, firstName, lastName, academicAffiliation, password }) => {
             const errors: string[] = [];
 
             // BLOCK DISPOSABLE EMAILS
@@ -28,6 +41,9 @@ export const auth = betterAuth({
             if (!lastName || !nameRegex.test(lastName)) {
                 errors.push("Invalid last name");
             }
+
+            // USERNAME
+            if (!username) errors.push("Username is required");
 
             // PASSWORD
             if (!password) errors.push("Password is required");
@@ -50,17 +66,39 @@ export const auth = betterAuth({
         additionalFields: { // ALLOWS US TO PASS CUSTOM FIELDS INTO USER CREATION
             firstName: { type: "string", required: true, input: true, fieldName: "first_name" },
             lastName: { type: "string", required: true, input: true, fieldName: "last_name" },
-            academicAffiliation: { type: "string", required: true, input: true, fieldName: "academic_affiliation" }
+            academicAffiliation: { type: "string", required: true, input: true, fieldName: "academic_affiliation" },
+            username: { type: "string", required: true, input: true, fieldName: "username" },
         },
     },
     emailAndPassword: {
         enabled: true,
+        requireEmailVerification: true,
+        // Notify existing users when someone tries to re-register with their email
+        onExistingUserSignUp: async ({ user }) => {
+            void sendEmail(
+                user.email,
+                "Sign-up attempt with your email",
+                `<p>Someone tried to register with your email. If this wasn't you, ignore this. If it was, <a href="http://localhost:3000/login">sign in here</a>.</p>`
+            );
+        },
+    },
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (user) => {
+                    console.log("db hook user:", user); // check what fields are here
+                    if (!user.username) {
+                        throw new Error("Username is required");
+                    }
+                },
+            },
+        },
     },
     session: {
         cookieCache: {
             enabled: true,
             maxAge: 5 * 60,
-            strategy: "jwt" 
+            strategy: "jwt"
         }
     },
     plugins: [
@@ -95,4 +133,6 @@ export const auth = betterAuth({
             },
         },
     },
+
+
 });
