@@ -1,7 +1,6 @@
 import { createAuthClient } from "better-auth/client"
 import { inferAdditionalFields, usernameClient } from "better-auth/client/plugins"
-import { auth } from "../../backend/src/utils/auth"
-import { username } from "better-auth/plugins";
+import { auth } from "../../backend/src/services/auth"
 
 // Auth client
 export const authClient = createAuthClient({
@@ -42,7 +41,10 @@ export async function signUp(data: {
         },
         {
             onRequest: (ctx) => console.log("Registering..."),
-            onSuccess: (ctx) => console.log("Registration successful!"),
+            onSuccess: (ctx) => {
+                //window.location.href = "/";
+                console.log("Registration successful!")
+            },
             onError: (ctx) => alert(ctx.error.message),
         }
     );
@@ -61,12 +63,20 @@ export async function login(options: {
             {
                 email,
                 password,
-                callbackURL: "/leaderboards", // redirect after successful login
+                callbackURL: `http://localhost:3000/leaderboards`,
             },
             {
                 onRequest: () => console.log("Logging in..."),
                 onSuccess: () => console.log("Login successful!"),
-                onError: (ctx) => alert(ctx.error.message),
+                onError: (ctx) => {
+                    if (ctx.error.status === 403) {
+                        authClient.signOut();
+                        resendVerificationEmail(email!);
+                        alert("Please verify your email before signing in. Check your inbox.");
+                    } else {
+                        alert(ctx.error.message);
+                    }
+                },
             }
         );
     } else if (username) {
@@ -74,12 +84,20 @@ export async function login(options: {
             {
                 username,
                 password,
-                callbackURL: "/leaderboards",
+                callbackURL: `http://localhost:3000/leaderboards`,
             },
             {
                 onRequest: () => console.log("Logging in..."),
                 onSuccess: () => console.log("Login successful!"),
-                onError: (ctx) => alert(ctx.error.message),
+                onError: (ctx) => {
+                    if (ctx.error.status === 403) {
+                        authClient.signOut();
+                        resendVerificationEmail(email!);
+                        alert("Please verify your email before signing in. Check your inbox.");
+                    } else {
+                        alert(ctx.error.message);
+                    }
+                },
             }
         );
     } else {
@@ -120,4 +138,12 @@ export async function getUserInfo(): Promise<AuthUser | null> {
     } catch {
         return null;
     }
+}
+
+export async function resendVerificationEmail(email: string) {
+    const result = await authClient.sendVerificationEmail({
+        email,
+        callbackURL: "http://localhost:3000/leaderboards",
+    });
+    return result;
 }

@@ -8,4 +8,7 @@ POSTGRES_DB=SOCappdb
 POSTGRES_PORT=5432
 DATABASE_URL=postgresql://SOCappuser:8hG40pDr3mCl85fFa0nkS43@localhost:5432/SOCappdb
 
-UPLOAD_DIR=./uploads/unprocessed
+UPLOAD_DIR=./uploads
+
+GMAIL_USER=aidantest555@gmail.com
+GMAIL_APP_PASSWORD=password_here
