@@ -134,6 +134,7 @@ type AuthUser = Awaited<
 export async function getUserInfo(): Promise<AuthUser | null> {
     try {
         const session = await authClient.getSession();
+        // console.log("session:", session); // FOR TESTING
         return session?.data?.user ?? null;
     } catch {
         return null;
