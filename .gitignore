@@ -29,6 +29,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# Model uploads
+/battery-estimating-tool/backend/uploads/*
+
 # vercel
 .vercel
 
