@@ -14,21 +14,33 @@ import { eq, and } from 'drizzle-orm';
 const ALLOWED_EXTENSIONS = config.upload.allowedExtensions;
 const ALLOWED_MIMETYPES = config.upload.allowedMimetypes;
 
-// Configure where and how files are saved on disk
+
+/**
+ * Multer disk storage configuration.
+ *
+ * Files are saved to `UPLOAD_DIR/{userId}/{modelName}/`.
+ * The directory is created if it does not already exist.
+ *
+ * Requires `req.user.id` (set by auth middleware) and `req.body.name` to be present —
+ * if either is missing, the upload is rejected with an error.
+ *
+ * @remarks
+ * Files are stored using their original filename. If two files with the same name
+ * are uploaded to the same directory, the second will silently overwrite the first.
+ */
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
-    // Pull user and model name to build a scoped upload path
-    // const userId = "e61tIWQu45pnJew9tti6zaY5FYIBuK0f" // FOR TESTING
+
     const userId = (req as any).user?.id;
     const modelName = req.body.name;
 
     if (!userId) return cb(new Error('No User found.'), '');
     if (!modelName) return cb(new Error('Model name is required.'), '');
 
-    // Save files to uploads/unprocessed/{userId}/{modelName}
-    const dir = path.join(process.env.UPLOAD_DIR ?? './uploads', 'unprocessed', userId, modelName);
+    // Save files to uploads/{userId}/{modelName}
+    const dir = path.join(process.env.UPLOAD_DIR ?? './uploads', userId, modelName);
 
-    // Create the directory if it doesn't exist
+    // Create the directory
     try {
       fs.mkdirSync(dir, { recursive: true });
     } catch {
@@ -43,11 +55,14 @@ const storage = multer.diskStorage({
   },
 });
 
-// Reject files that aren't Python or MATLAB
+/**
+ * Multer file filter that only allows Python (`.py`) and MATLAB (`.m`) files.
+ * Validates by file extension first, falling back to MIME type.
+ * Rejects all other file types with an error.
+ */
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   const ext = path.extname(file.originalname).toLowerCase();
 
-  // Check extension first, fall back to MIME type
   if (ALLOWED_EXTENSIONS.includes(ext) || ALLOWED_MIMETYPES.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -55,14 +70,32 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCall
   }
 };
 
-// Multer instance: max 10 files, 1MB each, scoped to the 'files' field name
+/**
+ * Configured Multer instance.
+ * - Accepts up to `config.upload.maxFiles` files per request under the `files` field.
+ * - Enforces a per-file size limit of `config.upload.maxFileSizeMb`.
+ * - Applies {@link fileFilter} to reject non-Python/MATLAB files.
+ */
 const upload = multer({
   storage,
   limits: { fileSize: config.upload.maxFileSizeMb },
   fileFilter,
 }).array('files', config.upload.maxFiles);
 
-// Wrap multer so its errors return JSON instead of crashing the request
+/**
+ * Middleware that handles multipart file uploads via Multer.
+ *
+ * Wraps the Multer `upload` handler to ensure all errors — both Multer-specific
+ * and custom errors from `fileFilter` and `destination` — are returned as JSON
+ * rather than crashing the request.
+ *
+ * @param req - Express request object.
+ * @param res - Express response object.
+ * @param next - Express next function, called if the upload succeeds.
+ *
+ * @throws {400} If a Multer error occurs (e.g. file too large, unexpected field).
+ * @throws {400} If a custom error occurs (e.g. invalid file type, missing user or model name).
+ */
 export const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
   upload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
@@ -79,25 +112,58 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
   });
 };
 
+/**
+ * Middleware that ensures a model name is unique per user before proceeding.
+ *
+ * Queries the database to check whether the authenticated user already owns a model
+ * with the given name. If a duplicate is found, the request is terminated with a 409.
+ *
+ * Expects `req.user` to be populated — apply {@link requireAuth} before this middleware.
+ *
+ * @param req - Express request object. Expects:
+ *   - `req.query.name` — The model name to check (required).
+ *   - `req.user.id` — ID of the authenticated user (set by auth middleware).
+ * @param res - Express response object used to return errors.
+ * @param next - Express next function, called if the model name is available.
+ *
+ * @throws {400} If `name` is not provided.
+ * @throws {401} If `req.user.id` is missing.
+ * @throws {409} If a model with the given name already exists for this user.
+ * @throws {500} If the database query fails.
+ */
 export const checkModelNameUnique = async (req: Request, res: Response, next: NextFunction) => {
-  const name = req.query.name as string;
-  const userId = (req as any).user?.id ?? 'e61tIWQu45pnJew9tti6zaY5FYIBuK0f'; // For testing
+    const userId = (req as any).user?.id;
 
-  if (!name) {
-    res.status(400).json({ error: 'Model name is required.' });
-    return;
-  }
+    // Check if there is a userId
+    if (!userId) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
 
-  const existing = await db
-    .select()
-    .from(models)
-    .where(and(eq(models.name, name), eq(models.userId, userId)))
-    .limit(1);
+    const name = req.query.name as string;
 
-  if (existing.length > 0) {
-    res.status(409).json({ error: `A model named "${name}" already exists.` });
-    return;
-  }
+    // Check if there is a name
+    if (!name) {
+        res.status(400).json({ error: 'Model name is required.' });
+        return;
+    }
 
-  next();
+    try {
+        const existing = await db
+            .select()
+            .from(models)
+            .where(and(eq(models.name, name), eq(models.userId, userId)))
+            .limit(1);
+
+        // If a result is returned, then there is already a name with 
+        if (existing.length > 0) {
+            res.status(409).json({ error: `A model named "${name}" already exists.` });
+            return;
+        }
+
+        next();
+    } catch (err) {
+        console.error('[checkModelNameUnique]', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 };
