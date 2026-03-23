@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { auth } from "@/utils/auth"
+import { auth } from "@/services/auth"
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
