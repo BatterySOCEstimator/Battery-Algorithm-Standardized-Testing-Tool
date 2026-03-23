@@ -115,23 +115,31 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
 /**
  * Middleware that ensures a model name is unique per user before proceeding.
  *
- * Queries the database to check whether the authenticated user already owns a model
- * with the given name. If a duplicate is found, the request is terminated with a 409.
+ * Must be applied BEFORE {@link uploadMiddleware} so that files are only written
+ * to disk if the name passes the uniqueness check.
  *
  * Expects `req.user` to be populated — apply {@link requireAuth} before this middleware.
  *
  * @param req - Express request object. Expects:
- *   - `req.query.name` — The model name to check (required).
+ *   - `req.query.name` — The model name to check (required query parameter).
+ *     Must match the `name` field sent in the multipart form body so that the
+ *     uniqueness check and the saved file path stay in sync.
  *   - `req.user.id` — ID of the authenticated user (set by auth middleware).
  * @param res - Express response object used to return errors.
- * @param next - Express next function, called if the model name is available.
+ * @param next - Express next function, called only if the name is unique.
  *
- * @throws {400} If `name` is not provided.
+ * @throws {400} If `name` query parameter is not provided.
  * @throws {401} If `req.user.id` is missing.
  * @throws {409} If a model with the given name already exists for this user.
  * @throws {500} If the database query fails.
+ *
+ * @example
+ * // Name must be passed as a query param before the multipart body:
+ * POST /api/model/upload?name=MyModel
  */
 export const checkModelNameUnique = async (req: Request, res: Response, next: NextFunction) => {
+    console.log('[checkModelNameUnique] query:', req.query);
+    console.log('[checkModelNameUnique] body:', req.body);
     const userId = (req as any).user?.id;
 
     // Check if there is a userId
