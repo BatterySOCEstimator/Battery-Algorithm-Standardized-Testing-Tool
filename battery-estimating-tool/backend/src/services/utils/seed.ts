@@ -1,11 +1,21 @@
+/**
+ * Seed script - populates the models table with realistic test data.
+ *
+ * Usage: npx tsx src/utils/seed.ts <userId>
+ *
+ * @remarks
+ * Requires a valid userId from the users table (e.g. a Better Auth user ID).
+ * Safe to re-run, but will insert duplicates if models with the same name already exist.
+ * Not intended for production use.
+ */
 import "dotenv/config";
-import { db } from "../db/index";
-import { models } from "../db/schema";
+import { db } from "@/db/index";
+import { models } from "@/db/schema";
 
 const userId = process.argv[2];
 
 if (!userId) {
-  console.error("Please provide a userId: npx tsx src/utils/seed.ts <userId>");
+  console.error("Please provide a userId: npx tsx src/services/utils/seed.ts <userId>");
   process.exit(1);
 }
 
@@ -801,6 +811,7 @@ async function seed() {
   const inserted = await db
     .insert(models)
     .values(seedModels)
+    .onConflictDoNothing()
     .returning({ id: models.id, name: models.name });
 
   console.log("Seeded models:");

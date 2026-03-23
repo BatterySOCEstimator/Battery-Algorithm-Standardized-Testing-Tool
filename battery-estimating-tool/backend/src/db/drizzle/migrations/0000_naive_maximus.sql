@@ -1,3 +1,4 @@
+CREATE TYPE "public"."model_type" AS ENUM('Machine Learning', 'Kalman Filter', 'Extended Kalman Filter', 'Other Kalman Filter', 'FNN', 'LSTM', 'GRU', 'NARX', 'Transformer', 'Other Neural Network', 'Coulomb Counter', 'Hybrid Model', 'Not Specified');--> statement-breakpoint
 CREATE TABLE "account" (
 	"id" text PRIMARY KEY NOT NULL,
 	"account_id" text NOT NULL,
@@ -21,7 +22,33 @@ CREATE TABLE "models" (
 	"isPrivate" boolean DEFAULT true NOT NULL,
 	"owner_user_id" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"model_type" "model_type" DEFAULT 'Not Specified' NOT NULL,
+	"file_path" text DEFAULT '' NOT NULL,
+	"status" text DEFAULT 'pending' NOT NULL,
+	"already_evaluated" boolean DEFAULT false,
+	"weighted_error" double precision,
+	"all_cells" double precision,
+	"blind_cells" double precision,
+	"non_blinded_cells" double precision,
+	"charging" double precision,
+	"payload_80kg" double precision,
+	"payload_448kg_with_hvac" double precision,
+	"payload_448kg_no_hvac" double precision,
+	"payload_1000kg" double precision,
+	"standard_cycles" double precision,
+	"custom_cycles" double precision,
+	"n20c" double precision,
+	"n10c" double precision,
+	"0c" double precision,
+	"10c" double precision,
+	"25c" double precision,
+	"40c" double precision,
+	"isoc_error" double precision,
+	"current_sensor_error" double precision,
+	"all_drive_cycles_avg_rmse" double precision,
+	"all_drive_cycles_avg_mae" double precision,
+	"all_drive_cycles_avg_maxe" double precision
 );
 --> statement-breakpoint
 CREATE TABLE "session" (
@@ -33,6 +60,7 @@ CREATE TABLE "session" (
 	"ip_address" text,
 	"user_agent" text,
 	"user_id" text NOT NULL,
+	"impersonated_by" text,
 	CONSTRAINT "session_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
@@ -44,7 +72,17 @@ CREATE TABLE "user" (
 	"image" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "user_email_unique" UNIQUE("email")
+	"role" text,
+	"banned" boolean DEFAULT false,
+	"ban_reason" text,
+	"ban_expires" timestamp,
+	"username" text,
+	"display_username" text,
+	"first_name" text NOT NULL,
+	"last_name" text NOT NULL,
+	"academic_affiliation" text NOT NULL,
+	CONSTRAINT "user_email_unique" UNIQUE("email"),
+	CONSTRAINT "user_username_unique" UNIQUE("username")
 );
 --> statement-breakpoint
 CREATE TABLE "verification" (
