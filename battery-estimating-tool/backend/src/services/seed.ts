@@ -5,7 +5,7 @@ import { models } from "../db/schema";
 const userId = process.argv[2];
 
 if (!userId) {
-  console.error("❌ Please provide a userId: npx tsx src/utils/seed.ts <userId>");
+  console.error("Please provide a userId: npx tsx src/utils/seed.ts <userId>");
   process.exit(1);
 }
 
@@ -13,6 +13,7 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
   return [
     {
       name: "EKF Battery SOC Estimator",
+      filePath: "./uploads/test",
       description: "Extended Kalman Filter model for accurate state-of-charge estimation in Li-ion cells under varying temperature conditions.",
       isPrivate: false,
       userId,
@@ -43,6 +44,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "EKF-UKF Dual Estimator",
+      filePath: "./uploads/test",
+
       description: "Extended Kalman Filter with unscented transform augmentation for improved nonlinear SOC estimation.",
       isPrivate: false,
       userId,
@@ -73,6 +76,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Adaptive EKF v3",
+      filePath: "./uploads/test",
+
       description: "Adaptive noise covariance Extended Kalman Filter with online parameter tuning for battery SOC.",
       isPrivate: false,
       userId,
@@ -103,6 +108,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "LSTM SOC Predictor v2",
+      filePath: "./uploads/test",
+
       description: "Long Short-Term Memory neural network trained on multi-cycle drive data for robust SOC prediction.",
       isPrivate: false,
       userId,
@@ -133,6 +140,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Bidirectional LSTM SOC",
+      filePath: "./uploads/test",
+
       description: "Bidirectional LSTM architecture for SOC estimation leveraging both past and future sequence context.",
       isPrivate: false,
       userId,
@@ -163,6 +172,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Stacked LSTM Deep Estimator",
+      filePath: "./uploads/test",
+
       description: "Three-layer stacked LSTM network for deep temporal feature extraction in battery SOC estimation.",
       isPrivate: false,
       userId,
@@ -193,6 +204,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "GRU Hybrid SOC Model",
+      filePath: "./uploads/test",
+
       description: "Gated Recurrent Unit combined with physics-based Coulomb counting for hybrid SOC estimation.",
       isPrivate: false,
       userId,
@@ -223,6 +236,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Lightweight GRU Edge Model",
+      filePath: "./uploads/test",
+
       description: "Compact GRU architecture optimized for embedded BMS deployment with minimal memory footprint.",
       isPrivate: false,
       userId,
@@ -253,6 +268,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Deep GRU Attention Model",
+      filePath: "./uploads/test",
+
       description: "GRU network augmented with self-attention mechanism for improved long-range dependency modeling.",
       isPrivate: false,
       userId,
@@ -283,6 +300,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Transformer SOC Network",
+      filePath: "./uploads/test",
+
       description: "Attention-based Transformer model for sequence-to-sequence SOC estimation across diverse drive cycles.",
       isPrivate: false,
       userId,
@@ -340,6 +359,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 1.42,
       allDriveCyclesAvgMae: 1.15,
       allDriveCyclesAvgMaxe: 3.50,
+      filePath: "./uploads/test",
+
     },
     {
       name: "Lightweight Transformer SOC",
@@ -370,6 +391,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 1.80,
       allDriveCyclesAvgMae: 1.45,
       allDriveCyclesAvgMaxe: 4.40,
+      filePath: "./uploads/test",
+
     },
     {
       name: "Coulomb Counter Baseline",
@@ -400,6 +423,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 4.55,
       allDriveCyclesAvgMae: 3.90,
       allDriveCyclesAvgMaxe: 10.20,
+      filePath: "./uploads/test",
+
     },
     {
       name: "Coulomb Counter with OCV Correction",
@@ -430,6 +455,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 3.78,
       allDriveCyclesAvgMae: 3.20,
       allDriveCyclesAvgMaxe: 8.80,
+      filePath: "./uploads/test",
+
     },
     {
       name: "NARX Recurrent Estimator",
@@ -438,6 +465,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       userId,
       modelType: "NARX",
       alreadyEvaluated: false,
+      filePath: "./uploads/test",
+
     },
     {
       name: "NARX Temperature-Aware Model",
@@ -468,6 +497,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 2.30,
       allDriveCyclesAvgMae: 1.88,
       allDriveCyclesAvgMaxe: 5.55,
+      filePath: "./uploads/test",
+
     },
     {
       name: "Deep NARX with Regularization",
@@ -498,6 +529,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 2.08,
       allDriveCyclesAvgMae: 1.70,
       allDriveCyclesAvgMaxe: 5.05,
+      filePath: "./uploads/test",
+
     },
     {
       name: "FNN Quick Estimator",
@@ -528,6 +561,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 2.95,
       allDriveCyclesAvgMae: 2.45,
       allDriveCyclesAvgMaxe: 6.80,
+      filePath: "./uploads/test",
+
     },
     {
       name: "Deep FNN SOC Estimator",
@@ -558,6 +593,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 2.58,
       allDriveCyclesAvgMae: 2.12,
       allDriveCyclesAvgMaxe: 6.10,
+      filePath: "./uploads/test",
+
     },
     {
       name: "FNN Ensemble SOC Model",
@@ -588,6 +625,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 2.32,
       allDriveCyclesAvgMae: 1.90,
       allDriveCyclesAvgMaxe: 5.60,
+      filePath: "./uploads/test",
+
     },
     {
       name: "Hybrid EKF-LSTM",
@@ -618,9 +657,13 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgRmse: 1.62,
       allDriveCyclesAvgMae: 1.32,
       allDriveCyclesAvgMaxe: 3.95,
+      filePath: "./uploads/test",
+
     },
     {
       name: "Physics-Informed Neural Hybrid",
+      filePath: "./uploads/test",
+
       description: "Hybrid model combining electrochemical single-particle model constraints with deep learning corrections.",
       isPrivate: false,
       userId,
@@ -651,6 +694,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "KF-GRU Cascaded Hybrid",
+      filePath: "./uploads/test",
+
       description: "Cascaded architecture where Kalman Filter pre-filters noisy measurements before GRU refinement.",
       isPrivate: false,
       userId,
@@ -681,6 +726,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Standard Kalman SOC Filter",
+      filePath: "./uploads/test",
+
       description: "Classic linear Kalman Filter for SOC estimation with simplified battery equivalent circuit model.",
       isPrivate: false,
       userId,
@@ -711,6 +758,8 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
     },
     {
       name: "Dual Kalman Filter Estimator",
+      filePath: "./uploads/test",
+
       description: "Dual Kalman Filter simultaneously estimating SOC and battery model parameters for adaptive performance.",
       isPrivate: false,
       userId,
@@ -754,7 +803,7 @@ async function seed() {
     .values(seedModels)
     .returning({ id: models.id, name: models.name });
 
-  console.log("✅ Seeded models:");
+  console.log("Seeded models:");
   inserted.forEach((m) => console.log(`  - [${m.id}] ${m.name}`));
 
   console.log("Seed complete.");
@@ -762,6 +811,6 @@ async function seed() {
 }
 
 seed().catch((err) => {
-  console.error("❌ Seed failed:", err);
+  console.error("Seed failed:", err);
   process.exit(1);
 });
