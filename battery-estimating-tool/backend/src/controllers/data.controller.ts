@@ -3,6 +3,7 @@ import { db } from '../db';
 import { models } from '../db/schema';
 import { asc, desc, eq, and, ilike, gte, lte, SQL } from 'drizzle-orm';
 import { modelTypeEnum } from '@/db/schema';
+import { logger } from '@/services/logger.service';
 
 type ModelType = typeof modelTypeEnum.enumValues[number];
 const VALID_MODEL_TYPES = modelTypeEnum.enumValues;
@@ -72,27 +73,33 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
         modelType,
     } = req.query as Record<string, string>;
 
+    const userId = (req as any).user?.id;
+
     // Clamp limit to 0-100
     const parsedLimit = Math.min(Math.max(parseInt(limit), 1), 100);
     // Parse offset
     const parsedOffset = Math.max(parseInt(offset), 0);
     // Check if NaN
     if (isNaN(parsedLimit) || isNaN(parsedOffset)) {
+        logger.warn('data/leaderboard - Invalid pagination params', { limit, offset, ip: req.ip, userId });
         return res.status(400).json({ error: 'limit and offset must be valid numbers' });
     }
 
     // Check if valid order
     if (order !== 'asc' && order !== 'desc') {
+        logger.warn('data/leaderboard - Invalid order param', { order, ip: req.ip, userId });
         return res.status(400).json({ error: 'Order must be either asc or desc' });
     }
 
     // Check if sortBy is valid
     if (!SORTABLE_COLUMNS.includes(sortBy as SortableColumn)) {
+        logger.warn('data/leaderboard - Invalid sortBy param', { sortBy, ip: req.ip, userId });
         return res.status(400).json({ error: `SortBy must be one of: ${SORTABLE_COLUMNS.join(', ')}` });
     }
 
     // Check if name is <100 characters
     if (name !== undefined && name.length > 100) {
+        logger.warn('data/leaderboard - name filter too long', { nameLength: name.length, ip: req.ip, userId });
         return res.status(400).json({ error: 'name must be 100 characters or fewer' });
     }
 
@@ -103,6 +110,7 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
     if (dateFrom !== undefined) {
         parsedDateFrom = new Date(dateFrom);
         if (isNaN(parsedDateFrom.getTime())) {
+            logger.warn('data/leaderboard - Invalid dateFrom', { dateFrom, ip: req.ip, userId });
             return res.status(400).json({ error: 'dateFrom must be a valid ISO date string' });
         }
     }
@@ -110,17 +118,20 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
     if (dateTo !== undefined) {
         parsedDateTo = new Date(dateTo);
         if (isNaN(parsedDateTo.getTime())) {
+            logger.warn('data/leaderboard - Invalid dateTo', { dateTo, ip: req.ip, userId });
             return res.status(400).json({ error: 'dateTo must be a valid ISO date string' });
         }
     }
 
     // Check if dates are valid range
     if (parsedDateFrom && parsedDateTo && parsedDateFrom > parsedDateTo) {
+        logger.warn('data/leaderboard - Invalid date range', { dateFrom, dateTo, ip: req.ip, userId });
         return res.status(400).json({ error: 'dateFrom must be before dateTo' });
     }
 
     // Check if valid model type 
     if (modelType !== undefined && !VALID_MODEL_TYPES.includes(modelType as ModelType)) {
+        logger.warn('data/leaderboard - Invalid modelType', { modelType, ip: req.ip, userId });
         return res.status(400).json({ error: `modelType must be one of: ${VALID_MODEL_TYPES.join(', ')}` });
     }
 
@@ -149,9 +160,10 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
             .limit(parsedLimit)
             .offset(parsedOffset);
 
+        logger.info('data/leaderboard - Query successful', { results: data.length, filters: { name, modelType, dateFrom, dateTo }, sortBy, order, limit: parsedLimit, offset: parsedOffset, userId });
         return res.json({ data, limit: parsedLimit, offset: parsedOffset, order, sortBy, results: data.length });
     } catch (err) {
-        console.error('[fetchLeaderboardData]', err);
+        logger.error('data/leaderboard - DB query failed', { err, ip: req.ip, userId });
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -168,14 +180,19 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
  * - `data`: The model object matching the given ID.
  *
  * @throws {400} If `id` is not a valid number.
+ * @throws {403} If a model exists, but `isPrivate==true` and it is not owned by the user
  * @throws {404} If no model exists with the given ID.
  * @throws {500} If an unexpected database error occurs.
  */
 export const fetchModelData = async (req: Request, res: Response) => {
     const id = req.params.id as string;
 
+    const userId = (req as any).user?.id;
+
+
     const parsedId = parseInt(id);
     if (isNaN(parsedId)) {
+        logger.warn('data/model - Invalid model ID', { id, ip: req.ip, userId });
         return res.status(400).json({ error: 'Model ID must be a number' });
     }
 
@@ -187,12 +204,21 @@ export const fetchModelData = async (req: Request, res: Response) => {
             .limit(1);
 
         if (data.length === 0) {
+            logger.warn('data/model - Model not found', { modelId: parsedId, ip: req.ip, userId });
             return res.status(404).json({ error: 'Model not found' });
         }
 
-        return res.json({ data: data[0] });
+        const model = data[0];
+
+        // If model is private, only the owner can view it
+        if (model.isPrivate && model.userId !== userId) {
+            logger.warn('data/model - Unauthorized access to private model', { modelId: parsedId, ip: req.ip, userId });
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+
+        return res.json({ data: model });
     } catch (err) {
-        console.error(err);
+        logger.error('data/model - DB query failed', { err, modelId: parsedId, ip: req.ip, userId });
         return res.status(500).json({ error: 'Internal server error' });
     }
 };

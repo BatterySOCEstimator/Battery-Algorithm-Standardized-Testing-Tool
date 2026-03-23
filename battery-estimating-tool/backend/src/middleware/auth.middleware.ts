@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { auth } from "@/services/auth"
+import { logger } from "@/services/logger.service";
+
 
 /**
  * Middleware that enforces authentication by validating the session from the request headers.
@@ -33,6 +35,12 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     (req as any).user = session.user;
     next();
   } catch (err) {
+    logger.error('Session validation failed', {
+      ip: req.ip,
+      method: req.method,
+      path: req.path,
+      err,
+    });
     return res.status(401).json({ ok: false, message: "Invalid session" });
   }
 }
@@ -53,7 +61,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
  */
 export const checkBanStatus = (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
-  if (!user || user.banned === true) return res.status(403).json({ ok: false, message: "Forbidden" });
+  if (!user || user.banned === true) {
+    logger.warn('Banned user detected', {
+      ip: req.ip,
+      userId: user.id,
+      method: req.method,
+      path: req.path,
+    });
+    return res.status(403).json({ ok: false, message: "Forbidden" });
+  }
   next();
 };
 
@@ -78,7 +94,15 @@ export const checkBanStatus = (req: Request, res: Response, next: NextFunction) 
 export const requireRole = (role: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
-    if (!user || user.role !== role) return res.status(403).json({ ok: false, message: "Forbidden" });
+    if (!user || user.role !== role) {
+      logger.warn('Role validation failed', {
+        ip: req.ip,
+        userId: user.id,
+        method: req.method,
+        path: req.path,
+      });
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
     next();
   };
 }
@@ -101,7 +125,15 @@ export const requireRole = (role: string) => {
 export const verifyUserById = (id: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
-    if (!user || user.id !== id) return res.status(403).json({ ok: false, message: "Forbidden" });
+    if (!user || user.id !== id) {
+      logger.warn('User verification by ID failed', {
+        ip: req.ip,
+        userId: user.id,
+        method: req.method,
+        path: req.path,
+      });
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
     next();
   };
 }

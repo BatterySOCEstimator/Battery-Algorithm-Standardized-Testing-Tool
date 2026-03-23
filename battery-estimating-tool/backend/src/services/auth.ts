@@ -3,6 +3,7 @@ import { bearer, admin, username } from "better-auth/plugins"
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db"
 import { sendEmail } from "./email.service";
+import { logger } from "@/services/logger.service";
 
 if (!process.env.BETTER_AUTH_URL) throw new Error("BETTER_AUTH_URL is not set");
 if (!process.env.REACT_APP_FRONTEND_URL) throw new Error("REACT_APP_FRONTEND_URL is not set");
@@ -167,6 +168,14 @@ export const auth = betterAuth({
             usernameNormalization: (username) => username.toLowerCase(),
         }),
     ],
+
+    logger: {
+        disabled: false,
+        level: "debug", // "debug" | "info" | "warn" | "error"
+        log: (level, message, ...args) => {
+            logger[level](`[Better Auth] ${message}`, ...args);
+        },
+    },
 
     // RATE LIMITING
     rateLimit: {

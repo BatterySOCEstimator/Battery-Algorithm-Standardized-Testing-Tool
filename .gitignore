@@ -32,6 +32,9 @@ yarn-error.log*
 # Model uploads
 /battery-estimating-tool/backend/uploads/*
 
+# Logs
+/battery-estimating-tool/backend/logs/*
+
 # vercel
 .vercel
 

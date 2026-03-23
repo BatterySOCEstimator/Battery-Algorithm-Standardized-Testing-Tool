@@ -5,6 +5,7 @@ import { db } from '../db';
 import { models, modelTypeEnum } from '../db/schema';
 import { and, eq } from 'drizzle-orm';
 import { sendEmail } from '@/services/email.service';
+import { logger } from '@/services/logger.service';
 
 /**
  * Handles model file upload and registers the model in the database.
@@ -57,6 +58,7 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
 
   // Check if there is a userId
   if (!userId) {
+    logger.warn('model/upload - Unauthorized request', { ip: req.ip, method: req.method, path: req.path });
     res.status(401).json({ error: 'uploadModel: Unauthorized. No userId attached to request' });
     return;
   }
@@ -66,12 +68,14 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
   type ModelType = typeof modelTypeEnum.enumValues[number];
 
   if (modelType && !VALID_MODEL_TYPES.includes(modelType as ModelType)) {
+    logger.warn('model/upload - Invalid modelType', { modelType, userId, ip: req.ip });
     res.status(400).json({ error: `modelType must be one of: ${VALID_MODEL_TYPES.join(', ')}` });
     return;
   }
 
   // Check if name and description are provided 
   if (!name || !description) {
+    logger.warn('model/upload - Missing required fields', { name, description, userId, ip: req.ip });
     res.status(400).json({ error: 'name and description are required.' });
     return;
   }
@@ -104,13 +108,14 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
       );
     }
 
+    logger.info('model/upload - Model uploaded successfully', { modelId: model.id, modelName: name, userId, fileCount: files.length });
     res.status(201).json({
       message: 'Model uploaded successfully.',
       model,
       files: files.map(f => ({ name: f.originalname, size: f.size })),
     });
   } catch (err) {
-    console.error('DB insert failed:', err);
+    logger.error('model/upload - DB insert failed', { err, userId, modelName: name, ip: req.ip });
 
     // Send error email
     if (userEmail) {
@@ -158,6 +163,7 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
 
   // Validate userId
   if (!userId) {
+    logger.warn('model/delete - Unauthorized request', { ip: req.ip, method: req.method, path: req.path });
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
@@ -165,6 +171,7 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
   // Parse and validate id
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) {
+    logger.warn('model/delete - Invalid model ID', { id: req.params.id, userId, ip: req.ip });
     res.status(400).json({ error: 'Invalid model ID.' });
     return;
   }
@@ -178,6 +185,7 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
 
   // If no model found
   if (!model) {
+    logger.warn('model/delete - Model not found', { modelId: id, userId, ip: req.ip });
     res.status(404).json({ error: 'Model not found.' });
     return;
   }
@@ -190,7 +198,7 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
   const resolvedFilePath = path.resolve(model.filePath);
 
   if (!resolvedFilePath.startsWith(expectedBase)) {
-    console.error(`Suspicious filePath detected: ${model.filePath}`);
+    logger.warn('model/delete - Suspicious filePath detected', { filePath: model.filePath, expectedBase, userId, ip: req.ip });
     res.status(500).json({ error: 'Invalid model file path.' });
     return;
   }
@@ -213,15 +221,16 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
       );
     }
 
+    logger.info('model/delete - Model deleted successfully', { modelId: id, modelName: name, userId });
     res.status(200).json({ message: 'Model deleted successfully.' });
   } catch (err) {
-    console.error('Delete model failed:', err);
+    logger.error('model/delete - Failed to delete model', { err, modelId: id, modelName: name, userId, ip: req.ip });
 
     // Send failure email
     if (userEmail) {
       void sendEmail(
         userEmail,
-        'Model deletion failed', 
+        'Model deletion failed',
         `<p>An error occurred while deleting your model <strong>${name}</strong>.</p>`
       );
     }
