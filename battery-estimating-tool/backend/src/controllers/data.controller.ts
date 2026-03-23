@@ -22,7 +22,7 @@ const SORTABLE_COLUMNS = [
 type SortableColumn = typeof SORTABLE_COLUMNS[number];
 
 /**
- * Fetches leaderboard data with pagination, sorting, and optional filtering (Not implemented yet).
+ * Fetches leaderboard data with pagination, sorting, and optional filtering.
  *
  * This endpoint queries the `models` table and returns publicly visible,
  * already-evaluated models. Results can be paginated, sorted, and filtered
