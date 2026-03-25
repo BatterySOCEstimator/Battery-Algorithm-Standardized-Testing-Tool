@@ -8,11 +8,10 @@ import Submissions from './Webpages/Submissions';
 import SubmitModel from './Webpages/SubmitModel';
 import Login from './Webpages/Login';
 import ModelComparison from './Webpages/ModelComparison';
-
+import LoginError from './Webpages/LoginError';
 const AppRouter = () => {
   // Lifted state here
   const [estimatedSOC, setEstimatedSOC] = useState([]);
-
   return (
     <Router>
       <Routes>
@@ -24,6 +23,8 @@ const AppRouter = () => {
         <Route path="/submit-model" element={<SubmitModel estimatedSOC={estimatedSOC} setEstimatedSOC={setEstimatedSOC}/>} />
         <Route path="/model-comparison" element={<ModelComparison estimatedSOC={estimatedSOC} setEstimatedSOC={setEstimatedSOC} />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/login-error" element={<LoginError />} />
+
       </Routes>
     </Router>
   );
