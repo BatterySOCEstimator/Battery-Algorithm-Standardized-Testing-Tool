@@ -7,18 +7,20 @@ const router = Router();
 
 
 router.post('/upload',
-    requireAuth,         // Require authentication -- may need to comment out for testing
-    checkBanStatus,      // Check if user is banned -- may need to comment out for testing
+    requireAuth,            // Require authentication -- may need to comment out for testing
+    checkBanStatus,         // Check if user is banned -- may need to comment out for testing
     checkModelNameUnique,   // Check if name is unique 
     uploadMiddleware,       // Check if valid file types 
-    uploadModel);   
+    uploadModel             // Actual controller function
+);
 
-// router.get("/retrieve", retrieve)
-// router.post("/modify", modify)
 router.delete("/delete/:id", 
     requireAuth,         // Require authentication -- may need to comment out for testing
     checkBanStatus,      // Check if user is banned -- may need to comment out for testing
-    deleteModel)
+    deleteModel          // Actual controller function
+);
+
+//router.get("/download")
 
 router.get("/test", requireAuth, checkBanStatus, test)
 
