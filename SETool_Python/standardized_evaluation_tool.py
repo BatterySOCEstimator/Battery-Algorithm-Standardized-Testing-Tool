@@ -83,7 +83,7 @@ def main():
         _fail(f"Submission path does not exist or is not a directory: {submission_path}")
         
     # Locate the zip file
-    zip_files = glob.glob(os.path.join(submission_path, "*.zip")) # bru2 - path to zip file
+    zip_files = glob.glob(os.path.join(submission_path, "*.zip"))
     if not zip_files:
         _fail(f"No .zip file found in submission directory: {submission_path}")
     if len(zip_files) > 1:
@@ -98,10 +98,6 @@ def main():
     rootfolder = os.path.dirname(os.path.abspath(__file__))
     processing_folder = os.path.join(submission_path, "_processing")
     os.makedirs(processing_folder, exist_ok=True)  # Temporary working folder for extraction / figures
-    
-    # Remove leftover .png files - bru2, dk if i'll need this?
-    # for png_file in glob.glob("*.png"):
-    #     os.remove(png_file)
 
     config = Config() # Set variables and settings configuration
     
@@ -126,7 +122,7 @@ def main():
         if os.path.exists(processing_folder):
             shutil.rmtree(processing_folder)
     
-    # Emit result JSON to stdout - bru2 - might change this?
+    # Emit result JSON to stdout
     _print_result(result)
     if result.get("error"):
         sys.exit(1)

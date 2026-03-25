@@ -138,13 +138,13 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config):
     create_summary_barplot(rmse_results, config.tests, processing_folder)
     
     # Determine ranking score and weightings
-    scores = calculate_scores(rmse_results, mean_rmse_temp, rmse_soc_weighted, # bru2: USE THIS FOR RANKING
+    scores = calculate_scores(rmse_results, mean_rmse_temp, rmse_soc_weighted,
                              rmse_sens_offset_relevant)
     
     # Load table of ranking scores and weightings
     weighted_score = create_weighted_score_table(config.tests_weighted, 
                                                   config.weights, scores)
-    final_score = np.sum(weighted_score['Weighted_Value']) # - bru2: wrap in float()?
+    final_score = np.sum(weighted_score['Weighted_Value'])
     
     print(f"Final weighted score: {final_score:.4f}", file=sys.stderr)
     
@@ -164,11 +164,15 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config):
     
     print(f"Results written to: {results_zip_path}", file=sys.stderr)
     
-    return { # - bru2, prob need this for ranking
+    return {
         "error": False,
         "results_path": os.path.abspath(results_zip_path),
-        "final_score": round(final_score, 4),
-        "complexity": complexity,
+        "Weighted_Error": round(final_score, 3),
+        "Test_Scores": [round(score, 3) for score in scores],
+        "All_Drive_Cycles_Average_RMSE": round(rmse_results[0], 3),
+        "All_Drive_Cycles_Average_MAE": round(np.mean(mae[mae != 0]), 3),
+        "All_Drive_Cycles_Average_MAXE": round(np.mean(maxe[maxe != 0]), 3),
+        "Complexity": complexity,
     }
 
 
