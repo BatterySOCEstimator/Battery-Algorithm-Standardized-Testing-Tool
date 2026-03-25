@@ -7,8 +7,11 @@ import { checkBanStatus, requireAuth, requireRole } from "@/middleware/auth.midd
 const router = Router();
 
 // Routes
-router.use("/user", authRoutes);
+router.use("/user", authRoutes); 
+
+// For uploading/deleting models
 router.use("/model", requireAuth, checkBanStatus, modelRoutes);
+// For querying the database for evaluation data 
 router.use("/data", requireAuth, checkBanStatus, dataRoutes)
 
 export default router;

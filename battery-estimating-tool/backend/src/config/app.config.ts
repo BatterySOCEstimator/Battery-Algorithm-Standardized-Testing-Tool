@@ -1,3 +1,5 @@
+// This file can be used to easily set/modify global variables, like file upload restrictions, server settings, etc.
+
 export const config = {
   upload: {
     allowedExtensions: ['.py', '.m'] as string[],
