@@ -42,8 +42,12 @@ That directory must contain exactly **one `.zip`** file (the user's submission).
 {
   "error": false,
   "results_path": "/absolute/path/to/uploads/user1/TestModel/results/results.zip",
-  "final_score": 3.1416,
-  "complexity": "5,6,7"
+  "Weighted_Error": 3.1416,
+  "Test_Scores": [100.234, 2312.352, 46.321], // list of 18 numbers
+  "All_Drive_Cycles_Average_RMSE": 3.1416,
+  "All_Drive_Cycles_Average_MAE": 3.1416,
+  "All_Drive_Cycles_Average_MAXE":  3.1416,
+  "Complexity": "5,6,7" // string of 3 numbers
 }
 ```
 
