@@ -2,9 +2,9 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import helmet from "helmet";
-import authRoutes from "./routes/auth.routes";
-import modelRoutes from "./routes/model.routes"
-import dataRoutes from "./routes/data.routes"
+import authRoutes from "@/routes/auth.routes";
+import modelRoutes from "@/routes/model.routes"
+import dataRoutes from "@/routes/data.routes"
 import morgan from 'morgan';
 import { logger } from '@/services/logger.service';
 
@@ -51,16 +51,6 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
     res.status(500).json({ error: "Internal server error" });
 });
 
-// Catch unhandled errors
-process.on('unhandledRejection', (reason) => {
-    logger.error('Unhandled rejection', { reason });
-});
-process.on('uncaughtException', (err) => {
-    logger.error('Uncaught exception', { err });
-    process.exit(1);
-});
-
-
 app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
+    logger.info(`Server listening on port ${port}`);
 });

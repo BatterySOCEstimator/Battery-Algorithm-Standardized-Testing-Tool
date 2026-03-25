@@ -28,7 +28,7 @@ export const auth = betterAuth({
             const callbackURL = encodeURIComponent(`${process.env.REACT_APP_FRONTEND_URL}/leaderboards`);
             const verifyUrl = `${process.env.BETTER_AUTH_URL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
 
-            console.log("Sending verification email to", user.email, verifyUrl); // keep until confirmed working
+            logger.info('auth - Sending verification email', { email: user.email, verifyUrl });
             void sendEmail(
                 user.email,
                 "Verify your email address",
@@ -83,7 +83,10 @@ export const auth = betterAuth({
                 errors.push("Invalid academic affiliation");
             }
 
-            if (errors.length > 0) throw new Error(errors.join(", "));
+            if (errors.length > 0) {
+                logger.warn('auth - User validation failed', { email, errors });
+                throw new Error(errors.join(", "));
+            }
         },
         additionalFields: { // ALLOWS US TO PASS CUSTOM FIELDS INTO USER CREATION
             firstName: { type: "string", required: true, input: true, fieldName: "first_name" },
@@ -102,6 +105,7 @@ export const auth = betterAuth({
         * Does NOT reveal whether the email is registered to the person attempting sign-up.
         */
         onExistingUserSignUp: async ({ user }) => {
+            logger.warn('auth - Sign-up attempt with existing email', { email: user.email });
             void sendEmail(
                 user.email,
                 "Sign-up attempt with your email",
@@ -118,7 +122,7 @@ export const auth = betterAuth({
                  * in case the username plugin or validate() didn't catch it.
                  */
                 before: async (user) => {
-                    console.log("db hook user:", user); // TODO: Remove before production
+                    logger.debug('auth - User pre-insert hook', { username: user.username, email: user.email });
                     if (!user.username) {
                         throw new Error("Username is required");
                     }

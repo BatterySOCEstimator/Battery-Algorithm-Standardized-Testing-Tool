@@ -1,4 +1,5 @@
 import { transporter } from '@/config/mail.config';
+import { logger } from '@/services/logger.service';
 
 if (!process.env.GMAIL_USER) throw new Error("GMAIL_USER is not set");
 
@@ -25,7 +26,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
       html,
     });
   } catch (err) {
-    console.error('Email send failed:', err);
+    logger.error('email.service - Failed to send email', { to, subject, err });
     throw new Error('Failed to send email.');
   }
 };

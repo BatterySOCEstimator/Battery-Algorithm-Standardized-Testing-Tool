@@ -6,14 +6,14 @@ import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import fs from 'fs';
 // DB imports
-import { db } from '../db';
-import { models } from '../db/schema';
+import { db } from '@/db';
+import { models } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { logger } from '@/services/logger.service';
 
 // Only allow Python and MATLAB files
 const ALLOWED_EXTENSIONS = config.upload.allowedExtensions;
 const ALLOWED_MIMETYPES = config.upload.allowedMimetypes;
-
 
 /**
  * Multer disk storage configuration.
@@ -101,11 +101,14 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
     if (err instanceof multer.MulterError) {
       // Handle known multer errors (size limit, unexpected field, etc.)
       if (err.code === 'LIMIT_FILE_SIZE') {
+        logger.warn('uploadMiddleware - File too large', { ip: req.ip, userId: (req as any).user?.id });
         return res.status(400).json({ error: 'File too large. Maximum size is 1MB.' });
       }
+      logger.warn('uploadMiddleware - Multer error', { error: err.message, ip: req.ip, userId: (req as any).user?.id });
       return res.status(400).json({ error: `Upload error: ${err.message}` });
     } else if (err) {
       // Handle custom errors from fileFilter and destination
+      logger.warn('uploadMiddleware - Upload rejected', { error: err.message, ip: req.ip, userId: (req as any).user?.id });
       return res.status(400).json({ error: err.message });
     }
     next();
@@ -138,40 +141,42 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
  * POST /api/model/upload?name=MyModel
  */
 export const checkModelNameUnique = async (req: Request, res: Response, next: NextFunction) => {
-    console.log('[checkModelNameUnique] query:', req.query);
-    console.log('[checkModelNameUnique] body:', req.body);
-    const userId = (req as any).user?.id;
 
-    // Check if there is a userId
-    if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+  const userId = (req as any).user?.id;
+
+  // Check if there is a userId
+  if (!userId) {
+    logger.warn('checkModelNameUnique - Unauthorized', { ip: req.ip, method: req.method, path: req.path });
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const name = req.query.name as string;
+
+  // Check if there is a name
+  if (!name) {
+    logger.warn('checkModelNameUnique - Missing name query param', { ip: req.ip, userId });
+    res.status(400).json({ error: 'Model name is required.' });
+    return;
+  }
+
+  try {
+    const existing = await db
+      .select()
+      .from(models)
+      .where(and(eq(models.name, name), eq(models.userId, userId)))
+      .limit(1);
+
+    // If a result is returned, then there is already a name with 
+    if (existing.length > 0) {
+      logger.warn('checkModelNameUnique - Duplicate model name', { name, userId, ip: req.ip });
+      res.status(409).json({ error: `A model named "${name}" already exists.` });
+      return;
     }
 
-    const name = req.query.name as string;
-
-    // Check if there is a name
-    if (!name) {
-        res.status(400).json({ error: 'Model name is required.' });
-        return;
-    }
-
-    try {
-        const existing = await db
-            .select()
-            .from(models)
-            .where(and(eq(models.name, name), eq(models.userId, userId)))
-            .limit(1);
-
-        // If a result is returned, then there is already a name with 
-        if (existing.length > 0) {
-            res.status(409).json({ error: `A model named "${name}" already exists.` });
-            return;
-        }
-
-        next();
-    } catch (err) {
-        console.error('[checkModelNameUnique]', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    next();
+  } catch (err) {
+    logger.error('checkModelNameUnique - DB query failed', { err, userId, ip: req.ip });
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
