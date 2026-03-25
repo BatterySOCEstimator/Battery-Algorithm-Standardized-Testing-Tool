@@ -29,13 +29,18 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     });
     // If no valid session
     if (!session?.user) {
+      logger.warn('requireAuth - No valid session', {
+        ip: req.ip,
+        method: req.method,
+        path: req.path,
+      });
       return res.status(401).json({ ok: false, message: "Unauthorized" });
     }
     // Attaches user
     (req as any).user = session.user;
     next();
   } catch (err) {
-    logger.error('Session validation failed', {
+    logger.error('requireAuth - Session validation failed', {
       ip: req.ip,
       method: req.method,
       path: req.path,
@@ -62,9 +67,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 export const checkBanStatus = (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
   if (!user || user.banned === true) {
-    logger.warn('Banned user detected', {
+    logger.warn('checkBanStatus - Banned or missing user', {
       ip: req.ip,
-      userId: user.id,
+      userId: user?.id ?? 'unknown', // user could be null here
       method: req.method,
       path: req.path,
     });
@@ -95,9 +100,9 @@ export const requireRole = (role: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
     if (!user || user.role !== role) {
-      logger.warn('Role validation failed', {
+      logger.warn('requireRole - Role validation failed', {
         ip: req.ip,
-        userId: user.id,
+        userId: user.id ?? 'unknown',
         method: req.method,
         path: req.path,
       });
@@ -126,9 +131,10 @@ export const verifyUserById = (id: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
     if (!user || user.id !== id) {
-      logger.warn('User verification by ID failed', {
+      logger.warn('verifyUserById - User ID mismatch', {
         ip: req.ip,
-        userId: user.id,
+        userId: user?.id ?? 'unknown',
+        requiredId: id,
         method: req.method,
         path: req.path,
       });

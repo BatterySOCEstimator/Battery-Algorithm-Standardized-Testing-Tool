@@ -1,8 +1,6 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-
-const LOG_DIR = process.env.LOG_DIR ?? 'logs';
-
+import fs from 'fs';
 /**
  * Centralized logger instance using Winston.
  *
@@ -16,6 +14,11 @@ const LOG_DIR = process.env.LOG_DIR ?? 'logs';
  * - http: request/response logging (via Morgan)
  * - debug: verbose dev-only logging
  */
+const LOG_DIR = process.env.LOG_DIR ?? 'logs';
+if (!fs.existsSync(LOG_DIR)) {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
 export const logger = winston.createLogger({
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
     format: winston.format.combine(
@@ -49,4 +52,13 @@ export const logger = winston.createLogger({
             zippedArchive: true,
         }),
     ],
+});
+
+process.on('unhandledRejection', (reason) => {
+    logger.error('Unhandled rejection', { reason });
+});
+
+process.on('uncaughtException', (err) => {
+    logger.error('Uncaught exception', { err });
+    process.exit(1);
 });
