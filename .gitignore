@@ -35,6 +35,9 @@ yarn-error.log*
 # Logs
 /battery-estimating-tool/backend/logs/*
 
+#venv
+/battery-estimating-tool/backend/src/evaluator/SETool_Python/venv
+
 # vercel
 .vercel
 

@@ -85,7 +85,7 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config):
     model_file_py = os.path.join(processing_folder, 'Model.py')
     if not os.path.exists(model_file_py):
         return _fail("No Model.py file found in submission zip.")
-    print("Model file found!")
+    print("Model file found!", file=sys.stderr)
     
     
     # Validate if submission can run without error and doesn't exceed computation time

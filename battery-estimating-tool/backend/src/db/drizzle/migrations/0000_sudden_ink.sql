@@ -25,6 +25,7 @@ CREATE TABLE "models" (
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"model_type" "model_type" DEFAULT 'Not Specified' NOT NULL,
 	"file_path" text DEFAULT '' NOT NULL,
+	"results_path" text,
 	"status" text DEFAULT 'pending' NOT NULL,
 	"already_evaluated" boolean DEFAULT false,
 	"weighted_error" double precision,
@@ -48,7 +49,8 @@ CREATE TABLE "models" (
 	"current_sensor_error" double precision,
 	"all_drive_cycles_avg_rmse" double precision,
 	"all_drive_cycles_avg_mae" double precision,
-	"all_drive_cycles_avg_maxe" double precision
+	"all_drive_cycles_avg_maxe" double precision,
+	"complexity" text
 );
 --> statement-breakpoint
 CREATE TABLE "session" (
