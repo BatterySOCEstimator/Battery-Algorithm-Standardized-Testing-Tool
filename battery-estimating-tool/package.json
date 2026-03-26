@@ -17,6 +17,7 @@
   "dependencies": {
     "concurrently": "^9.2.1",
     "drizzle-orm": "^0.45.1",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "scheduler": "^0.27.0"
   }
 }
