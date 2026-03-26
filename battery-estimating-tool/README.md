@@ -62,6 +62,33 @@ offset = '0', \\ Number of models to offset in results (omit first n models)
 order = 'asc', \\ Ascending or Descending
 sortBy = 'weightedError' \\ Column to sort by
 ```
+## Python Evaluation Tool Setup
+
+1. Navigate to the evaluation tool directory:
+```bash
+   cd SETool_Python
+```
+
+2. Create a virtual environment:
+```bash
+   python3 -m venv venv
+```
+
+3. Activate it and install dependencies:
+```bash
+   source venv/bin/activate        # Mac/Linux
+   venv\Scripts\activate           # Windows
+   pip install numpy pandas scipy matplotlib
+   deactivate
+```
+
+4. Set the script path in `/backend/.env`:
+```
+   PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
+```
+
+> **Note:** Windows users will need to change `venv/bin/python3` to `venv/Scripts/python3` — or explicitly set `PYTHON_BIN` in their `.env`.
+
 
 ## TODO:
 - Change password

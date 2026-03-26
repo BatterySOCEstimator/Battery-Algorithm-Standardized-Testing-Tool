@@ -1,0 +1,1 @@
+ALTER TABLE "models" ADD COLUMN "zip_file_path" text DEFAULT '' NOT NULL;

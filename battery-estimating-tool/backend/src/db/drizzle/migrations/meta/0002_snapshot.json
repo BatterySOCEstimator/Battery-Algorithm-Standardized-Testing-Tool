@@ -1,6 +1,6 @@
 {
-  "id": "b0249992-9585-4318-a264-e089b1b4a990",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "7329d23c-e566-48c0-84a2-03a46cda33e3",
+  "prevId": "eb059e0e-c994-48d1-b44f-6bd60cdcdcd3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -183,8 +183,22 @@
           "notNull": true,
           "default": "'Not Specified'"
         },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
         "file_path": {
           "name": "file_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "zip_file_path": {
+          "name": "zip_file_path",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -196,12 +210,17 @@
           "primaryKey": false,
           "notNull": false
         },
-        "status": {
-          "name": "status",
+        "model_file_token": {
+          "name": "model_file_token",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'pending'"
+          "notNull": false
+        },
+        "results_file_token": {
+          "name": "results_file_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "already_evaluated": {
           "name": "already_evaluated",
@@ -366,7 +385,22 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "models_model_file_token_unique": {
+          "name": "models_model_file_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "model_file_token"
+          ]
+        },
+        "models_results_file_token_unique": {
+          "name": "models_results_file_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "results_file_token"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

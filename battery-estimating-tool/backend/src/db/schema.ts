@@ -125,10 +125,17 @@ export const models = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
     modelType: modelTypeEnum('model_type').notNull().default('Not Specified'),
-    filePath: text("file_path").notNull().default(''),
     status: text("status", { enum: ["pending", "processing", "ready", "error"] })
       .notNull()
       .default("pending"),
+
+    // STORAGE
+    filePath: text("file_path").notNull().default(''),
+    zipFilePath: text("zip_file_path").notNull().default(''),
+    resultsPath: text('results_path'),
+    // FOR DOWNLOAD LINKS
+    modelFileToken: text('model_file_token').unique(),
+    resultsFileToken: text('results_file_token').unique(),
 
     // DATA 
     alreadyEvaluated: boolean('already_evaluated').default(false), // Has the model been evaluated?
@@ -166,6 +173,7 @@ export const models = pgTable(
     allDriveCyclesAvgMae: doublePrecision('all_drive_cycles_avg_mae'),
     allDriveCyclesAvgMaxe: doublePrecision('all_drive_cycles_avg_maxe'),
 
+    complexity: text('complexity'),
   }
 );
 
