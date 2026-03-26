@@ -11,7 +11,7 @@ if (!process.env.REACT_APP_FRONTEND_URL) throw new Error("REACT_APP_FRONTEND_URL
 export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
     trustedOrigins: [
-  "http://localhost:3000/",
+  "http://localhost:3000",
   "http://localhost:3000/",
   "http://localhost:3000/leaderboards",
 ],
