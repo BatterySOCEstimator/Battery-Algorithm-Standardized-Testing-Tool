@@ -1,9 +1,43 @@
-import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Card, Spinner } from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import picture from "../assets/images/registrationpage.png"
-
-
+import { useState } from "react";
+import { login }  from "../auth-client.ts";
+import { Link, useNavigate } from "react-router-dom";
 const Login = () => {
+  const navigate = useNavigate();
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isEmail = (value) => value.includes("@");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!identifier || !password) {
+      navigate("/login-error", {
+        state: { message: "Please enter your email/username and password." },
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await login(
+        isEmail(identifier)
+          ? { email: identifier, password }
+          : { username: identifier, password }
+      );
+      navigate("/leaderboards");
+    } catch (err) {
+      navigate("/login-error", {
+        state: { message: err?.message ?? "Login failed. Please try again." },
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <Container
       fluid
@@ -17,16 +51,24 @@ const Login = () => {
           {/* Left side - Form */}
           <Col md={6} className="p-5">
             <h2 className="fw-bold mb-4">Sign in</h2>
-            <Form>
-              
-              {/* Email */}
-              <Form.Group className="mb-3" controlId="formEmail">
+
+            <Form onSubmit={handleSubmit} noValidate>
+              {/* Email or Username */}
+              <Form.Group className="mb-3" controlId="formIdentifier">
                 <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-                  <FaEnvelope className="me-2 text-muted" />
+                  {isEmail(identifier) ? (
+                    <FaEnvelope className="me-2 text-muted" />
+                  ) : (
+                    <FaUser className="me-2 text-muted" />
+                  )}
                   <Form.Control
-                    type="email"
-                    placeholder="Your Email"
+                    type="text"
+                    placeholder="Email or Username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     className="border-0 shadow-none"
+                    autoComplete="username"
+                    disabled={isLoading}
                   />
                 </div>
               </Form.Group>
@@ -38,21 +80,41 @@ const Login = () => {
                   <Form.Control
                     type="password"
                     placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="border-0 shadow-none"
+                    autoComplete="current-password"
+                    disabled={isLoading}
                   />
                 </div>
               </Form.Group>
- 
-              {/* Register Button */}
+
+              {/* Login Button */}
               <div className="d-grid mb-3">
-                <Button variant="primary" size="lg">
-                  Login
+                <Button variant="primary" size="lg" type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                        className="me-2"
+                      />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
               </div>
 
               <div className="text-center">
                 <small className="text-muted">
-                   Create an account
+                  <Link to="/registration" style={{ color: "inherit", textDecoration: "none" }}>
+                    Create an account
+                  </Link>
                 </small>
               </div>
             </Form>

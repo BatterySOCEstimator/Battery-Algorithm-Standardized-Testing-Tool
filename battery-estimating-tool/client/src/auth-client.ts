@@ -57,52 +57,93 @@ export async function login(options: {
     password: string;
 }) {
     const { email, username, password } = options;
-
-    if (email) {
-        return authClient.signIn.email(
-            {
-                email,
-                password,
-                callbackURL: `http://localhost:3000/leaderboards`,
-            },
-            {
-                onRequest: () => console.log("Logging in..."),
-                onSuccess: () => console.log("Login successful!"),
-                onError: (ctx) => {
-                    if (ctx.error.status === 403) {
-                        authClient.signOut();
-                        resendVerificationEmail(email!);
-                        alert("Please verify your email before signing in. Check your inbox.");
-                    } else {
-                        alert(ctx.error.message);
-                    }
-                },
-            }
-        );
-    } else if (username) {
-        return authClient.signIn.username(
-            {
-                username,
-                password,
-                callbackURL: `http://localhost:3000/leaderboards`,
-            },
-            {
-                onRequest: () => console.log("Logging in..."),
-                onSuccess: () => console.log("Login successful!"),
-                onError: (ctx) => {
-                    if (ctx.error.status === 403) {
-                        authClient.signOut();
-                        resendVerificationEmail(email!);
-                        alert("Please verify your email before signing in. Check your inbox.");
-                    } else {
-                        alert(ctx.error.message);
-                    }
-                },
-            }
-        );
-    } else {
-        throw new Error("Either email or username must be provided");
+    if (!email && !username) {
+        throw new Error("Either email or username must be provided.");
     }
+
+    const isEmail = (value: string) => value.includes("@");
+    const identifier = email ?? username!;
+
+    return new Promise<void>((resolve, reject) => {
+        const callbacks = {
+            onRequest: () => console.log("Logging in..."),
+            onSuccess: () => {
+                console.log("Login successful!");
+                resolve();
+            },
+            onError: (ctx: any) => {
+                if (ctx.error.status === 403) {
+                    authClient.signOut();
+                    resendVerificationEmail(email ?? "");
+                    reject(
+                        new Error(
+                            "Please verify your email before signing in. Check your inbox."
+                        )
+                    );
+                } else {
+                    reject(new Error(ctx.error.message ?? "Login failed. Please try again."));
+                }
+            },
+        };
+
+        if (isEmail(identifier)) {
+            authClient.signIn.email(
+                { email: identifier, password, callbackURL: "http://localhost:3000/leaderboards" },
+                callbacks
+            );
+        } else {
+            authClient.signIn.username(
+                { username: identifier, password, callbackURL: "http://localhost:3000/leaderboards" },
+                callbacks
+            );
+        }
+    });
+    // if (email) {
+    //     return authClient.signIn.email(
+    //         {
+    //             email,
+    //             password,
+    //             callbackURL: `http://localhost:3000/leaderboards`,
+    //         },
+            
+    //         {
+    //             onRequest: () => console.log("Logging in..."),
+    //             onSuccess: () => console.log("Login successful!"),
+    //             onError: (ctx) => {
+    //                 if (ctx.error.status === 403) {
+    //                     authClient.signOut();
+    //                     resendVerificationEmail(email!);
+    //                     alert("Please verify your email before signing in. Check your inbox.");
+    //                 } else {
+    //                     alert(ctx.error.message);
+    //                 }
+    //             },
+    //         }
+    //     );
+    // } else if (username) {
+    //     return authClient.signIn.username(
+    //         {
+    //             username,
+    //             password,
+    //             callbackURL: `http://localhost:3000/leaderboards`,
+    //         },
+    //         {
+    //             onRequest: () => console.log("Logging in..."),
+    //             onSuccess: () => console.log("Login successful!"),
+    //             onError: (ctx) => {
+    //                 if (ctx.error.status === 403) {
+    //                     authClient.signOut();
+    //                     resendVerificationEmail(email!);
+    //                     alert("Please verify your email before signing in. Check your inbox.");
+    //                 } else {
+    //                     alert(ctx.error.message);
+    //                 }
+    //             },
+    //         }
+    //     );
+    // } else {
+    //     throw new Error("Either email or username must be provided");
+    // }
 }
 
 // LOGOUT

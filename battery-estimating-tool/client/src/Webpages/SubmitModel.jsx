@@ -140,6 +140,7 @@ const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
   const [selectedAuthor, setSelectedAuthor] = useState("All authors");
   const [selectedAffiliation, setSelectedAffiliation] = useState("All Academic Affiliations");
   const [selectedModelType, setSelectedModelType] = useState(modelTypes[0]); // or whatever default
+  const [file, setFile] = useState(null);
 
   const changeSOC = async() => {
     try {
@@ -188,11 +189,11 @@ const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
 
     } catch (error) {
     console.error("Upload failed:", error);
+    setFile(null); // reset file input
     alert("Failed to upload file: " + error.message);
   }
   }
 
-  const [file, setFile] = useState(null);
   console.log(estimatedSOC)
   const onDrop = useCallback((acceptedFiles) => {
     console.log("Uploaded Files:", acceptedFiles);

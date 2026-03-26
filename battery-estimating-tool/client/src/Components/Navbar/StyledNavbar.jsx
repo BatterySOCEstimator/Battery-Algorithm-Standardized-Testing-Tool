@@ -5,6 +5,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/esm/Button';
 import { Link } from 'react-router-dom';
 const StyledNavbar = () =>{
+  const user = "Paarth"
   return (
     <Navbar bg="dark" expand="lg" data-bs-theme="dark">
       <Container>
@@ -31,9 +32,25 @@ const StyledNavbar = () =>{
               </NavDropdown.Item>
             </NavDropdown> */}
           </Nav>
-          <Button href="/registration" variant="outline-success">Register</Button>
-          <Button style={{"marginLeft": "8px"}} href="/login" variant="light">Login</Button>
-
+         {user ? (
+          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+            <div
+              className="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center p-0"
+              style={{ width: "36px", height: "36px", fontSize: "14px", fontWeight: "600", flexShrink: 0 }}
+            >
+              {user.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)} 
+            </div>
+            <span className="text-white fw-medium">{user.name}</span>
+            
+          </div>
+          <div className="text-white fw-medium">{user}</div></div>
+        ) : (
+          <>
+            <Button href="/registration" target="_blank" rel="noopener noreferrer" variant="outline-success">Register</Button>
+            <Button style={{ marginLeft: "8px" }} href="/login" target="_blank" rel="noopener noreferrer" variant="light">Login</Button>
+          </>
+        )}
         </Navbar.Collapse>
       </Container>
     </Navbar>
