@@ -3,6 +3,7 @@ import MetricsTable from "../Components/MetricsTable/MetricsTable"
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import { modelTypes, columns } from "../Helperfunc.js";
+import useRequireAuth from "../Hooks/useRequireAuth";
 
 
 const FlexBox = styled.div`
@@ -23,6 +24,7 @@ const FiltersLabel = styled.div`
 `;
 
 const Submissions = ({estimatedSOC}) => {
+    useRequireAuth();
     console.log(estimatedSOC)
 
   return (
