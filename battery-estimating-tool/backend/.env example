@@ -1,6 +1,8 @@
 BETTER_AUTH_SECRET=EToXfwQMiJcRZqv09zvoatjzrnFkUQ22
 BETTER_AUTH_URL=http://localhost:8000
 
+BACKEND_URL=http://localhost:8000
+
 REACT_APP_FRONTEND_URL=http://localhost:3000
 
 POSTGRES_IMAGE=postgres:17
@@ -12,6 +14,9 @@ DATABASE_URL=postgresql://SOCappuser:8hG40pDr3mCl85fFa0nkS43@localhost:5432/SOCa
 
 UPLOAD_DIR=./uploads
 LOG_DIR=./logs
+
+PYTHON_EVALUATION_SCRIPT=/home/aidanmclean/Documents/Code/Battery-Algorithm-Standardized-Testing-Tool/battery-estimating-tool/backend/src/evaluator/SETool_Python/standardized_evaluation_tool.py
+PYTHON_BIN=/home/aidanmclean/Documents/Code/Battery-Algorithm-Standardized-Testing-Tool/battery-estimating-tool/backend/src/evaluator/SETool_Python/venv/bin/python3.12
 
 GMAIL_USER=aidantest555@gmail.com
 GMAIL_APP_PASSWORD=djdc fgvr icgo wpac
