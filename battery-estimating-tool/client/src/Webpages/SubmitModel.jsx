@@ -133,7 +133,7 @@ const SubmitModel = ({ estimatedSOC, setEstimatedSOC }) => {
     setSubmitting(true);
     try {
       const response = await fetch(
-        `http://localhost:8000/api/model/upload?name=${encodeURIComponent(sanitizedName)}`,
+        `/api/model/upload?name=${encodeURIComponent(sanitizedName)}`,
         {
           method: "POST",
           body: formData,

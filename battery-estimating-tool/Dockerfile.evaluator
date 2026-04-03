@@ -1,0 +1,26 @@
+# Python evaluator sandbox
+# NOT a long-lived service. the backend spawns a container per evaluation
+# and removes it when done.
+
+FROM python:3.12-slim
+
+WORKDIR /evaluator
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    numpy==2.4.3 \
+    pandas==3.0.1 \
+    scipy==1.17.1 \
+    matplotlib==3.10.8
+
+# Copy the evaluation tool source and data files
+COPY backend/src/evaluator/SETool_Python/ /evaluator/
+
+# Remove the venv from the image (deps installed system-wide above)
+RUN rm -rf /evaluator/venv /evaluator/__pycache__
+
+# Container expects:
+#   - /uploads/<modelDir> mounted in, containing the .zip
+#   - stdout: JSON result
+#   - stderr: diagnostic logs
+ENTRYPOINT ["python", "standardized_evaluation_tool.py"]

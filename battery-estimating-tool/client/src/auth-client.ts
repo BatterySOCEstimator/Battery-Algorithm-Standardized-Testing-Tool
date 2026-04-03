@@ -5,7 +5,7 @@ import { auth } from "../../backend/src/services/auth"
 // Auth client
 export const authClient = createAuthClient({
     /** The base URL of the server (optional if you're using the same domain) */
-    baseURL: "http://localhost:8000",
+    baseURL: "http://localhost",
     plugins: [inferAdditionalFields<typeof auth>(), usernameClient()],
     fetchOptions: {
         onError: async (context) => {
@@ -88,12 +88,12 @@ export async function login(options: {
 
         if (isEmail(identifier)) {
             authClient.signIn.email(
-                { email: identifier, password, callbackURL: "http://localhost:3000/leaderboards" },
+                { email: identifier, password, callbackURL: "/leaderboards" },
                 callbacks
             );
         } else {
             authClient.signIn.username(
-                { username: identifier, password, callbackURL: "http://localhost:3000/leaderboards" },
+                { username: identifier, password, callbackURL: "/leaderboards" },
                 callbacks
             );
         }
@@ -185,7 +185,7 @@ export async function getUserInfo(): Promise<AuthUser | null> {
 export async function resendVerificationEmail(email: string) {
     const result = await authClient.sendVerificationEmail({
         email,
-        callbackURL: "http://localhost:3000/leaderboards",
+        callbackURL: "/leaderboards",
     });
     return result;
 }

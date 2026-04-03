@@ -56,7 +56,7 @@ const Leaderboards = ({ estimatedSOC, filteredSOC, setFilteredSOC }) => {
       const { data: session, error: sessionError } = await authClient.getSession();
       if (sessionError || !session) return; // ← just bail, useRequireAuth redirects
 
-      const res = await fetch("http://localhost:8000/api/data/fetchLeaderboardData", { credentials: "include" });
+      const res = await fetch("/api/data/fetchLeaderboardData", { credentials: "include" });
       const json = await res.json();
       const rows = json.data;
       const formatted = formatRows(rows);
