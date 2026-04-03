@@ -10,7 +10,12 @@ if (!process.env.REACT_APP_FRONTEND_URL) throw new Error("REACT_APP_FRONTEND_URL
 
 export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
-    trustedOrigins: [process.env.REACT_APP_FRONTEND_URL],
+    trustedOrigins: [
+        process.env.REACT_APP_FRONTEND_URL,
+        process.env.BACKEND_URL,
+        "http://localhost:8000",
+    ].filter(Boolean) as string[],
+    trustedProxies: ["127.0.0.1"],
     database: drizzleAdapter(db, {
         provider: "pg",
     }),

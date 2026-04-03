@@ -9,7 +9,7 @@ const router = Router();
 router.post("/sign-up/email", (req, res, next) => {
     const { email, password, username, firstName, lastName, academicAffiliation } = req.body;
 
-    const missing = [];
+    const missing: string[] = [];
     if (!email) missing.push("email");
     if (!password) missing.push("password");
     if (!username) missing.push("username");

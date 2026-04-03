@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { spawn } from 'child_process';
 import { db } from '../db';
 import crypto from 'crypto';
 import { models, modelTypeEnum } from '../db/schema';
 import { and, eq, or } from 'drizzle-orm';
 import { sendEmail } from '@/services/email.service';
 import { logger } from '@/services/logger.service';
+import { runEvaluatorContainer } from '@/services/evaluator.service';
 
 /**
  * Handles model file upload and registers the model in the database.
@@ -337,10 +337,8 @@ export async function downloadFile(req: Request, res: Response) {
 }
 
 /**
- * Runs the Python evaluation script for a given model and saves the results to the database.
- *
- * Spawns a Python subprocess, parses its JSON output, updates the model record with all
- * evaluation metrics, generates secure download tokens, and sends a result email to the user.
+ * Runs the Python evaluation inside a sandboxed Docker container and saves
+ * the results to the database.
  *
  * @param modelId - The database ID of the model being evaluated
  * @param modelDir - The directory containing the model files
@@ -355,166 +353,87 @@ async function runEvaluation(
   userEmail: string | undefined,
   modelName: string
 ) {
-  const scriptPath = process.env.PYTHON_EVALUATION_SCRIPT;
-  const pythonBin = process.env.PYTHON_BIN;
-
-  // The script expects a path relative to its own working directory
-  modelDir = '../../../' + modelDir;
-
-  if (!scriptPath) {
-    logger.error('model/evaluate - PYTHON_EVALUATION_SCRIPT env var is not set', { modelId, userId });
-    return;
-  }
-  if (!pythonBin) {
-    logger.error('model/evaluate - PYTHON_BIN env var is not set', { modelId, userId });
-    return;
-  }
-
   logger.info('model/evaluate - Starting evaluation', { modelId, modelDir, userId });
 
-  // Spawn the Python evaluation script with the model directory as an argument
-  const python = spawn(pythonBin, [scriptPath, modelDir], {
-    cwd: path.dirname(scriptPath)
-  });
+  const result = await runEvaluatorContainer(modelDir);
 
-  let stdout = '';
-  let stderr = '';
+  // The evaluator returns paths relative to the container mount (/uploads/...)
+  // Translate to the host path
+  if (result.results_path) {
+    const uploadDir = path.resolve(process.env.UPLOAD_DIR ?? './uploads');
+    result.results_path = result.results_path.replace('/uploads', uploadDir);
+  }
 
-  python.stdout.on('data', (data) => {
-    stdout += data.toString();
-  });
-
-  python.stderr.on('data', (data) => {
-    stderr += data.toString();
-  });
-
-  python.on('close', async (code) => {
-    // Non-zero exit code means the script crashed or errored out
-    if (code !== 0) {
-      logger.error('model/evaluate - Script exited with non-zero code', { modelId, userId, code, stderr, stdout });
-
-      if (userEmail) {
-        void sendEmail(
-          userEmail,
-          'Model evaluation failed',
-          `<p>An error occurred while evaluating your model <strong>${modelName}</strong>.</p>`
-        );
-      }
-      return;
+  if (result.error) {
+    logger.error('model/evaluate - Evaluation failed', { modelId, userId, message: result.message });
+    if (userEmail) {
+      void sendEmail(userEmail, 'Model evaluation failed',
+        `<p>Your model <strong>${modelName}</strong> could not be evaluated: ${result.message}</p>`);
     }
+    return;
+  }
 
-    // Parse the JSON output from the script
-    let result: any;
-    try {
-      result = JSON.parse(stdout.trim());
-    } catch {
-      logger.error('model/evaluate - Failed to parse script output as JSON', { modelId, userId, stdout });
+  logger.info('model/evaluate - Evaluation complete', { modelId, userId, result });
 
-      if (userEmail) {
-        void sendEmail(
-          userEmail,
-          'Model evaluation failed',
-          `<p>An error occurred while evaluating your model <strong>${modelName}</strong>.</p>`
-        );
-      }
-      return;
+  const {
+    results_path: resultsPath,
+    Weighted_Error: weightedError,
+    All_Drive_Cycles_Average_RMSE: allDriveCyclesAvgRmse,
+    All_Drive_Cycles_Average_MAE: allDriveCyclesAvgMae,
+    All_Drive_Cycles_Average_MAXE: allDriveCyclesAvgMaxe,
+    Complexity: complexity,
+  } = result;
+
+  const testScores = result.Test_Scores as number[];
+  const [
+    allCells, blindCells, nonBlindedCells, charging,
+    payload80kg, payload448kgWithHvac, payload448kgNoHvac, payload1000kg,
+    standardCycles, customCycles,
+    nMinus20C, nMinus10C, zeroC, tenC, twentyFiveC, fortyC,
+    isocError, currentSensorError,
+  ] = testScores;
+
+  try {
+    const modelFileToken = crypto.randomUUID();
+    const resultsFileToken = crypto.randomUUID();
+
+    await db
+      .update(models)
+      .set({
+        alreadyEvaluated: true,
+        status: 'ready',
+        resultsPath,
+        weightedError,
+        complexity: String(complexity),
+        allCells, blindCells, nonBlindedCells, charging,
+        payload80kg, payload448kgWithHvac, payload448kgNoHvac, payload1000kg,
+        standardCycles, customCycles,
+        nMinus20C, nMinus10C, zeroC, tenC, twentyFiveC, fortyC,
+        isocError, currentSensorError,
+        allDriveCyclesAvgRmse,
+        allDriveCyclesAvgMae,
+        allDriveCyclesAvgMaxe,
+        modelFileToken,
+        resultsFileToken,
+      })
+      .where(eq(models.id, modelId));
+
+    logger.info('model/evaluate - DB updated successfully', { modelId, userId, result, testScores });
+
+    const resultsUrl = `${process.env.BACKEND_URL}/api/model/download/${resultsFileToken}`;
+
+    if (userEmail) {
+      void sendEmail(userEmail, 'Model evaluation complete',
+        `<p>Your model <strong>${modelName}</strong> has been evaluated.</p>
+         <p>Weighted Error: <strong>${weightedError}</strong></p>
+         <p>Complexity: <strong>${complexity}</strong></p>
+         <p>Download the results <a href="${resultsUrl}">here.</a></p>`);
     }
-
-    // The script can exit with code 0 but still return a logical error
-    if (result.error === true) {
-      logger.error('model/evaluate - Script returned error', { modelId, userId, message: result.message });
-
-      if (userEmail) {
-        void sendEmail(
-          userEmail,
-          'Model evaluation failed',
-          `<p>Your model <strong>${modelName}</strong> could not be evaluated: ${result.message}</p>`
-        );
-      }
-      return;
+  } catch (err) {
+    logger.error('model/evaluate - Failed to update DB', { modelId, userId, err });
+    if (userEmail) {
+      void sendEmail(userEmail, 'Model evaluation failed',
+        `<p>Your model <strong>${modelName}</strong> was evaluated but results could not be saved.</p>`);
     }
-
-    logger.info('model/evaluate - Evaluation complete', {
-      modelId,
-      userId,
-      finalScore: result.final_score,
-      complexity: result.complexity,
-      resultsPath: result.results_path,
-      stdout,
-    });
-
-    // Destructure top level metrics from the result
-    const {
-      results_path: resultsPath,
-      Weighted_Error: weightedError,
-      All_Drive_Cycles_Average_RMSE: allDriveCyclesAvgRmse,
-      All_Drive_Cycles_Average_MAE: allDriveCyclesAvgMae,
-      All_Drive_Cycles_Average_MAXE: allDriveCyclesAvgMaxe,
-      Complexity: complexity,
-    } = result;
-
-    // Each index in Test_Scores corresponds to a specific test in a fixed order
-    const testScores = result.Test_Scores as number[];
-    const [
-      allCells, blindCells, nonBlindedCells, charging,
-      payload80kg, payload448kgWithHvac, payload448kgNoHvac, payload1000kg,
-      standardCycles, customCycles,
-      nMinus20C, nMinus10C, zeroC, tenC, twentyFiveC, fortyC,
-      isocError, currentSensorError,
-    ] = testScores;
-
-    try {
-      // Generate tokens for secure file downloads
-      const modelFileToken = crypto.randomUUID();
-      const resultsFileToken = crypto.randomUUID();
-
-      await db
-        .update(models)
-        .set({
-          alreadyEvaluated: true,
-          status: 'ready',
-          resultsPath,
-          weightedError,
-          complexity,
-          allCells, blindCells, nonBlindedCells, charging,
-          payload80kg, payload448kgWithHvac, payload448kgNoHvac, payload1000kg,
-          standardCycles, customCycles,
-          nMinus20C, nMinus10C, zeroC, tenC, twentyFiveC, fortyC,
-          isocError, currentSensorError,
-          allDriveCyclesAvgRmse,
-          allDriveCyclesAvgMae,
-          allDriveCyclesAvgMaxe,
-          modelFileToken,
-          resultsFileToken,
-        })
-        .where(eq(models.id, modelId));
-
-      logger.info('model/evaluate - DB updated successfully', { modelId, userId, result, testScores });
-
-      const modelUrl = `${process.env.BACKEND_URL}/api/model/download/${modelFileToken}`;
-      const resultsUrl = `${process.env.BACKEND_URL}/api/model/download/${resultsFileToken}`;
-
-      if (userEmail) {
-        void sendEmail(
-          userEmail,
-          'Model evaluation complete',
-          `<p>Your model <strong>${modelName}</strong> has been evaluated.</p>
-           <p>Weighted Error: <strong>${weightedError}</strong></p>
-           <p>Complexity: <strong>${complexity}</strong></p>
-           <p>Download the results <a href="${resultsUrl}">here.</a></p>`,
-        );
-      }
-
-    } catch (err) {
-      logger.error('model/evaluate - Failed to update DB', { modelId, userId, err });
-
-      if (userEmail) {
-        void sendEmail(
-          userEmail,
-          'Model evaluation failed',
-          `<p>Your model <strong>${modelName}</strong> was evaluated but results could not be saved.</p>`
-        );
-      }
-    }
-  });
+  }
 }
