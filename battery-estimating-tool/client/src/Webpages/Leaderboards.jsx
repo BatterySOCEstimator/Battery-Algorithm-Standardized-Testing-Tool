@@ -3,7 +3,7 @@ import MetricsTable from "../Components/MetricsTable/MetricsTable"
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // EXPOSED FUNCTIONS FOR TESTING
 import { signUp, login, logout, getUserInfo, resendVerificationEmail } from "../auth-client.ts";
 (window).signUp = signUp;
@@ -28,29 +28,35 @@ const FiltersLabel = styled.div`
   font-weight: 600;
   margin-bottom: 8px;
 `;
-
-const Leaderboards = ({estimatedSOC, filteredSOC, setFilteredSOC}) => {
-  const [formattedData, setFormattedData] = useState(estimatedSOC.map((row) => {
+const formatData = (data) => {
+  return data.map((row) => {
     const obj = {};
-  
+
     columns.forEach((col) => {
       const key = columnKeyMap[col];
       let value = row[key];
-  
+
       if (key === "isPrivate") {
         value = value ? "Private" : "Public";
       }
-  
+
       if (key === "createdAt" || key === "updatedAt") {
         value = new Date(value).toLocaleString();
       }
-  
+
       obj[col] = value ?? "-";
     });
-  
+
     return obj;
-  }))
-  const  [originalData, setOriginalData] = useState(formattedData);
+  });
+};
+const Leaderboards = ({estimatedSOC}) => {
+  const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
+  const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
+  useEffect(() => {
+  setOriginalData(formatData(estimatedSOC));
+  setFormattedData(formatData(estimatedSOC));
+}, [estimatedSOC]);
   return (
     <>
       <StyledNavbar />
@@ -66,10 +72,10 @@ const Leaderboards = ({estimatedSOC, filteredSOC, setFilteredSOC}) => {
         <FlexBox>
             <LabeledSelect label={"Filter by Author"} options={["All authors", "Paarth"]} />
             <LabeledSelect label={"Filter by Academic Affiliation"} options={["All Academic Affiliations", "McMaster"]} />
-            <LabeledSelect label={"Model Type"} options={modelTypes} estimatedSOC={estimatedSOC} formattedData={formattedData} originalData={originalData} setFormattedData={setFormattedData} filteredSOC={filteredSOC} setFilteredSOC={setFilteredSOC} />
+            <LabeledSelect label={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData}/>
         </FlexBox>
 
-        <MetricsTable headers={columns} estimatedSOC={filteredSOC} formattedData={formattedData} setFormattedData={setFormattedData} />
+        <MetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
       </Container>
     </>
   );
