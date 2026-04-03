@@ -1,11 +1,19 @@
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/esm/Button';
 import { Link } from 'react-router-dom';
-const StyledNavbar = () =>{
-  const user = "Paarth"
+import { useState, useEffect } from 'react';
+import { getUserInfo, logout } from '../../auth-client.ts';
+
+const StyledNavbar = () => {
+
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    getUserInfo().then(setUser);
+  }, []);
+
   return (
     <Navbar bg="dark" expand="lg" data-bs-theme="dark">
       <Container>
@@ -13,7 +21,7 @@ const StyledNavbar = () =>{
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            
+
             <Nav.Link as={Link} to="/leaderboards">Leaderboards</Nav.Link>
             <Nav.Link as={Link} to="/submit-model">Submit Model</Nav.Link>
             <Nav.Link as={Link} to="/submissions">Submissions</Nav.Link>
@@ -32,25 +40,23 @@ const StyledNavbar = () =>{
               </NavDropdown.Item>
             </NavDropdown> */}
           </Nav>
-         {user ? (
-          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-            <div
-              className="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center p-0"
-              style={{ width: "36px", height: "36px", fontSize: "14px", fontWeight: "600", flexShrink: 0 }}
-            >
-              {user.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)} 
+          {user ? (
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <div
+                className="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center p-0"
+                style={{ width: "36px", height: "36px", fontSize: "14px", fontWeight: "600", flexShrink: 0 }}
+              >
+                {user.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+              </div>
+              <span className="text-white fw-medium">{user.name}</span>
+              <Button variant="outline-light" size="sm" onClick={logout}>Logout</Button>
             </div>
-            <span className="text-white fw-medium">{user.name}</span>
-            
-          </div>
-          <div className="text-white fw-medium">{user}</div></div>
-        ) : (
-          <>
-            <Button href="/registration" target="_blank" rel="noopener noreferrer" variant="outline-success">Register</Button>
-            <Button style={{ marginLeft: "8px" }} href="/login" target="_blank" rel="noopener noreferrer" variant="light">Login</Button>
-          </>
-        )}
+          ) : (
+            <>
+              <Button href="/registration" variant="outline-success">Register</Button>
+              <Button style={{ marginLeft: "8px" }} href="/login" variant="light">Login</Button>
+            </>
+          )}
         </Navbar.Collapse>
       </Container>
     </Navbar>

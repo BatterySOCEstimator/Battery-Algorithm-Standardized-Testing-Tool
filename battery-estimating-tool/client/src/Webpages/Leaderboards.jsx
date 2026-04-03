@@ -4,6 +4,9 @@ import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
+import { authClient } from '../auth-client.ts'
+import useRequireAuth from "../Hooks/useRequireAuth";
+
 // EXPOSED FUNCTIONS FOR TESTING
 import { signUp, login, logout, getUserInfo, resendVerificationEmail } from "../auth-client.ts";
 (window).signUp = signUp;
@@ -11,7 +14,6 @@ window.login = login;
 window.logout = logout;
 window.getUserInfo = getUserInfo;
 window.resendVerificationEmail = resendVerificationEmail;
-
 const FlexBox = styled.div`
     display:flex;
     gap: 24px;
@@ -19,11 +21,9 @@ const FlexBox = styled.div`
 const Container = styled.div`
   padding: 20px;
 `;
-
 const Title = styled.h2`
   margin-bottom: 20px;
 `;
-
 const FiltersLabel = styled.div`
   font-weight: 600;
   margin-bottom: 8px;
@@ -60,14 +60,11 @@ const Leaderboards = ({estimatedSOC}) => {
   return (
     <>
       <StyledNavbar />
-
       <Container>
         {/* Title */}
         <Title>Leaderboards</Title>
-
         {/* Filters label */}
         <FiltersLabel>Filters:</FiltersLabel>
-
         {/* Filters Row */}
         <FlexBox>
             <LabeledSelect label={"Filter by Author"} options={["All authors", "Paarth"]} />
@@ -80,5 +77,4 @@ const Leaderboards = ({estimatedSOC}) => {
     </>
   );
 };
-
 export default Leaderboards

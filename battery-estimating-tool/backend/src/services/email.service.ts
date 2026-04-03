@@ -17,13 +17,14 @@ if (!process.env.GMAIL_USER) throw new Error("GMAIL_USER is not set");
  * This function is fire-and-forget safe when called with `void`,
  * but will throw if awaited and the send fails.
  */
-export const sendEmail = async (to: string, subject: string, html: string) => {
+export const sendEmail = async (to: string, subject: string, html: string, attachments?: { filename: string; path: string }[]) => {
   try {
     await transporter.sendMail({
       from: `"Battery SOC Benchmark" <${process.env.GMAIL_USER}>`,
       to,
       subject,
       html,
+      attachments,
     });
   } catch (err) {
     logger.error('email.service - Failed to send email', { to, subject, err });

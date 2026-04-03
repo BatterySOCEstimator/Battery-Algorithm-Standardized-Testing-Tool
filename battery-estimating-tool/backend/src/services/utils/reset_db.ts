@@ -20,11 +20,12 @@ import { sql } from 'drizzle-orm';
 ;
 
 async function reset() {
-    console.log("Dropping schema...");
-    await db.execute(sql`DROP SCHEMA public CASCADE`);
-    await db.execute(sql`CREATE SCHEMA public`);
-    console.log("Done. Run drizzle-kit generate && drizzle-kit push to recreate schema.");
-    process.exit(0);
+  console.log("Dropping schema...");
+  await db.execute(sql`DROP SCHEMA public CASCADE`);
+  await db.execute(sql`CREATE SCHEMA public`);
+  await db.execute(sql`DROP TYPE IF EXISTS public.model_type CASCADE`);
+  console.log("Done. Run drizzle-kit generate && drizzle-kit push to recreate schema.");
+  process.exit(0);
 }
 
 reset().catch((err) => {

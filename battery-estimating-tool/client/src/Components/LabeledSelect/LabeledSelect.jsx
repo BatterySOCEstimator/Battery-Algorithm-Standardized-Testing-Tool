@@ -36,3 +36,4 @@ const LabeledSelect = ({ label, options, setFormattedData, originalData }) => {
 };
 
 export default LabeledSelect;
+

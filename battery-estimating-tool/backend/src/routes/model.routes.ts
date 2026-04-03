@@ -1,4 +1,4 @@
-import { deleteModel, test, uploadModel } from "@/controllers/model.controller";
+import { deleteModel, downloadFile, test, uploadModel } from "@/controllers/model.controller";
 import { checkModelNameUnique, uploadMiddleware } from "@/middleware/model.middleware";
 import { requireAuth, checkBanStatus } from "@/middleware/auth.middleware";
 
@@ -20,7 +20,10 @@ router.delete("/delete/:id",
     deleteModel          // Actual controller function
 );
 
-//router.get("/download")
+router.get("/download/:token", 
+    //requireAuth,        // Enforce auth
+    //checkBanStatus,     // Checks if user is banned
+    downloadFile)       // Downloads the file 
 
 router.get("/test", requireAuth, checkBanStatus, test)
 

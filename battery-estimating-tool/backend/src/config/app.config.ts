@@ -2,7 +2,7 @@
 
 export const config = {
   upload: {
-    allowedExtensions: ['.py', '.m'] as string[],
+    allowedExtensions: ['.py', '.m', '.zip'] as string[],
     allowedMimetypes: [
       'text/x-python',
       'text/x-python-script',
@@ -10,7 +10,7 @@ export const config = {
       'text/plain',
       'application/octet-stream',
     ] as string[],
-    maxFileSizeMb: 500 as number,
+    maxFileSizeMb: 100 as number,
     maxFiles: 10 as number,
     uploadDir: process.env.UPLOAD_DIR ?? './uploads',
   },
