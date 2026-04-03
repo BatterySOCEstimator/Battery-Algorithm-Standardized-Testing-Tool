@@ -3,8 +3,8 @@ import SelectableMetricsTable from "../Components/SelectableMetricsTable/Selecta
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import Button from 'react-bootstrap/esm/Button';
-import { modelTypes, columnKeyMap } from "../Helperfunc.js";
-import { useState } from "react";
+import { modelTypes, columnKeyMap, columns } from "../Helperfunc.js";
+import { useState, useEffect } from "react";
 import ModelCharts from "../Components/ModelCharts/ModelCharts.jsx";
 const tableHeaders = [
   // "Ranking",
@@ -54,10 +54,43 @@ function transformModels(modelA, modelB, columnKeyMap) {
       modelB: modelB[key],
     }))};
 }
+const formatData = (data) => {
+  return data.map((row) => {
+    const obj = {};
+
+    columns.forEach((col) => {
+      const key = columnKeyMap[col];
+      let value = row[key];
+
+      if (key === "isPrivate") {
+        value = value ? "Private" : "Public";
+      }
+
+      if (key === "createdAt" || key === "updatedAt") {
+        value = new Date(value).toLocaleString();
+      }
+
+      obj[col] = value ?? "-";
+    });
+
+    return obj;
+  });
+};
+
 const ModelComparison = ({estimatedSOC}) => {
   const [selectedModel1, setSelectedModel1] = useState(null);
   const [selectedModel2, setSelectedModel2] = useState(null);
   const [toggle, setToggle] = useState(false);
+  const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
+  const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
+  const [originalData2, setOriginalData2] = useState(formatData(estimatedSOC));
+  const [formattedData2, setFormattedData2] = useState(formatData(estimatedSOC));
+    useEffect(() => {
+    setOriginalData(formatData(estimatedSOC));
+    setFormattedData(formatData(estimatedSOC));
+    setOriginalData2(formatData(estimatedSOC));
+    setFormattedData2(formatData(estimatedSOC));
+  }, [estimatedSOC]);
   return (
     <>
       <StyledNavbar />
@@ -81,10 +114,10 @@ const ModelComparison = ({estimatedSOC}) => {
         <FlexBox>
             <LabeledSelect label={"Filter by Author"} options={["All authors", "Paarth"]} />
             <LabeledSelect label={"Filter by Academic Affiliation"} options={["All Academic Affiliations", "McMaster"]} />
-            <LabeledSelect label={"Model Type"} options={modelTypes} />
+            <LabeledSelect label={"Model Type"} options={modelTypes} setFormattedData={setFormattedData} originalData={originalData} />
         </FlexBox>
 
-        <SelectableMetricsTable estimatedSOC={estimatedSOC} headers={tableHeaders} selectedModel={selectedModel1} setSelectedModel={setSelectedModel1} />
+        <SelectableMetricsTable formattedData={formattedData} setFormattedData={setFormattedData} headers={tableHeaders} selectedModel={selectedModel1} setSelectedModel={setSelectedModel1} />
         
         <ModelNumber style={{ paddingTop: "24px" }}>Model 2</ModelNumber>
 
@@ -94,10 +127,10 @@ const ModelComparison = ({estimatedSOC}) => {
         <FlexBox>
             <LabeledSelect label={"Filter by Author"} options={["All authors", "Paarth"]} />
             <LabeledSelect label={"Filter by Academic Affiliation"} options={["All Academic Affiliations", "McMaster"]} />
-            <LabeledSelect label={"Model Type"} options={modelTypes} />
+            <LabeledSelect label={"Model Type"} options={modelTypes} setFormattedData={setFormattedData2} originalData={originalData2} />
         </FlexBox>
 
-        <SelectableMetricsTable estimatedSOC={estimatedSOC} headers={tableHeaders} selectedModel={selectedModel2} setSelectedModel={setSelectedModel2} />
+        <SelectableMetricsTable formattedData={formattedData2} setFormattedData={setFormattedData2} headers={tableHeaders} selectedModel={selectedModel2} setSelectedModel={setSelectedModel2} />
         
 
       </Container>

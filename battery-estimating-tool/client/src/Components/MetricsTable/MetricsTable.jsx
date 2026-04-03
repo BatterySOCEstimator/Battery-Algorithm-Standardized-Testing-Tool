@@ -2,28 +2,8 @@ import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {columnKeyMap} from "../../Helperfunc.js";
 import { useState } from 'react';
-const MetricsTable = ({ headers, estimatedSOC, formattedData, setFormattedData }) => {
-//   const formattedData = estimatedSOC.map((row) => {
-//   const obj = {};
+const MetricsTable = ({ headers, formattedData, setFormattedData }) => {
 
-//   headers.forEach((col) => {
-//     const key = columnKeyMap[col];
-//     let value = row[key];
-
-//     if (key === "isPrivate") {
-//       value = value ? "Private" : "Public";
-//     }
-
-//     if (key === "createdAt" || key === "updatedAt") {
-//       value = new Date(value).toLocaleString();
-//     }
-
-//     obj[col] = value ?? "-";
-//   });
-
-//   return obj;
-// });
-// const [sortedData, setSortedData] = useState(formattedData);
 const [sortConfig, setSortConfig] = useState({
   key: null,
   direction: "asc",
@@ -84,7 +64,7 @@ const handleSort = (col) => {
 </thead>
 
         <tbody>
-          {estimatedSOC.length === 0 ? (
+          {formattedData.length === 0 ? (
             // If no data exists, show empty row
             <tr>
               {headers.map((col) => (

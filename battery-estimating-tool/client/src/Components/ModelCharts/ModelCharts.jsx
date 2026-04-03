@@ -2,41 +2,36 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Tooltip,
   Legend
 } from "chart.js";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Tooltip,
   Legend
 );
 
 const ModelCharts = ({ data, isHidden, modelA, modelB }) => {
+  console.log("ModelCharts data:", modelA, modelB);
   if (!data || isHidden) return null;
 
   const chartData = {
     labels: data.map((d) => d.metric),
     datasets: [
       {
-        label: modelA.name,
+        label: modelA["Model Name"] || "Model A",
         data: data.map((d) => d.modelA),
-        borderColor: "rgb(136, 132, 216)",
-        backgroundColor: "rgba(136, 132, 216, 0.2)",
-        tension: 0.3
+        backgroundColor: "rgba(136, 132, 216, 0.6)"
       },
       {
-        label: modelB.name,
+        label: modelB["Model Name"] || "Model B",
         data: data.map((d) => d.modelB),
-        borderColor: "rgb(130, 202, 157)",
-        backgroundColor: "rgba(130, 202, 157, 0.2)",
-        tension: 0.3
+        backgroundColor: "rgba(130, 202, 157, 0.6)"
       }
     ]
   };
@@ -57,7 +52,7 @@ const ModelCharts = ({ data, isHidden, modelA, modelB }) => {
     }
   };
 
-  return <Line data={chartData} options={options} />;
+  return <Bar data={chartData} options={options} />;
 };
 
 export default ModelCharts;

@@ -6,56 +6,11 @@ import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import { Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
+import { modelTypes, columns} from "../Helperfunc.js";
 
-const modelTypes = [
-  "All Model Types",
-  "Machine Learning",
-  "Kalman Filter",
-  "Extended Kalman Filter",
-  "Other Kalman Filter",
-  "FNN",
-  "LSTM",
-  "GRU",
-  "NARX",
-  "Transformer",
-  "Other Neural Network",
-  "Coulomb Counter",
-  "Hybrid Model",
-  "Not Specified"
-];
-const columns = [
-    'Submission',
-    'Model Name',
-    'Model Type',
-    'Status',
-    'Visibility',
-    'Submitted at',
-    'Completed at',
-    'Weighted Error',
-    'All Cells',
-    'Blind Cells',
-    'Non-Blinded Cells',
-    'Charging',
-    '80kg Payload',
-    '448kg Payload with HVAC',
-    '448kg Payload no HVAC',
-    '1000kg Payload',
-    'Standard Cycles',
-    'Custom Cycles',
-    'n20C',
-    'n10C',
-    '0C',
-    '10C',
-    '25C',
-    '40C',
-    'iSOC Error',
-    'Current Sensor Error',
-    'All Drive Cycles Average RMSE',
-    'All Drive Cycles Average MAE',
-    'All Drive Cycles Average MAXE'
-  ];
 
-  const FlexBox = styled.div`
+
+const FlexBox = styled.div`
     display:flex;
     gap: 24px;
 `
@@ -241,9 +196,12 @@ const SubmitModel = ({estimatedSOC, setEstimatedSOC}) => {
 
           <Upload size={60} />
           <p style={{ marginTop: "20px", fontSize: "1.4rem" }}>
-            drag & drop files here
+            drag & drop or click to upload 
           </p>
-          <p style={{ opacity: 0.7 }}>(or click to upload)</p>
+          <p style={{ marginTop: "-20px", fontSize: "1.4rem" }}>
+             your model here
+          </p>
+          <p style={{ opacity: 0.7 }}>(only .mat and .py files)</p>
         </DropArea>
       </FullscreenContainer>
     </>

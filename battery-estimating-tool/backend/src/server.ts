@@ -24,7 +24,7 @@ app.use(morgan('combined', {
 }));
 
 app.use(cors({
-    origin: process.env.REACT_APP_FRONTEND_URL,
+    origin:   "http://localhost:3000",
     credentials: true,
 }));
 
