@@ -1,5 +1,6 @@
 {
   "name": "battery-estimating-tool-backend",
+  "type": "module",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -8,7 +9,8 @@
     "db:start": "docker compose up -d",
     "db:stop": "docker compose down",
     "server:dev": "tsx watch src/server.ts",
-    "server:start": "node dist/server.js"
+    "server:start": "node dist/server.js",
+    "build": "npx tsc && npx tsc-alias -p tsconfig.json && node fix-imports.mjs"
   },
   "keywords": [],
   "author": "",
@@ -41,6 +43,9 @@
     "@types/pg": "^8.16.0",
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.8",
-    "tsx": "^4.21.0"
+    "glob": "^13.0.6",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   }
 }

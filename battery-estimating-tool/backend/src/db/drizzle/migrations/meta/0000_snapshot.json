@@ -1,5 +1,5 @@
 {
-  "id": "917503dc-2980-4f39-9a60-00febf3da18a",
+  "id": "b0249992-9585-4318-a264-e089b1b4a990",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -190,6 +190,12 @@
           "notNull": true,
           "default": "''"
         },
+        "results_path": {
+          "name": "results_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "status": {
           "name": "status",
           "type": "text",
@@ -333,6 +339,12 @@
         "all_drive_cycles_avg_maxe": {
           "name": "all_drive_cycles_avg_maxe",
           "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "complexity": {
+          "name": "complexity",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }

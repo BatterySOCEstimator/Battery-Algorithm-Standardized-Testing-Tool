@@ -1,3 +1,9 @@
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
@@ -7,6 +13,7 @@ import modelRoutes from "@/routes/model.routes"
 import dataRoutes from "@/routes/data.routes"
 import morgan from 'morgan';
 import { logger } from '@/services/logger.service';
+import path from "path";
 
 if (!process.env.REACT_APP_FRONTEND_URL) throw new Error("REACT_APP_FRONTEND_URL is not set");
 
@@ -34,6 +41,17 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/model", modelRoutes);
+
+// Serve React static files in production
+if (process.env.NODE_ENV === 'production') {
+  const clientBuildPath = path.join(__dirname, '../../client/build');
+  app.use(express.static(clientBuildPath));
+
+  app.get('/{*path}', (_req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
+
 
 // Health check
 app.get("/health", (_req, res) => {

@@ -2,10 +2,12 @@ import { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { db } from '../db';
+import crypto from 'crypto';
 import { models, modelTypeEnum } from '../db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import { sendEmail } from '@/services/email.service';
 import { logger } from '@/services/logger.service';
+import { runEvaluatorContainer } from '@/services/evaluator.service';
 
 /**
  * Handles model file upload and registers the model in the database.
@@ -80,14 +82,27 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
+  // Get file name
+  const modelFileName = files?.[0]?.originalname;
+  if (!modelFileName) {
+    logger.warn('model/upload - Missing file name', { name, description, userId, ip: req.ip });
+    res.status(400).json({ error: 'No file provided' });
+    return
+  }
+
   // Store the directory path
   const modelDir = path.join(
     process.env.UPLOAD_DIR ?? './uploads',
     userId,
-    name
+    name,
   );
 
   try {
+
+    // Path to actual zip file
+    const relativeZipFilePath = path.join(modelDir, modelFileName);
+    const zipFilePath = path.resolve(relativeZipFilePath);
+
     // Insert new model in DB
     const [model] = await db.insert(models).values({
       name,
@@ -96,6 +111,7 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
       userId,
       modelType: modelType ?? 'Not Specified',
       filePath: modelDir,
+      zipFilePath,
       status: 'pending',
     }).returning();
 
@@ -109,11 +125,16 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     }
 
     logger.info('model/upload - Model uploaded successfully', { modelId: model.id, modelName: name, userId, fileCount: files.length });
+    // Send success to client
     res.status(201).json({
       message: 'Model uploaded successfully.',
       model,
       files: files.map(f => ({ name: f.originalname, size: f.size })),
     });
+
+    // Run evaluator 
+    void runEvaluation(model.id, modelDir, userId, userEmail, name);
+
   } catch (err) {
     logger.error('model/upload - DB insert failed', { err, userId, modelName: name, ip: req.ip });
 
@@ -253,3 +274,166 @@ export const test = async (req: Request, res: Response) => {
   }
   res.json({ user: { id: 1, email: "test@example.com", name: "Test User" } });
 };
+
+/**
+ * Downloads a model or results file using a secure token.
+ *
+ * Looks up the token against both `modelFileToken` and `resultsFileToken`
+ * on the models table. If matched, streams the corresponding file to the client.
+ *
+ * @param req - Express request containing the token in `req.params.token`
+ * @param res - Express response used to stream the file
+ * @returns 404 if the token is invalid or the file path is missing
+ * @returns 500 if an unexpected error occurs
+ */
+export async function downloadFile(req: Request, res: Response) {
+  const token = req.params.token as string;
+
+  logger.info('download - Request received', { token });
+
+  try {
+    // Look up the model by either token
+    const [row] = await db
+      .select()
+      .from(models)
+      .where(
+        or(
+          eq(models.modelFileToken, token),
+          eq(models.resultsFileToken, token)
+        )
+      );
+
+    if (!row) {
+      logger.warn('download - Invalid token', { token });
+      return res.status(404).json({ error: 'Invalid token' });
+    }
+
+    // Determine which file is being requested based on which token matched
+    const isModelFile = token === row.modelFileToken;
+    const filePath = isModelFile ? row.zipFilePath : row.resultsPath;
+    const fileName = isModelFile ? 'model.zip' : 'results.zip';
+
+    // File path should always be set if the token exists, but guard just in case
+    if (!filePath) {
+      logger.warn('download - File path is null', { token, modelId: row.id });
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    logger.info('download - Serving file', { modelId: row.id, fileName, userId: row.userId });
+
+    // Stream the file, logging success or failure once the transfer completes
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        logger.error('download - Failed to stream file', { modelId: row.id, fileName, filePath, err });
+      } else {
+        logger.info('download - File served successfully', { modelId: row.id, fileName, userId: row.userId });
+      }
+    });
+
+  } catch (err) {
+    logger.error('download - Unexpected error', { token, err });
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+/**
+ * Runs the Python evaluation inside a sandboxed Docker container and saves
+ * the results to the database.
+ *
+ * @param modelId - The database ID of the model being evaluated
+ * @param modelDir - The directory containing the model files
+ * @param userId - The ID of the user who owns the model
+ * @param userEmail - Optional email address to notify on success or failure
+ * @param modelName - The display name of the model used in email notifications
+ */
+async function runEvaluation(
+  modelId: number,
+  modelDir: string,
+  userId: string,
+  userEmail: string | undefined,
+  modelName: string
+) {
+  logger.info('model/evaluate - Starting evaluation', { modelId, modelDir, userId });
+
+  const result = await runEvaluatorContainer(modelDir);
+
+  // The evaluator returns paths relative to the container mount (/uploads/...)
+  // Translate to the host path
+  if (result.results_path) {
+    const uploadDir = path.resolve(process.env.UPLOAD_DIR ?? './uploads');
+    result.results_path = result.results_path.replace('/uploads', uploadDir);
+  }
+
+  if (result.error) {
+    logger.error('model/evaluate - Evaluation failed', { modelId, userId, message: result.message });
+    if (userEmail) {
+      void sendEmail(userEmail, 'Model evaluation failed',
+        `<p>Your model <strong>${modelName}</strong> could not be evaluated: ${result.message}</p>`);
+    }
+    return;
+  }
+
+  logger.info('model/evaluate - Evaluation complete', { modelId, userId, result });
+
+  const {
+    results_path: resultsPath,
+    Weighted_Error: weightedError,
+    All_Drive_Cycles_Average_RMSE: allDriveCyclesAvgRmse,
+    All_Drive_Cycles_Average_MAE: allDriveCyclesAvgMae,
+    All_Drive_Cycles_Average_MAXE: allDriveCyclesAvgMaxe,
+    Complexity: complexity,
+  } = result;
+
+  const testScores = result.Test_Scores as number[];
+  const [
+    allCells, blindCells, nonBlindedCells, charging,
+    payload80kg, payload448kgWithHvac, payload448kgNoHvac, payload1000kg,
+    standardCycles, customCycles,
+    nMinus20C, nMinus10C, zeroC, tenC, twentyFiveC, fortyC,
+    isocError, currentSensorError,
+  ] = testScores;
+
+  try {
+    const modelFileToken = crypto.randomUUID();
+    const resultsFileToken = crypto.randomUUID();
+
+    await db
+      .update(models)
+      .set({
+        alreadyEvaluated: true,
+        status: 'ready',
+        resultsPath,
+        weightedError,
+        complexity: String(complexity),
+        allCells, blindCells, nonBlindedCells, charging,
+        payload80kg, payload448kgWithHvac, payload448kgNoHvac, payload1000kg,
+        standardCycles, customCycles,
+        nMinus20C, nMinus10C, zeroC, tenC, twentyFiveC, fortyC,
+        isocError, currentSensorError,
+        allDriveCyclesAvgRmse,
+        allDriveCyclesAvgMae,
+        allDriveCyclesAvgMaxe,
+        modelFileToken,
+        resultsFileToken,
+      })
+      .where(eq(models.id, modelId));
+
+    logger.info('model/evaluate - DB updated successfully', { modelId, userId, result, testScores });
+
+    const resultsUrl = `${process.env.BACKEND_URL}/api/model/download/${resultsFileToken}`;
+
+    if (userEmail) {
+      void sendEmail(userEmail, 'Model evaluation complete',
+        `<p>Your model <strong>${modelName}</strong> has been evaluated.</p>
+         <p>Weighted Error: <strong>${weightedError}</strong></p>
+         <p>Complexity: <strong>${complexity}</strong></p>
+         <p>Download the results <a href="${resultsUrl}">here.</a></p>`);
+    }
+  } catch (err) {
+    logger.error('model/evaluate - Failed to update DB', { modelId, userId, err });
+    if (userEmail) {
+      void sendEmail(userEmail, 'Model evaluation failed',
+        `<p>Your model <strong>${modelName}</strong> was evaluated but results could not be saved.</p>`);
+    }
+  }
+}
