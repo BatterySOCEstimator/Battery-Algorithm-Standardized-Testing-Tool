@@ -14,7 +14,7 @@
 /out/
 
 # production
-/build
+/battery-estimating-tool/backend/dist
 
 # misc
 .DS_Store
