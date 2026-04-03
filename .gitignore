@@ -16,6 +16,9 @@
 # production
 /battery-estimating-tool/backend/dist
 
+# venv
+/battery-estimating-tool/backend/src/evaluator/SETool_Python/venv
+
 # misc
 .DS_Store
 *.pem
