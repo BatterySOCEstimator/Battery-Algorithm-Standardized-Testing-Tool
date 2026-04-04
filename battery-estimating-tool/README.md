@@ -1,79 +1,77 @@
 # Battery Estimating Tool
 
-## Getting started:
+## Getting Started
 
-### Prerequisites: 
-- npm
-- Node 
-- Docker desktop (https://docs.docker.com/desktop/)
+### Prerequisites
+- Node.js & npm
+- Docker Desktop ([install here](https://docs.docker.com/desktop/))
 
-#### After prerequisites are installed, complete the following steps:
-1. Install dependencies with `npm run install:all`
-1. Copy the .env with `cd backend | cp '.env.example' .env`
-2. Run `docker compose up -d`
-3. Run migrations with `npx drizzle-kit migrate`
-4. CD back into the root folder and run `npm run dev` 
+### Setup -- Dev
 
-After, simply running `npm run dev` from project root will run the app.
-
-## Seeding DB:
-- Run `npm run dev` from `battery-estimating-tool/` to start the project
-- In the browser console in the app, do (feel free to change the info)
+1. Install dependencies:
+```bash
+   npm run install:all
 ```
-await signUp({
-    email: "test@test.com",
-    password: "Testtesttest",
-    firstName: "Test1",
-    lastName: "Test",
-    username: "Testuser",
-    academicAffiliation: "Test", 
-}); 
+2. Set up the backend environment:
+```bash
+   cd backend
+   cp .env.example .env
 ```
-- In browser console, make sure you're logged in with your user and password:
+3. Start the database:
+```bash
+   docker compose up -d
 ```
-await login ({
-    email: "test@test.com",
-	password: "Testtesttest"
-});
+4. Run migrations:
+```bash
+   npx drizzle-kit migrate
 ```
-- Get your `userId` from the response body after running `await getUserInfo();` in browser console
-- In a new terminal in `battery-estimating-tool/`, run `cd backend`
-- Run `npx tsx --env-file=.env src/utils/seed.ts USER_ID_HERE`. For example, if `userId = 8`, run `npx tsx --env-file=.env src/utils/seed.ts 8`. This should seed the DB and you should see success messages in console 
-- You can test by calling endpoints in browser console like
-``` 
-fetch('http://localhost:8000/api/data/fetchModelData/2', {credentials: 'include'})
-  .then(response => response.text())  // use text() instead of json()
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
-  ```
-or
-```
-fetch('http://localhost:8000/api/data/fetchLeaderboardData', {credentials: 'include'})
-  .then(response => response.text())  // use text() instead of json()
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
-
+5. From the project root, start the app:
+```bash
+   cd ..
+   npm run dev
 ```
 
-Here is a list of query params and their defaults for `fetchLeaderboardData`:
-```
-limit = '20', \\ Number of results returned
-offset = '0', \\ Number of models to offset in results (omit first n models)
-order = 'asc', \\ Ascending or Descending
-sortBy = 'weightedError' \\ Column to sort by
-```
+After initial setup, just run `npm run dev` from the project root.
+
+---
 ## Python Evaluation Tool Setup
+
+The evaluation tool runs user-submitted models inside a **sandboxed Docker container** for security. No local Python virtual environment is needed in production — Docker handles everything.
+
+### How It Works
+
+When a model is submitted, the backend:
+1. Copies the uploaded model file into a temporary working directory
+2. Spins up an isolated Docker container with the evaluation script and test data
+3. Runs the model against standardized battery datasets
+4. Captures the evaluation results (metrics like weighted error, RMSE, etc.)
+5. Stores the results in Postgres and cleans up the container
+
+### Setup
+
+1. Make sure Docker Desktop is running.
+
+2. Build the evaluator image from `battery-estimating-tool`:
+```bash
+   build -f Dockerfile.evaluator -t socapp-evaluator .
+```
+> **Note:** This image is **not** a long-lived service -- the backend spawns a container per evaluation and removes it when done.
+
+
+
+3. Ensure the following are set in `backend/.env`:
+### Local Development (without Docker evaluator)
+
+If you want to run the evaluation script directly for development/debugging:
 
 1. Navigate to the evaluation tool directory:
 ```bash
    cd SETool_Python
 ```
-
 2. Create a virtual environment:
 ```bash
    python3 -m venv venv
 ```
-
 3. Activate it and install dependencies:
 ```bash
    source venv/bin/activate        # Mac/Linux
@@ -81,14 +79,69 @@ sortBy = 'weightedError' \\ Column to sort by
    pip install numpy pandas scipy matplotlib
    deactivate
 ```
+4. Set the script path in `backend/.env`:
+PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
 
-4. Set the script path in `/backend/.env`:
+> **Note:** Windows users need to change `venv/bin/python3` to `venv/Scripts/python3` — or set `PYTHON_BIN` explicitly in `.env`.
+
+---
+
+## Seeding the Database
+
+1. Start the app with `npm run dev`
+
+2. In the browser console, create a test user:
+```js
+   await signUp({
+     email: "test@test.com",
+     password: "Testtesttest",
+     firstName: "Test1",
+     lastName: "Test",
+     username: "Testuser",
+     academicAffiliation: "Test",
+   });
 ```
-   PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
+
+3. Log in:
+```js
+   await login({
+     email: "test@test.com",
+     password: "Testtesttest",
+   });
 ```
 
-> **Note:** Windows users will need to change `venv/bin/python3` to `venv/Scripts/python3` — or explicitly set `PYTHON_BIN` in their `.env`.
+4. Get your `userId`:
+```js
+   await getUserInfo();
+```
 
+5. In a separate terminal, run the seed script:
+```bash
+   cd backend
+   npx tsx --env-file=.env src/utils/seed.ts USER_ID_HERE
+```
+   For example, if `userId = 8`:
+```bash
+   npx tsx --env-file=.env src/utils/seed.ts 8
+```
+
+6. Verify by calling endpoints in the browser console:
+```js
+   fetch('/api/data/fetchLeaderboardData', { credentials: 'include' })
+     .then(r => r.json())
+     .then(console.log);
+```
+
+### Leaderboard Query Params
+
+| Param    | Default           | Description                          |
+|----------|-------------------|--------------------------------------|
+| `limit`  | `20`              | Number of results returned           |
+| `offset` | `0`               | Number of models to skip             |
+| `order`  | `asc`             | `asc` or `desc`                      |
+| `sortBy` | `weightedError`   | Column to sort by                    |
+
+---
 
 ## TODO:
 - Change password
