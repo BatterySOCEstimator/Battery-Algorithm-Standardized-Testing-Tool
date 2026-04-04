@@ -15,6 +15,7 @@ export const auth = betterAuth({
         process.env.BACKEND_URL,
         "http://localhost:8000",
         "http://localhost:3000",
+        "https://batterysocbenchmark.ca"
     ].filter(Boolean) as string[],
     trustedProxies: ["127.0.0.1"],
     database: drizzleAdapter(db, {
