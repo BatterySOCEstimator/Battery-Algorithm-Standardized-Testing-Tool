@@ -1,13 +1,14 @@
 """
 Obtain output data from all drive cycles
 """
-
 import numpy as np
 import pandas as pd
 from iterate_all import predict_soc
 from flops_mem_counter import flops_mem_counter, calculate_complexity_score
 
 def obtain_output_data(setups, data, inputs, user_model):
+    # IMPORTANT: import inside function to successfully deserialize in Linux environment
+
     """
     Run model on all test cycles and collect results
     

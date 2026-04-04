@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 
 from validate_submission import validate_submission
-from obtain_output_data import obtain_output_data
 from create_figures import create_figures
+from batch_scheduler import evaluation_scheduler
 
 
 def _fail(message: str) -> dict:
@@ -100,8 +100,10 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config):
     # Run all test cycles
     print("Running test cycles...", file=sys.stderr)
     try:
+        # INVOKE SCHEUDLER to run parallelized
         output_data, rmse, maxe, mae, rmse_charge, file_data, complexity = \
-            obtain_output_data(config.setups, data, config.inputs, user_model)
+            evaluation_scheduler(config.setups, data, config.inputs, user_model, model_file_py, processing_mode="P1")
+
     except Exception as e:
         return _fail(f"Error during test cycle evaluation: {e}")
 

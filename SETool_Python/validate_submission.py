@@ -153,5 +153,5 @@ def validate_submission(data, inputs, processing_folder):
         if 'a>' in error_msg: # Remove location data from error message if present
             idx = error_msg.find('a>') + 3
             error_msg = error_msg[idx:]
-        print(f'ERROR: Model raised an exception – {error_msg}',file=sys.stderr)
+        print(f'ERROR: Model raised an exception - {error_msg}',file=sys.stderr)
         return True
