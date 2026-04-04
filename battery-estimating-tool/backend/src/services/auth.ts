@@ -26,11 +26,11 @@ export const auth = betterAuth({
          * Sends a verification email to the user after registration.
          * The email contains a link to verify their address before they can sign in.
          */
-        callbackURL: `${process.env.REACT_APP_FRONTEND_URL}/leaderboards`,
+        autoSignIn: false,
         sendVerificationEmail: async ({ user, url }) => {
             // Use token provided by better-auth to build our own link (redirect wasn't working otherwise)
             const token = new URL(url).searchParams.get('token');
-            const callbackURL = encodeURIComponent(`${process.env.REACT_APP_FRONTEND_URL}/leaderboards`);
+            const callbackURL = encodeURIComponent(`${process.env.REACT_APP_FRONTEND_URL}/login`);
             const verifyUrl = `${process.env.BETTER_AUTH_URL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
 
             logger.info('auth - Sending verification email', { email: user.email, verifyUrl });
