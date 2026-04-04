@@ -31,7 +31,7 @@ app.use(morgan('combined', {
 }));
 
 app.use(cors({
-    origin:   "http://batterysocbenchmark.ca",
+    origin:   process.env.REACT_APP_FRONTEND_URL,
     credentials: true,
 }));
 
