@@ -31,7 +31,7 @@ app.use(morgan('combined', {
 }));
 
 app.use(cors({
-    origin:   "http://localhost:3000",
+    origin:   "http://batterysocbenchmark.ca",
     credentials: true,
 }));
 
