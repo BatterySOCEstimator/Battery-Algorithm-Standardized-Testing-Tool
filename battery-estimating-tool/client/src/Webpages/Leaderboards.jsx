@@ -50,13 +50,33 @@ const formatData = (data) => {
     return obj;
   });
 };
-const Leaderboards = ({estimatedSOC}) => {
+const Leaderboards = ({ estimatedSOC }) => {
   const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
   const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
-  setOriginalData(formatData(estimatedSOC));
-  setFormattedData(formatData(estimatedSOC));
-}, [estimatedSOC]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/data/fetchLeaderboardData");
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const data = await response.json();
+        const formatted = formatData(data.data);
+        setOriginalData(formatted);
+        setFormattedData(formatted);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return <><StyledNavbar /><Container>Loading...</Container></>;
+  if (error) return <><StyledNavbar /><Container>Error: {error}</Container></>;
+
   return (
     <>
       <StyledNavbar />
@@ -67,9 +87,9 @@ const Leaderboards = ({estimatedSOC}) => {
         <FiltersLabel>Filters:</FiltersLabel>
         {/* Filters Row */}
         <FlexBox>
-            <LabeledSelect label={"Filter by Author"} options={["All authors", "Paarth"]} />
-            <LabeledSelect label={"Filter by Academic Affiliation"} options={["All Academic Affiliations", "McMaster"]} />
-            <LabeledSelect label={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData}/>
+          <LabeledSelect label={"Filter by Author"} options={["All authors", "Paarth"]} />
+          <LabeledSelect label={"Filter by Academic Affiliation"} options={["All Academic Affiliations", "McMaster"]} />
+          <LabeledSelect label={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData} />
         </FlexBox>
 
         <MetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
