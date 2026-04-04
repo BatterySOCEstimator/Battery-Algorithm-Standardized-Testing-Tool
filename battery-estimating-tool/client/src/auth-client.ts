@@ -5,7 +5,7 @@ import { auth } from "../../backend/src/services/auth"
 // Auth client
 export const authClient = createAuthClient({
     /** The base URL of the server (optional if you're using the same domain) */
-    baseURL: "http://localhost",
+    baseURL: "http://localhost:8000", // Comment out in PROD
     plugins: [inferAdditionalFields<typeof auth>(), usernameClient()],
     fetchOptions: {
         onError: async (context) => {

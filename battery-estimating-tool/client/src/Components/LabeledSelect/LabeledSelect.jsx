@@ -1,18 +1,21 @@
 import Form from "react-bootstrap/Form";
 import { useState } from "react";
-const LabeledSelect = ({ label, options, setFormattedData, originalData }) => {
+const LabeledSelect = ({ label, options, setFormattedData, originalData, onChange }) => {
   const [selected, setSelected] = useState(options[0]);
 
   const handleChange = (e) => {
     const selectedValue = e.target.value;
     setSelected(selectedValue);
-    console.log(selectedValue)
-    if (selectedValue === "All Model Types") {
-      setFormattedData(originalData); 
-    } else {
-      
-      const filtered = originalData.filter((item) => item[label] === selectedValue);
 
+    if (onChange) onChange(e);
+
+
+    if (!setFormattedData || !originalData) return;
+
+    if (selectedValue === "All Model Types") {
+      setFormattedData(originalData);
+    } else {
+      const filtered = originalData.filter((item) => item[label] === selectedValue);
       setFormattedData(filtered);
     }
   };
