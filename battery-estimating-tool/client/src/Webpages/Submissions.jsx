@@ -2,8 +2,9 @@ import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
 import MetricsTable from "../Components/MetricsTable/MetricsTable"
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
+import useRequireAuth from "../Hooks/useRequireAuth";
 import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const FlexBox = styled.div`
     display:flex;
@@ -44,13 +45,17 @@ const formatData = (data) => {
   });
 };
 
-const Submissions = ({estimatedSOC}) => {
+const Submissions = ({ estimatedSOC }) => {
+  const { loading: authLoading } = useRequireAuth();
   const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
   const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
   useEffect(() => {
-  setOriginalData(formatData(estimatedSOC));
-  setFormattedData(formatData(estimatedSOC));
-}, [estimatedSOC]);
+    setOriginalData(formatData(estimatedSOC));
+    setFormattedData(formatData(estimatedSOC));
+  }, [estimatedSOC]);
+
+  if (authLoading) return <><StyledNavbar /><Container>Loading...</Container></>;
+
   return (
     <>
       <StyledNavbar />
@@ -64,7 +69,7 @@ const Submissions = ({estimatedSOC}) => {
 
         {/* Filters Row */}
         <FlexBox>
-          <LabeledSelect label={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData}/>
+          <LabeledSelect label={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData} />
         </FlexBox>
 
         <MetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
