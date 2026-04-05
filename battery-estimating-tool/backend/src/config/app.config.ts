@@ -1,0 +1,17 @@
+// This file can be used to easily set/modify global variables, like file upload restrictions, server settings, etc.
+
+export const config = {
+  upload: {
+    allowedExtensions: ['.py', '.m', '.zip'] as string[],
+    allowedMimetypes: [
+      'text/x-python',
+      'text/x-python-script',
+      'application/x-python-code',
+      'text/plain',
+      'application/octet-stream',
+    ] as string[],
+    maxFileSizeMb: 100 as number,
+    maxFiles: 10 as number,
+    uploadDir: process.env.UPLOAD_DIR ?? './uploads',
+  },
+};

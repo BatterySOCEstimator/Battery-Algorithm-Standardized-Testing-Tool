@@ -1,0 +1,365 @@
+<style>
+  body {
+    background-color: #f4f4f4;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-top: 60px;
+    text-align: center;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  .model-name {
+    font-size: 32px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 70px;
+    text-align: center;
+    letter-spacing: 1px;
+    text-transform: capitalize;
+    border-bottom: 2px solid #20beff;
+    padding-bottom: 8px;
+  }
+
+  .model-type {
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 0;
+    letter-spacing: 1px;
+    text-transform: capitalize;
+  }
+
+  .model-type-grey {
+    color: #494949; 
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  table th, table td {
+    text-align: center;  
+    vertical-align: middle; 
+  }
+
+  table th div, table td div {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+  }
+
+  thead {
+    background-color: #2c3e50;
+    color: black;
+  }
+
+  th, td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  th div {
+    display: flex;
+    justify-content: center;
+  }
+
+  tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+
+  tbody tr:hover {
+    background-color: #e8f4ff;
+    transition: 0.3s;
+  }
+
+  /* Figure container */
+  .figure-container {
+    flex: 1;
+    min-width: 20%;
+    max-width: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 5%;
+  }
+
+  .figure-wrapper {
+    width: 100%;
+  }
+
+  .figure-placeholder {
+    border: 2px dashed #aaa;
+    background-color: #f9f9f9;
+    padding: 40px;
+    min-height: 350px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    color: #777;
+    border-radius: 10px;
+    max-width: inherit;
+    box-sizing: border-box;
+  }
+
+  .download-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #20beff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .download-button:hover {
+    background-color: #007bff;
+  }
+
+  .error-message {
+    color: red;
+    background-color: #ffe6e6;
+    border: 1px solid red;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: inline-block;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+  }
+
+  /* Spacing between elements */
+  .mt-4 {
+    margin-top: 2rem;
+  }
+
+  /* Dropdown and image container styling */
+  .col-md-4 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .col-md-8 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  #imageDropdown {
+    width: 50%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 1rem; /* Space between dropdown and selected image */
+  }
+
+  /* Image display styling */
+  #selectedImage {
+    max-width: 100%;
+    max-height: 800px;
+    width: auto;
+    height: auto;
+    display: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.3s ease;
+  }
+
+  /* Download button styling */
+  .download-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 16px;
+    margin-top: 20px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+  }
+
+  .download-button:hover {
+    background-color: #0056b3;
+  }
+
+  /* No images available message styling */
+  p {
+    font-size: 18px;
+    color: #888;
+  }
+
+  /* Centering download button */
+  .container .download-button {
+    display: inline-block;
+    margin: 20px auto;
+  }
+
+  /* Responsive styling */
+  @media (max-width: 768px) {
+    .col-md-4,
+    .col-md-8 {
+      flex: 1 1 100%;
+      text-align: center;
+    }
+
+    .mt-4 {
+      margin-top: 1rem;
+    }
+
+    #imageDropdown {
+      width: 80%; /* Slightly wider for smaller screens */
+    }
+
+    .download-button {
+      width: 80%; /* Slightly wider for smaller screens */
+    }
+  }
+</style>
+
+{% extends "Webpage_Base.html" %} {% block title %}
+<title>Submission and Results</title>
+{% endblock %} {% block content %}
+
+<h1 class="model-name">Submission Results</h1>
+<h1 class="model-type">Model Name: <span class="model-type-grey">{{ submission.model_name }}</span></h1>
+<h1 class="model-type">Model Type: <span class="model-type-grey">{{ submission.get_model_type_display }}</span></h1>
+
+<h2>Statistics:</h2>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Weighted Error</th>
+        <th>All Cells</th>
+        <th>Blind Cells</th>
+        <th>Non-Blinded Cells</th>
+        <th>Charging</th>
+        <th>80kg Payload</th>
+        <th>448kg Payload with HVAC</th>
+        <th>448kg Payload no HVAC</th>
+        <th>1000kg Payload</th>
+        <th>Standard Cycles</th>
+        <th>Custom Cycles</th>
+        <th>-20C</th>
+        <th>-10C</th>
+        <th>0C</th>
+        <th>10C</th>
+        <th>25C</th>
+        <th>40C</th>
+        <th>iSOC Error</th>
+        <th>Current Sensor Error</th>
+        <th>All Drive Cycles Average RMSE</th>
+        <th>All Drive Cycles Average MAE</th>
+        <th>All Drive Cycles Average MAXE</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ submission.weighted_error }}</td>
+        <td>{{ submission.t1_all_cells }}</td>
+        <td>{{ submission.t2_blind_cells }}</td>
+        <td>{{ submission.t3_non_blinded_cells }}</td>
+        <td>{{ submission.t4_charging }}</td>
+        <td>{{ submission.t5_80kg_payload }}</td>
+        <td>{{ submission.t5_6_448kg_payload_with_HVAC }}</td>
+        <td>{{ submission.t5_6_448kg_payload }}</td>
+        <td>{{ submission.t5_1000kg_payload }}</td>
+        <td>{{ submission.t7_standard_cycles }}</td>
+        <td>{{ submission.t8_custom_cycles }}</td>
+        <td>{{ submission.t9_n20C }}</td>
+        <td>{{ submission.t9_n10C }}</td>
+        <td>{{ submission.t9_0C }}</td>
+        <td>{{ submission.t9_10C }}</td>
+        <td>{{ submission.t9_25C }}</td>
+        <td>{{ submission.t9_40C }}</td>
+        <td>{{ submission.t10_iSOC_error }}</td>
+        <td>{{ submission.t11_current_sensor_error }}</td>
+        <td>{{ submission.all_drive_cycles_average_RMSE }}</td>
+        <td>{{ submission.all_drive_cycles_average_MAE }}</td>
+        <td>{{ submission.all_drive_cycles_average_MAXE }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+    <div class="container mt-4">
+    {% if images %}
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Select an Image:</h2>
+            <select id="imageDropdown" class="form-select">
+                <option value="">-- Choose an image --</option>
+                {% for image in images %}
+                <option value="{{ image.file.url }}">{{ image.display_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-8 text-center mt-3">
+            <h2>Selected Image:</h2>
+            <img id="selectedImage" src="" class="img-fluid" alt="Select an image" style="max-height: 600px; display: none;">
+          </div>
+          <div class="container">  
+            {% if images %}
+            <a href="{% url 'downloadAllFiles' submission.id %}" class="download-button">Download Output Files</a>
+            {% endif %}
+          </div>
+    </div>
+        {% else %}
+        <p>No images available.</p>
+        {% if submission.error_message %}
+      <div class="error-message">
+        <strong>Error:</strong> {{ submission.error_message }}
+      </div>
+      {% endif %} 
+        {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropdown = document.getElementById("imageDropdown");
+    const imageDisplay = document.getElementById("selectedImage");
+
+    dropdown.addEventListener("change", function () {
+      const selectedUrl = this.value;
+      if (selectedUrl) {
+        imageDisplay.src = selectedUrl;
+        imageDisplay.style.display = "block";
+      } else {
+        imageDisplay.style.display = "none";
+      }
+    });
+  });
+</script>
+
+{% endblock %}

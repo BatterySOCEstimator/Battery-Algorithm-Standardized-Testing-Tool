@@ -1,0 +1,370 @@
+<style>
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+label {
+  margin-left: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+table th, table td {
+  text-align: center;  
+  vertical-align: middle; 
+}
+
+table th div, table td div {
+  display: flex;
+  justify-content: center;
+  align-items: center; 
+}
+
+thead {
+  background-color: #2c3e50;
+  color: black;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+th div {
+  display: flex;
+  justify-content: center;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+  background-color: #e8f4ff;
+  transition: 0.3s;
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.btn {
+  background-color: #20beff;
+  color: white;
+  margin-top: 20px;
+  margin-left: 20px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background-color: #2980b9;
+}
+
+select {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+small {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: #777;
+  margin-top: 10px;
+}
+
+.toggle-view {
+  background-color: #20beff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  margin-left: 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-view:hover {
+  background-color: #2980b9; 
+}
+</style>
+
+{% extends "Webpage_Base.html" %} {% block title %}
+<title>Algorithm Leaderboard</title>
+{% endblock %} {% block content %}
+
+<div>
+
+<h1>placeholder</h1>
+</div>
+
+<form id="csv-export-form" action="{% url 'export_leaderboard_csv' %}" method="get">
+  <input type="hidden" name="author" value="{{ request.GET.author }}">
+  <input type="hidden" name="modeltype" value="{{ request.GET.modeltype }}">
+  <input type="hidden" name="order_by" value="{{ request.GET.order_by }}">
+  <button type="submit" class="btn btn-primary">Export to CSV</button>
+</form>
+
+<form id="filter" hx-get="{% url 'leaderboard' %}" hx-target="#lb" hx-push-url="true">
+  <label for="author">Filter by Author:</label>
+  <select id="author" name="author" class="select2" onchange="this.form.submit()">
+      <option value="">All Authors</option>
+      {% for author in authors %}
+          <option value="{{ author.id }}" {% if author.id|stringformat:"s" == request.GET.author %}selected{% endif %}>
+              {{ author.username }}
+          </option>
+      {% endfor %}
+  </select>
+  <label for="academic_affiliation">Filter by Academic Affiliation:</label>
+  <select id="academic_affiliation" name="academic_affiliation" class="select2" onchange="this.form.submit()">
+      <option value="">All Academic Affiliations</option>
+      {% for author in authors %}
+          <option value="{{ author.academic_affiliation }}" {% if author.academic_affiliation|stringformat:"s" == request.GET.academic_affiliation %}selected{% endif %}>
+              {% ifchanged %} {{ author.academic_affiliation }} {% endifchanged %}
+          </option>
+      {% endfor %}
+  </select>
+    <label for="modeltype">Filter by Model Type:</label>
+    <select id="modeltype" name="modeltype" class="select2" onchange="this.form.submit()">
+        <option value="">All Model Types</option>
+        {% for modeltype in modeltypes %}
+            <option value="{{ modeltype }}" {% if modeltype|stringformat:"s" == request.GET.modeltype %}selected{% endif %}>
+                {{ modeltype }}
+            </option>
+        {% endfor %}
+    </select>
+    <label for="order_by">Sort By:</label>
+    <select id="sort" name="order_by" class="select2" onchange="this.form.submit()">
+      <option value="weighted_error" {% if "weighted_error" == request.GET.order_by %}selected{% endif %}>Weighted Error</option>
+      <option value="-weighted_error" {% if "-id" == request.GET.order_by %}selected{% endif %}>Weighted Error Descending</option>
+      <option value="t1_all_cells" {% if "t1_all_cells" == request.GET.order_by %}selected{% endif %}>All Cells</option>
+      <option value="-t1_all_cells" {% if "-t1_all_cells" == request.GET.order_by %}selected{% endif %}>All Cells Descending</option>
+      <option value="t2_blind_cells" {% if "t2_blind_cells" == request.GET.order_by %}selected{% endif %}>Blind Cells</option>
+      <option value="-t2_blind_cells" {% if "-t2_blind_cells" == request.GET.order_by %}selected{% endif %}>Blind Cells Descending</option>
+      <option value="t3_non_blinded_cells" {% if "t3_non_blinded_cells" == request.GET.order_by %}selected{% endif %}>Non-Blinded Cells</option>
+      <option value="-t3_non_blinded_cells" {% if "-t3_non_blinded_cells" == request.GET.order_by %}selected{% endif %}>Non-Blinded Cells Descending</option>
+      <option value="t4_charging" {% if "t4_charging" == request.GET.order_by %}selected{% endif %}>Charging</option>
+      <option value="-t4_charging" {% if "-t4_charging" == request.GET.order_by %}selected{% endif %}>Charging Descending</option>
+      <option value="t5_80kg_payload" {% if "t5_80kg_payload" == request.GET.order_by %}selected{% endif %}>80kg Payload</option>
+      <option value="-t5_80kg_payload" {% if "-t5_80kg_payload" == request.GET.order_by %}selected{% endif %}>80kg Payload Descending</option>
+      <option value="t5_6_448kg_payload_with_HVAC" {% if "t5_6_448kg_payload_with_HVAC" == request.GET.order_by %}selected{% endif %}>448kg Payload With HVAC</option>
+      <option value="-t5_6_448kg_payload_with_HVAC" {% if "-t5_6_448kg_payload_with_HVAC" == request.GET.order_by %}selected{% endif %}>448kg Payload With HVAC Descending</option>
+      <option value="t5_6_448kg_payload" {% if "t5_6_448kg_payload" == request.GET.order_by %}selected{% endif %}>448kg Payload No HVAC</option>
+      <option value="-t5_6_448kg_payload" {% if "-t5_6_448kg_payload" == request.GET.order_by %}selected{% endif %}>448kg Payload No HVAC Descending</option>
+      <option value="t5_1000kg_payload" {% if "t5_1000kg_payload" == request.GET.order_by %}selected{% endif %}>1000kg Payload</option>
+      <option value="-t5_1000kg_payload" {% if "-t5_1000kg_payload" == request.GET.order_by %}selected{% endif %}>1000kg Payload Descending</option>
+      <option value="t7_standard_cycles" {% if "t7_standard_cycles" == request.GET.order_by %}selected{% endif %}>Standard Cycles</option>
+      <option value="-t7_standard_cycles" {% if "-t7_standard_cycles" == request.GET.order_by %}selected{% endif %}>Standard Cycles Descending</option>
+      <option value="t8_custom_cycles" {% if "t8_custom_cycles" == request.GET.order_by %}selected{% endif %}>Custom Cycles</option>
+      <option value="-t8_custom_cycles" {% if "-t8_custom_cycles" == request.GET.order_by %}selected{% endif %}>Custom Cycles Descending</option>
+      <option value="t9_n20C" {% if "t9_n20C" == request.GET.order_by %}selected{% endif %}>n20C</option>
+      <option value="-t9_n20C" {% if "-t9_n20C" == request.GET.order_by %}selected{% endif %}>n20C Descending</option>
+      <option value="t9_n10C" {% if "t9_n10C" == request.GET.order_by %}selected{% endif %}>n10C</option>
+      <option value="-t9_0C" {% if "-t9_0C" == request.GET.order_by %}selected{% endif %}>n10C Descending</option>
+      <option value="t9_0C" {% if "t9_0C" == request.GET.order_by %}selected{% endif %}>0C</option>
+      <option value="-t9_0C" {% if "-t9_0C" == request.GET.order_by %}selected{% endif %}>0C Descending</option>
+      <option value="t9_10C" {% if "t9_10C" == request.GET.order_by %}selected{% endif %}>10C</option>
+      <option value="-t9_10C" {% if "-t9_10C" == request.GET.order_by %}selected{% endif %}>10C Descending</option>
+      <option value="t9_25C" {% if "t9_25C" == request.GET.order_by %}selected{% endif %}>25C</option>
+      <option value="-t9_25C" {% if "-t9_25C" == request.GET.order_by %}selected{% endif %}>25C Descending</option>
+      <option value="t9_40C" {% if "t9_40C" == request.GET.order_by %}selected{% endif %}>40C</option>
+      <option value="-t9_40C" {% if "-t9_40C" == request.GET.order_by %}selected{% endif %}>40C Descending</option>
+      <option value="t10_iSOC_error" {% if "t10_iSOC_error" == request.GET.order_by %}selected{% endif %}>iSOC Error</option>
+      <option value="-t10_iSOC_error" {% if "-t10_iSOC_error" == request.GET.order_by %}selected{% endif %}>iSOC Error Descending</option>
+      <option value="t11_current_sensor_error" {% if "t11_current_sensor_error" == request.GET.order_by %}selected{% endif %}>Current Sensor Error</option>
+      <option value="-t11_current_sensor_error" {% if "-t11_current_sensor_error" == request.GET.order_by %}selected{% endif %}>Current Sensor Error Descending</option>
+      <option value="all_drive_cycles_average_RMSE" {% if "all_drive_cycles_average_RMSE" == request.GET.order_by %}selected{% endif %}>All Drive Cycles Average RMSE Error</option>
+      <option value="-all_drive_cycles_average_RMSE" {% if "-all_drive_cycles_average_RMSE" == request.GET.order_by %}selected{% endif %}>All Drive Cycles Average RMSE Descending</option>
+      <option value="all_drive_cycles_average_MAE" {% if "all_drive_cycles_average_MAE" == request.GET.order_by %}selected{% endif %}>All Drive Cycles Average MAE Error</option>
+      <option value="-all_drive_cycles_average_MAE" {% if "-all_drive_cycles_average_MAE" == request.GET.order_by %}selected{% endif %}>All Drive Cycles Average MAE Descending</option>
+      <option value="all_drive_cycles_average_MAXE" {% if "all_drive_cycles_average_MAXE" == request.GET.order_by %}selected{% endif %}>All Drive Cycles Average MAXE Error</option>
+      <option value="-all_drive_cycles_average_MAXE" {% if "-all_drive_cycles_average_MAXE" == request.GET.order_by %}selected{% endif %}>All Drive Cycles Average MAXE Descending</option>
+    </select>
+</form>
+
+<button class="toggle-view" id="toggle_view"> Switch to Detailed View </button>
+
+<small><em>*Note: All units are in percentages (%)</em></small>
+
+<table class="detailed-view" id="lb">
+  <thead>
+    <tr>
+        <th><div>Ranking</div></th>
+        <th><div>Submission</div></th>
+        <th><div>Author</div></th>
+        <th><div>Affiliation</div></th>
+        <th><div>Model Name</div></th>
+        <th><div>Model Type</div></th>
+        <th><div>Weighted Error</div></th>
+        <th><div>All Cells</div></th>
+        <th><div>Blind Cells</div></th>
+        <th><div>Non-Blinded Cells</div></th>
+        <th><div>Charging</div></th>
+        <th><div>80kg Payload</div></th>
+        <th><div>448kg Payload with HVAC</div></th>
+        <th><div>448kg Payload no HVAC</div></th>
+        <th><div>1000kg Payload</div></th>
+        <th><div>Standard Cycles</div></th>
+        <th><div>Custom Cycles</div></th>
+        <th><div>n20C</div></th>
+        <th><div>n10C</div></th>
+        <th><div>0C</div></th>
+        <th><div>10C</div></th>
+        <th><div>25C</div></th>
+        <th><div>40C</div></th>
+        <th><div>iSOC Error</div></th>
+        <th><div>Current Sensor Error</div></th>
+        <th><div>All Drive Cycles Average RMSE</div></th>
+        <th><div>All Drive Cycles Average MAE</div></th>
+        <th><div>All Drive Cycles Average MAXE</div></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for submission in submissions %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>
+        <a href="{% url 'submission' submission.id %}">{{ submission.id|slice:"32:" }}</a>
+      </td>
+      <td>{{ submission.user.username }}</td>
+      <td>{{ submission.user.academic_affiliation }}</td>
+      <td>{{ submission.model_name }}</td>
+      <td>{{ submission.get_model_type_display }}</td>
+      <td>{{ submission.weighted_error }}</td>
+      <td>{{ submission.t1_all_cells }}</td>
+      <td>{{ submission.t2_blind_cells }}</td>
+      <td>{{ submission.t3_non_blinded_cells }}</td>
+      <td>{{ submission.t4_charging }}</td>
+      <td>{{ submission.t5_80kg_payload }}</td>
+      <td>{{ submission.t5_6_448kg_payload_with_HVAC }}</td>
+      <td>{{ submission.t5_6_448kg_payload }}</td>
+      <td>{{ submission.t5_1000kg_payload }}</td>
+      <td>{{ submission.t7_standard_cycles }}</td>
+      <td>{{ submission.t8_custom_cycles }}</td>
+      <td>{{ submission.t9_n20C }}</td>
+      <td>{{ submission.t9_n10C }}</td>
+      <td>{{ submission.t9_0C }}</td>
+      <td>{{ submission.t9_10C }}</td>
+      <td>{{ submission.t9_25C }}</td>
+      <td>{{ submission.t9_40C }}</td>
+      <td>{{ submission.t10_iSOC_error }}</td>
+      <td>{{ submission.t11_current_sensor_error }}</td>
+      <td>{{ submission.all_drive_cycles_average_RMSE }}</td>
+      <td>{{ submission.all_drive_cycles_average_MAE }}</td>
+      <td>{{ submission.all_drive_cycles_average_MAXE }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<table class="condensed-view" id="lb">
+  <thead>
+    <tr>
+      <form>
+        <th><div>Ranking</div></th>
+        <th><div>Submission</div></th>
+        <th><div>Author</div></th>
+        <th><div>Affiliation</div></th>
+        <th><div>Model Name</div></th>
+        <th><div>Model Type</div></th>
+        <th><div>Weighted Error</div></th>
+      </form>
+    </tr>
+  </thead>
+  <tbody>
+    {% for submission in submissions %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>
+        <a href="{% url 'submission' submission.id %}">{{ submission.id|slice:"32:" }}</a>
+      </td>
+      <td>{{ submission.user.username }}</td>
+      <td>{{ submission.user.academic_affiliation }}</td>
+      <td>{{ submission.model_name }}</td>
+      <td>{{ submission.get_model_type_display }}</td>
+      <td>{{ submission.weighted_error }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    function matchWidth() {
+      let referenceElement = document.getElementsByTagName("table")[0];
+      let targetElement =
+        document.getElementsByClassName("button-container")[0];
+
+      targetElement.style.width = referenceElement.offsetWidth + "px";
+    }
+
+    matchWidth();
+
+    window.addEventListener("resize", matchWidth);
+  });
+</script>
+
+<script>
+    $(document).ready(function() {
+      detailed_view = localStorage.getItem("detailed-view");
+      if (detailed_view === "true"){
+        $(".condensed-view").hide();
+        document.getElementById("toggle_view").textContent = "Switch to Condensed View";
+      }
+      else{
+        $(".detailed-view").hide();
+        document.getElementById("toggle_view").textContent = "Switch to Detailed View";
+      }
+      $(".select2").select2(); // Initialize Select2
+    });
+</script>
+
+<script>
+    $(".toggle-view").on("click", function() {
+      $(".detailed-view").toggle();
+      $(".condensed-view").toggle();
+      detailed_view = localStorage.getItem("detailed-view");
+      if (detailed_view === "true"){
+        document.getElementById("toggle_view").textContent = "Switch to Detailed View";
+        localStorage.setItem("detailed-view", "false");
+      }
+      else{
+        document.getElementById("toggle_view").textContent = "Switch to Condensed View";
+        localStorage.setItem("detailed-view", "true");
+      }
+    })
+</script>
+{% endblock %}

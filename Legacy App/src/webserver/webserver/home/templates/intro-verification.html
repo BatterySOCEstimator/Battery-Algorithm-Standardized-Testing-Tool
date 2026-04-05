@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+{% extends "Intro_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Account Verification</div>
+        <div class="content">
+            <p>All accounts that are created are required to be verified through email before gaining access to the system.</p>
+            <p>Upon creation of an account, an email will be sent to the registered email with a verification link. If you do not see this email, please check your spam folder.</p>
+            <p>Simply click on the link and your account with be verified and have full access!</p>
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>

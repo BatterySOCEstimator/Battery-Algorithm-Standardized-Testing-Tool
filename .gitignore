@@ -1,7 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+/battery-estimating-tool/node_modules
+/battery-estimating-tool/backend/node_modules
 /.pnp
 .pnp.js
 
@@ -13,7 +14,10 @@
 /out/
 
 # production
-/build
+/battery-estimating-tool/backend/dist
+
+# venv
+/battery-estimating-tool/backend/src/evaluator/SETool_Python/venv
 
 # misc
 .DS_Store
@@ -27,6 +31,12 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+
+# Model uploads
+/battery-estimating-tool/backend/uploads/*
+
+# Logs
+/battery-estimating-tool/backend/logs/*
 
 # vercel
 .vercel

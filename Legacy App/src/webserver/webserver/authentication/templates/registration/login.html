@@ -1,0 +1,254 @@
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+  }
+
+  .container-fluid {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .sidebar {
+    background-color: #343a40;
+    color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+  }
+
+  .sidebar-nav {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .sidebar-nav li {
+    margin: 15px 0;
+  }
+
+  .sidebar-nav .nav-link {
+    color: #ddd;
+    font-size: 18px;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .sidebar-nav .nav-link:hover {
+    color: #8b8b8b;
+  }
+
+  .sidebar-nav .logout-btn {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  .sidebar-nav .logout-btn:hover {
+    color: #8b8b8b;
+  }
+
+  h1, h2, h3 {
+    font-weight: 600;
+    color: #333;
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #555;
+  }
+
+  .content-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 0px; 
+    height: 100vh;
+    width: 100%; 
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 500px; 
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .tab-container a:visited {
+    color: black;
+    text-decoration: none;
+  }
+
+  .tab-container a:link {
+    text-decoration: none;
+  }
+
+  .tab-container {
+      display: flex;
+      justify-content: center; 
+      gap: 120px;  
+      color: black; 
+      text-decoration: none; 
+  } 
+
+  .tab-container a.intro {
+      font-weight: bold;
+  } 
+
+  .tab-container a.register {
+      color: grey
+  } 
+
+  h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 24px; 
+  }
+
+  .error-message,
+  .info-message {
+    background-color: #ffdddd;
+    color: #d8000c;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+  }
+
+  .info-message {
+    background-color: #d9edf7;
+    color: #31708f;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 15px; 
+    font-size: 18px; 
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s;
+  }
+
+  .form-group input:focus {
+    border-color: #696969;
+    outline: none;
+  }
+
+  .form-actions {
+    text-align: center;
+    background-color: #696969;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    font-size: 18px;  
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .form-actions .primary-btn {
+    background-color: #696969; 
+    color: white;  
+  }
+
+  .form-actions .primary-btn:hover {
+    background-color: #515151;  
+  }
+
+  .forgot-password-link {
+    margin-top: 20px;
+    font-size: 16px;
+  }
+
+  .forgot-password-link a {
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .forgot-password-link a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .content-wrapper {
+      margin-left: 0;
+      padding-top: 30px;
+    }
+
+    .login-container {
+      width: 90%;
+      padding: 30px;
+    }
+
+    h2 {
+      font-size: 22px;
+    }
+
+    .form-group input,
+    .btn {
+      font-size: 16px;
+    }
+
+  }
+</style>
+
+{% block content %}
+  <div class="content-wrapper">
+    <div class="login-container">
+
+      <h2 style="color: #20BEFF;">SOCAlgoTestingPlatform</h2>
+      <h1>Welcome!</h1>
+
+      <div class="tab-container">
+        <a href="/accounts/login" class="intro">Sign In</a>
+        <a href="/authentication/register" class="register">Register</a>
+      </div>
+
+      <hr style="border: 1px solid black; margin-bottom: 30px;">
+
+      {% if form.errors %}
+        <div class="error-message">
+          <p>Your username and password didn't match. Please try again.</p>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="input-group" style="margin-bottom: 30px;">
+          <input type="text" name="username" placeholder="Username" required style="width: 100%; height: 50px; font-size: 18px; padding: 10px; text-align: center;">
+        </div>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+          <input type="password" name="password" placeholder="Password" required style="width: 100%; height: 50px; font-size: 18px; padding: 10px; text-align: center;">
+        </div>
+        
+        <button type="submit" class="btn btn-secondary w-100 mb-2">Login</button>
+      </form>
+
+      <p class="forgot-password-link"><a href="{% url 'password_reset' %}">Forgot password?</a></p>
+    </div>
+  </div>
+{% endblock %}

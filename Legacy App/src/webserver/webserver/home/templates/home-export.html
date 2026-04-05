@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export to CSV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+            border-bottom: 3px solid #20beff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+{% extends "Webpage_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+<body>
+
+    <div class="container">
+        <div class="header">Export to CSV</div>
+        <div class="content">
+            <p>The leaderboard contains an option to export all of the data into a .csv file.</p>
+            <p>When on the leaderboard page, simply click on the blue "Export to CSV" button and the file will be automatically downloaded.</p>
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>

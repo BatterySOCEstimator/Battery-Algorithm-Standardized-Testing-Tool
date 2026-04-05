@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOCAlgoTestingPlatform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            position: fixed; 
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            width: 100%;
+            box-sizing: border-box; 
+            overflow: hidden; 
+            white-space: nowrap; 
+        }
+        .navbar .title {
+            color: blue;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .navbar .links {
+            display: flex;
+            justify-content: center;
+            flex-grow: 1;
+            gap: 25px;
+        }
+        .navbar .links a {
+            text-decoration: none;
+            color: black;
+            font-weight: normal;
+        }
+        .navbar .links a.active {
+            text-decoration: underline;
+        }
+        .navbar .signout {
+            text-decoration: none;
+            color: black;
+        }
+        .container {
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .video-placeholder {
+            width: 100%;
+            max-width: 500px;
+            height: 280px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        .faq {
+            font-weight: bold;
+        }
+        .title a {
+            text-decoration: none;
+            color: #20BEFF;
+        }
+        .dropdown-menu form {
+            margin: 0;
+            padding: 0;
+        }
+
+        .dropdown-menu button.signout-btn {
+            background: transparent;
+            border: none;
+            color: #333;
+            text-align: left;
+            width: 100%;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .dropdown-menu button.signout-btn:hover {
+            background-color: #f4f4f4;
+        }
+
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-button {
+            width: 40px;
+            height: 40px;
+            background-color: #20BEFF;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+        }
+
+        .user-button:hover {
+            background-color: #0056b3;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: fixed;
+            right: 0;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 150px;
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f4f4f4;
+        }
+</style>
+    </style>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="title">
+            <a href="/home">SOCAlgoTestingPlatform</a>
+        </div>
+        <div class="links">
+            <a href="/leaderboard" class="{% if request.path == '/leaderboard/' %}active{% endif %}">View Leaderboard</a>
+            <a href="https://borealisdata.ca/dataset.xhtml?persistentId=doi:10.5683/SP3/ZVTR4B" target="_blank" {% if request.path == '/data/' %}active{% endif %}">Download Data</a>
+            <a href="/submissions" class="{% if request.path == '/submissions/' %}active{% endif %}">Submit Model</a>
+            <a href="/submissions/submissionsPage" class="{% if request.path == '/submissions/submissionsPage' %}active{% endif %}">View Submissions</a>
+            <a href="/home/help" class="{% if request.path == '/home/help' %}active{% endif %}">Help/Getting Started</a>
+        </div>
+        <div class="user-menu">
+            <div class="user-button" id="userButton"></div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <form action="{% url 'logout' %}" method="post" class="signout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="signout-btn">Sign Out</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let userButton = document.getElementById("userButton");
+            let dropdownMenu = document.getElementById("dropdownMenu");
+        
+            userButton.addEventListener("click", function () {
+                dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
+            });
+        
+            document.addEventListener("click", function (event) {
+                if (!userButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.style.display = "none";
+                }
+            });
+        
+            let first_name = "{{ user.first_name }}"; 
+            let last_name = "{{ user.last_name }}"; 
+            userButton.innerText = first_name.charAt(0).toUpperCase() + last_name.charAt(0).toUpperCase();;
+        });
+    </script>
+
+</body>
+</html>
