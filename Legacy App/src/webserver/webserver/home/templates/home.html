@@ -1,0 +1,271 @@
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Intro</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7fc;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        color: white;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 2rem;
+        color: white;
+      }
+
+      .intro-section {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        padding: 60px 20px;
+        background: #ffffff;
+        color: black;
+        flex-wrap: wrap;
+        border-radius: 10px;
+      }
+
+      .intro-text {
+        flex: 1;
+        text-align: left;
+      }
+
+      .intro-text h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .intro-text p {
+        font-size: 1.2rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .intro-image img {
+        max-width: 550px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .info-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 60px 20px;
+        background-color: #ffffff; 
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 40px;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 40px;
+      }
+
+      .info-header h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        width: 100%;
+        color: black;
+      }
+
+      .info-content {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        gap: 30px;
+        flex-wrap: wrap;
+      }
+
+      .intro-text-small {
+        flex: 1;
+        padding: 20px;
+        background-color: #e9f5ff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .info-text-left,
+      .info-text-right {
+        flex: 1;
+        padding: 20px;
+        background-color: #e9f5ff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .info-text-left p,
+      .info-text-right p {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        text-align: left;
+      }
+
+      .flowchart-image {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .flowchart-image img {
+        max-width: 900px;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .tour-section {
+        display: flex;
+        align-items: center;
+        background-color: #e9f5ff;
+        padding: 40px;
+        border-radius: 8px;
+        margin-top: 40px;
+        gap: 20px;
+        flex-wrap: wrap;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .video-placeholder {
+        width: 100%;
+        max-width: 600px;
+        height: 300px;
+        background: #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 1.2rem;
+      }
+
+      .tour-text {
+        flex: 1;
+        text-align: center;
+      }
+
+      .tour-text h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: black;
+      }
+
+      .tour-text p {
+        font-size: 1.2rem;
+        line-height: 1.5;
+      }
+      .hero {
+        text-align: center;
+        padding: 80px 20px;
+        background: linear-gradient(to right, #e9f5ff, #ffffff);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        border-radius: 8px;
+        margin-bottom: 40px;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .hero h2 {
+        font-size: 2.8rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .hero p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+      }
+
+      .hero .search-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+ 
+   </style>
+{% extends "Webpage_Base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+    <div class="container">
+      <div class="hero">
+        <h2>SOC Estimator Testing Tool</h2>
+        <p>Repository for easy visualization, analysis, and comparison of battery state of charge algorithms across institutions.</p>
+      </div>
+
+        <div class="intro-section">
+            <div class="intro-text">
+              <h2>Get Started With The SOC Estimator Testing Tool Today</h2>
+                <div class="intro-text-small">
+                  <P>Register an account today to gain access to our leaderboard, submit your own algorithms and recieve detailed
+                    feedback including graphs, and see how you rank against the best at other instituions.
+                  </P>
+                </div>
+            </div>
+            <div class="intro-image">
+                <img src="/media/images/Battery_Home.png" alt="Battery Graphic">
+            </div>
+      </div>
+      <div class="tour-section">
+        <video width="600" height="360" controls>
+          <source src="/media/images/Walkthrough.mp4" type="video/mp4">
+        </video>
+        <div class="tour-text">
+          <h2>Take a Tour of our Platform!</h2>
+          <p>
+            Want to learn how to submit your MATLAB and python models, compete
+            on the leaderboard, and analyze your results? Our step-by-step
+            walkthrough video shows you how it all works!
+          </p>
+          </div>
+        </div>
+
+      <div class="info-section">
+        <div class="info-header">
+            <h2>What Is The Battery State of Charge (SOC) Estimator Standardized Testing Tool?</h2>
+        </div>
+        <div class="info-content">
+            <div class="info-text-left">
+                <p>There are hundreds of approaches to estimating battery state of charge (SOC), some better suited for 
+                    specific applications, which makes it very hard to fairly compare results reported in different papers. 
+                    SOC estimation techniques such as coulomb counting or OCV vs. SOC relationships can be subject to nuances 
+                    in data and conditions that skew results. Some of these issues include sensor errors, initial value errors, 
+                    or other complex factors affecting battery performance (e.g., cold weather, cell internal resistance).</p>
+            </div>
+            <div class="info-text-right">
+                <p>This standardized model testing tool is an effective method developed to enable a fair comparison of SOC 
+                    estimators from various sources and authors, eliminating bias as a result of human and/or external factors 
+                    by testing models over a wide range of conditions on data which is blinded from the user. The submission 
+                    process is detailed in the Help/FAQ section and submission can be performed through this platform making it 
+                    convenient for students or researchers to access the standardized model testing tool. </p>
+            </div>
+        </div>
+        <div class="flowchart-image">
+            <img src="/media/images/BlindModeling-Flowchart.jpg" alt="Flowchart Graphic">
+        </div>
+    </div>
+{% endblock %}
