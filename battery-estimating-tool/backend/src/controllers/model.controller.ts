@@ -54,11 +54,10 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
 
   const { name, description, isPrivate, modelType } = req.body;
 
-  const level = Number(req.body.level ?? 0);
-
-  const VALID_LEVELS = [0, 1, 2, 3];
+  const level = req.body.level ?? 'NONE';
+  const VALID_LEVELS = ['NONE', 'LOW', 'MED', 'HIGH'];
   if (!VALID_LEVELS.includes(level)) {
-    res.status(400).json({ error: 'level must be 0, 1, 2, or 3.' });
+    res.status(400).json({ error: 'level must be NONE, LOW, MED, or HIGH.' });
     return;
   }
 
