@@ -51,6 +51,7 @@ const formatData = (data) => {
   });
 };
 const Leaderboards = ({ estimatedSOC }) => {
+  const { loading: authLoading } = useRequireAuth();
   const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
   const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
   const [loading, setLoading] = useState(true);
@@ -75,6 +76,7 @@ const Leaderboards = ({ estimatedSOC }) => {
   }, []);
 
   if (loading) return <><StyledNavbar /><Container>Loading...</Container></>;
+  if (authLoading) return <><StyledNavbar /><Container>Loading...</Container></>;
   if (error) return <><StyledNavbar /><Container>Error: {error}</Container></>;
 
   return (
