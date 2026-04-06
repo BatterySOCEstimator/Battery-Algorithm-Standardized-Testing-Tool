@@ -1,4 +1,4 @@
-import { deleteModel, downloadFile, test, uploadModel } from "@/controllers/model.controller";
+import { deleteModel, downloadFile, downloadTrainingData, test, uploadModel } from "@/controllers/model.controller";
 import { checkModelNameUnique, uploadMiddleware } from "@/middleware/model.middleware";
 import { requireAuth, checkBanStatus } from "@/middleware/auth.middleware";
 
@@ -24,6 +24,14 @@ router.get("/download/:token",
     //requireAuth,        // Enforce auth
     //checkBanStatus,     // Checks if user is banned
     downloadFile)       // Downloads the file 
+
+
+router.get( "/downloadTrainingData", 
+    requireAuth,
+    checkBanStatus,
+    downloadTrainingData
+);
+
 
 router.get("/test", requireAuth, checkBanStatus, test)
 

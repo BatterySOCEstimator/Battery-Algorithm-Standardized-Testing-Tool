@@ -267,6 +267,19 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+/**
+ * Sends a test email to the authenticated user and returns a stub user object.
+ *
+ * Used during development to verify email delivery and auth middleware wiring.
+ * Not intended for production use.
+ *
+ * @param req - Express request object. Must include:
+ *   - `req.user.email` — Email of the authenticated user (set by auth middleware).
+ *   - `req.user.firstName` — First name of the authenticated user (set by auth middleware).
+ * @param res - Express response object.
+ *
+ * @returns A JSON response with a hardcoded stub user object.
+ */
 export const test = async (req: Request, res: Response) => {
   const userEmail = (req as any).user.email;
   const firstName = (req as any).user.firstName; // Please work
@@ -339,6 +352,51 @@ export async function downloadFile(req: Request, res: Response) {
 
   } catch (err) {
     logger.error('download - Unexpected error', { token, err });
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+/**
+ * Streams the shared training data archive to the authenticated user.
+ *
+ * Resolves the training data zip from a fixed path relative to the project root
+ * and sends it as a file download. Any authenticated user may request this file.
+ *
+ * @param req - Express request object. Must include:
+ *   - `req.user.id` — ID of the authenticated user (set by auth middleware).
+ *   - `req.user.email` — Email of the authenticated user (set by auth middleware).
+ * @param res - Express response object used to stream the file.
+ *
+ * @returns Streams `training_data.zip` to the client.
+ * @throws {500} If an unexpected error occurs while serving the file.
+ */
+export async function downloadTrainingData(req: Request, res: Response) {
+
+  const userId = (req as any).user?.id;
+  const userEmail = (req as any).user?.email;
+
+  logger.info('downloadTrainingData - Request received', { userId, userEmail });
+  
+  try {
+
+    // Path to training data file 
+    const filePath = path.resolve("..//training_data.zip");
+    const fileName = 'training_data.zip';
+
+    logger.info('downloadTrainingData - Serving file', {});
+
+    // Stream the file, logging success or failure once the transfer completes
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        logger.error('download - Failed to stream file', { userId, userEmail, fileName, filePath, err });
+      } else {
+        logger.info('download - File served successfully', { userId, userEmail, fileName, filePath });
+      }
+    });
+
+  } catch (err) {
+    logger.error('downloadTrainingData - Unexpected error', { userId, userEmail, err });
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
