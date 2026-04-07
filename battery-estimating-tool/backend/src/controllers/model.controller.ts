@@ -377,7 +377,7 @@ export async function downloadTrainingData(req: Request, res: Response) {
   const userEmail = (req as any).user?.email;
 
   logger.info('downloadTrainingData - Request received', { userId, userEmail });
-  
+
   try {
 
     // Path to training data file 
@@ -432,9 +432,22 @@ async function runEvaluation(
 
   if (result.error) {
     logger.error('model/evaluate - Evaluation failed', { modelId, userId, message: result.message });
+
+    // Delete the failed model from DB and disk
+    try {
+      const resolvedDir = path.resolve(modelDir);
+      if (fs.existsSync(resolvedDir)) {
+        fs.rmSync(resolvedDir, { recursive: true, force: true });
+      }
+      await db.delete(models).where(eq(models.id, modelId));
+      logger.info('model/evaluate - Cleaned up failed model', { modelId, userId });
+    } catch (cleanupErr) {
+      logger.error('model/evaluate - Cleanup failed', { modelId, userId, err: cleanupErr });
+    }
+
     if (userEmail) {
       void sendEmail(userEmail, 'Model evaluation failed',
-        `<p>Your model <strong>${modelName}</strong> could not be evaluated: ${result.message}</p>`);
+        `<p>Your model <strong>${modelName}</strong> could not be evaluated. Please contact the site Administrator.</p>`);
     }
     return;
   }
