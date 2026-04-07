@@ -13,6 +13,7 @@ Keywords: It scans for expensive calls like .inv() or .fit(), which suggest heav
 """
 
 import ast
+import sys
 
 # by default, we just grade using the current folder
 def grade_complexity(file_path):
