@@ -186,14 +186,14 @@ export const fetchUserModelJoin = async (req: Request, res: Response) => {
     try {
         const data = await db
             .select({
-                // User fields
+                // All model fields
+                ...getTableColumns(models),
+                // User fields (override models.userId with explicit aliases)
                 userId: user.id,
                 userName: user.name,
                 firstName: user.first_name,
                 lastName: user.last_name,
                 academicAffiliation: user.academic_affiliation,
-                // All model fields
-                ...getTableColumns(models),
             })
             .from(user)
             .innerJoin(models, eq(models.userId, user.id))
