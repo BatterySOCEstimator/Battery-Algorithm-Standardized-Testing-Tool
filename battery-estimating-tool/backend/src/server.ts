@@ -21,7 +21,7 @@ const app = express();
 const port = process.env.PORT ?? 8000;
 
 // Security headers
-app.use(helmet());
+// app.use(helmet());
 
 // Logging with Morgan + Winston
 app.use(morgan('combined', {
