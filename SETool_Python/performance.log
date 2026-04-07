@@ -86,3 +86,58 @@ Evaluated with psutil, threading, and time modules.
    est. CPU usage time:        2.618986281811009 s
    est. memory usage time:     221.11357408174007 s
 --------------------
+
+Performance Metrics, report generated for LOCAL CPU
+Evaluated with psutil, threading, and time modules.
+--------------------
+   Process Name:               python.exe
+   avg. CPU utilization:       97.035%
+   avg. memory utilization:    197.373%
+   elapsed time:               49.364535331726074 s
+   est. CPU usage time:        47.900707951789926 s
+   est. memory usage time:     97.43229658293372 s
+--------------------
+
+Performance Metrics, report generated for LOCAL CPU
+Evaluated with psutil, threading, and time modules.
+--------------------
+   Process Name:               python.exe
+   avg. CPU utilization:       95.722%
+   avg. memory utilization:    194.419%
+   elapsed time:               330.64206624031067 s
+   est. CPU usage time:        316.49670658394706 s
+   est. memory usage time:     642.8301820664741 s
+--------------------
+
+Performance Metrics, report generated for LOCAL CPU
+Evaluated with psutil, threading, and time modules.
+--------------------
+   Process Name:               python.exe
+   avg. CPU utilization:       96.41%
+   avg. memory utilization:    197.149%
+   elapsed time:               232.47242331504822 s
+   est. CPU usage time:        224.1271060087051 s
+   est. memory usage time:     458.3178808201067 s
+--------------------
+
+Performance Metrics, report generated for LOCAL CPU
+Evaluated with psutil, threading, and time modules.
+--------------------
+   Process Name:               python.exe
+   avg. CPU utilization:       95.894%
+   avg. memory utilization:    197.474%
+   elapsed time:               428.121009349823 s
+   est. CPU usage time:        410.5443087482083 s
+   est. memory usage time:     845.42967715912 s
+--------------------
+
+Performance Metrics, report generated for LOCAL CPU
+Evaluated with psutil, threading, and time modules.
+--------------------
+   Process Name:               python.exe
+   avg. CPU utilization:       95.668%
+   avg. memory utilization:    197.207%
+   elapsed time:               51.699212074279785 s
+   est. CPU usage time:        49.45947239967652 s
+   est. memory usage time:     101.95452734447684 s
+--------------------
