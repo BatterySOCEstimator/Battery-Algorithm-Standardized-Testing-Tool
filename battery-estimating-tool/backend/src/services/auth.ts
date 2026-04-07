@@ -28,6 +28,7 @@ export const auth = betterAuth({
          * The email contains a link to verify their address before they can sign in.
          */
         autoSignIn: false,
+        sendOnSignIn: true,
         sendVerificationEmail: async ({ user, url }) => {
             // Use token provided by better-auth to build our own link (redirect wasn't working otherwise)
             const token = new URL(url).searchParams.get('token');
