@@ -2,6 +2,15 @@
 
 ## Getting Started
 
+The site can be reached on McMaster network (can use VPN) only: https://batterysocbenchmark.ca/
+
+It is reccommended to create your own account, as important messages are delivered via email. However, here are credentials for a pre-made account:
+
+- **USERNAME**: aidanmclean 
+- **PASSWORD** Test123!
+
+If building the project locally, you will have to create an account. 
+
 ### Prerequisites
 - Node.js & npm
 - Docker Desktop ([install here](https://docs.docker.com/desktop/))
@@ -21,9 +30,9 @@
 ```bash
    docker compose up -d
 ```
-4. Run migrations:
+4. Push db migration:
 ```bash
-   npx drizzle-kit migrate
+   npx drizzle-kit push
 ```
 5. From the project root, start the app:
 ```bash
@@ -31,7 +40,7 @@
    npm run dev
 ```
 
-After initial setup, just run `npm run dev` from the project root.
+After initial setup, to start again, just run `npm run dev` from the project root.
 
 ---
 ## Python Evaluation Tool Setup
@@ -47,26 +56,24 @@ When a model is submitted, the backend:
 4. Captures the evaluation results (metrics like weighted error, RMSE, etc.)
 5. Stores the results in Postgres and cleans up the container
 
-### Setup
+### Setup (DO THIS)
 
 1. Make sure Docker Desktop is running.
 
 2. Build the evaluator image from `battery-estimating-tool`:
 ```bash
-   build -f Dockerfile.evaluator -t socapp-evaluator .
+   docker build -f Dockerfile.evaluator -t socapp-evaluator . # IN DEV
+   docker build -f Dockerfile.evaluator -t socapp-evaluator --build-arg COILED_TOKEN=$COILED_TOKEN . # IN PROD
 ```
 > **Note:** This image is **not** a long-lived service -- the backend spawns a container per evaluation and removes it when done.
 
-
-
-3. Ensure the following are set in `backend/.env`:
 ### Local Development (without Docker evaluator)
 
 If you want to run the evaluation script directly for development/debugging:
 
 1. Navigate to the evaluation tool directory:
 ```bash
-   cd SETool_Python
+   cd backend/src/evaluator/SETool_Python
 ```
 2. Create a virtual environment:
 ```bash
@@ -86,7 +93,9 @@ PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
 
 ---
 
-## Seeding the Database
+## TESTING-RELATED:
+
+### Seeding the Database
 
 1. Start the app with `npm run dev`
 
@@ -142,10 +151,3 @@ PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
 | `sortBy` | `weightedError`   | Column to sort by                    |
 
 ---
-
-## TODO:
-- Change password
-- Verify email
-- Change email
-- SSO ?
-- Cookies/Sessions

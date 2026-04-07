@@ -16,6 +16,11 @@ RUN pip install --no-cache-dir \
     coiled==1.133.1 \
     pyarrow==23.0.1 
 
+# Login to coiled 
+#ARG COILED_TOKEN -- FOR PROD
+#RUN coiled login --token "$COILED_TOKEN" -- FOR PROD 
+RUN coiled login --token 2563f40370ea42afa81fffdea84e1d60-df83f824d85e6989a54162111c49df7f3351a488
+
 # Copy the evaluation tool source and data files
 COPY backend/src/evaluator/SETool_Python/ /evaluator/
 

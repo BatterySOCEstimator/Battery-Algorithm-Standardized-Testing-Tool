@@ -1,6 +1,6 @@
 import { deleteModel, downloadFile, downloadTrainingData, test, uploadModel } from "@/controllers/model.controller";
 import { checkModelNameUnique, uploadMiddleware } from "@/middleware/model.middleware";
-import { requireAuth, checkBanStatus } from "@/middleware/auth.middleware";
+import { requireAuth, checkBanStatus, requireRole } from "@/middleware/auth.middleware";
 
 import { Router } from "express";
 const router = Router();
@@ -33,6 +33,6 @@ router.get( "/downloadTrainingData",
 );
 
 
-router.get("/test", requireAuth, checkBanStatus, test)
+router.get("/test", requireAuth, checkBanStatus, requireRole("admin"), test)
 
 export default router;
