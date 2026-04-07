@@ -53,7 +53,7 @@ export const submissionsColumns = [
   'Submission',
   'Model Name',
   'Model Type',
-//   'Status',
+   'Status',
   'Visibility',
   'Submitted at',
   'Completed at',
