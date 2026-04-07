@@ -49,6 +49,37 @@ export const columns = [
   'All Drive Cycles Average MAXE'
 ];
 
+export const submissionsColumns = [
+  'Submission',
+  'Model Name',
+  'Model Type',
+  'Status',
+  'Visibility',
+  'Submitted at',
+  'Completed at',
+  'Weighted Error',
+  'All Cells',
+  'Blind Cells',
+  'Non-Blinded Cells',
+  'Charging',
+  '80kg Payload',
+  '448kg Payload with HVAC',
+  '448kg Payload no HVAC',
+  '1000kg Payload',
+  'Standard Cycles',
+  'Custom Cycles',
+  'n20C',
+  'n10C',
+  '0C',
+  '10C',
+  '25C',
+  '40C',
+  'iSOC Error',
+  'Current Sensor Error',
+  'All Drive Cycles Average RMSE',
+  'All Drive Cycles Average MAE',
+  'All Drive Cycles Average MAXE'
+];
 export const columnKeyMap = {
   'Submission': 'id',
   'Author': 'userName',

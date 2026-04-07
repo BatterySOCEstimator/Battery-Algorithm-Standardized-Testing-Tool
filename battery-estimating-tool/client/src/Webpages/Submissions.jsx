@@ -3,7 +3,7 @@ import MetricsTable from "../Components/MetricsTable/MetricsTable"
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import useRequireAuth from "../Hooks/useRequireAuth";
-import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
+import { modelTypes, submissionsColumns, columnKeyMap } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
 
 const FlexBox = styled.div`
@@ -26,7 +26,7 @@ const formatData = (data) => {
   return data.map((row) => {
     const obj = {};
 
-    columns.forEach((col) => {
+    submissionsColumns.forEach((col) => {
       const key = columnKeyMap[col];
       let value = row[key];
 
@@ -90,7 +90,7 @@ const Submissions = ({ user }) => {
           <LabeledSelect label={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData} />
         </FlexBox>
 
-        <MetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
+        <MetricsTable headers={submissionsColumns} formattedData={formattedData} setFormattedData={setFormattedData} />
       </Container>
     </>
   );

@@ -79,7 +79,16 @@ const formatData = (data) => {
   });
 };
 
+const getUniqueUsernames = (data) => {
+  return [...new Set(data.map(item => item.userName))];
+};
+const getUniqueUniversities = (data) => {
+  return [...new Set(data.map(item => item.academicAffiliation))];
+};
+
 const ModelComparison = ({ user }) => {
+  const [uniqueUsernames, setUniqueUsernames] = useState([]);
+  const [uniqueUniversities, setUniqueUniversities] = useState([]);
     const { loading: authLoading } = useRequireAuth();
   const [originalData, setOriginalData] = useState([]);
   const [formattedData, setFormattedData] = useState([]);
@@ -94,7 +103,7 @@ const ModelComparison = ({ user }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/data/fetchLeaderboardData");
+        const response = await fetch("/api/data/fetchUserModelJoin");
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data = await response.json();
         const formatted = formatData(data.data);
@@ -102,6 +111,8 @@ const ModelComparison = ({ user }) => {
         setFormattedData(formatted);
         setOriginalData2(formatted);
         setFormattedData2(formatted);
+        setUniqueUsernames(getUniqueUsernames(data.data));
+        setUniqueUniversities(getUniqueUniversities(data.data));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -152,9 +163,22 @@ const ModelComparison = ({ user }) => {
 
         {/* Filters Row */}
         <FlexBox>
-          <LabeledSelect label={"Filter by Author"} options={["All authors", "Paarth"]} />
-          <LabeledSelect label={"Filter by Academic Affiliation"} options={["All Academic Affiliations", "McMaster"]} />
-          <LabeledSelect label={"Model Type"} options={modelTypes} setFormattedData={setFormattedData} originalData={originalData} />
+         <LabeledSelect 
+            label={"Filter by Author"} 
+            filter={"Author"}
+            options={["All Authors", uniqueUsernames]} 
+            originalData={originalData} 
+            setFormattedData={setFormattedData} 
+          />
+          <LabeledSelect 
+            label={"Filter by Academic Affiliation"} 
+            filter={"Institution"}
+            options={["All Academic Affiliations", uniqueUniversities]} 
+            originalData={originalData} 
+            setFormattedData={setFormattedData} 
+          />
+          <LabeledSelect label={"Model Type"} filter = {"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData} />
+        
         </FlexBox>
 
         <SelectableMetricsTable formattedData={formattedData} setFormattedData={setFormattedData} headers={tableHeaders} selectedModel={selectedModel1} setSelectedModel={setSelectedModel1} />
