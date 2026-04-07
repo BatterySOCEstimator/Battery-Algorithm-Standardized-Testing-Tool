@@ -6,13 +6,13 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getUserInfo, logout } from '../../auth-client.ts';
 
-const StyledNavbar = () => {
+const StyledNavbar = ({ user }) => {
 
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    getUserInfo().then(setUser);
-  }, []);
+  // useEffect(() => {
+  //   getUserInfo().then(setUser);
+  // }, []);
 
   return (
     <Navbar bg="dark" expand="lg" data-bs-theme="dark">

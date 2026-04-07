@@ -3,7 +3,7 @@ import MetricsTable from "../Components/MetricsTable/MetricsTable"
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import useRequireAuth from "../Hooks/useRequireAuth";
-import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
+import { modelTypes, submissionsColumns, columnKeyMap } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
 
 const FlexBox = styled.div`
@@ -26,7 +26,7 @@ const formatData = (data) => {
   return data.map((row) => {
     const obj = {};
 
-    columns.forEach((col) => {
+    submissionsColumns.forEach((col) => {
       const key = columnKeyMap[col];
       let value = row[key];
 
@@ -45,20 +45,38 @@ const formatData = (data) => {
   });
 };
 
-const Submissions = ({ estimatedSOC }) => {
+const Submissions = ({ user }) => {
   const { loading: authLoading } = useRequireAuth();
-  const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
-  const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
+  const [originalData, setOriginalData] = useState([]);
+  const [formattedData, setFormattedData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
-    setOriginalData(formatData(estimatedSOC));
-    setFormattedData(formatData(estimatedSOC));
-  }, [estimatedSOC]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/data/fetchLeaderboardData");
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const data = await response.json();
+        const formatted = formatData(data.data);
+        setOriginalData(formatted);
+        setFormattedData(formatted);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  if (authLoading) return <><StyledNavbar /><Container>Loading...</Container></>;
+  if (loading) return <><StyledNavbar  user={user}/><Container>Loading...</Container></>;
+  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
 
   return (
     <>
-      <StyledNavbar />
+      <StyledNavbar  user={user}/>
 
       <Container>
         {/* Title */}
@@ -72,7 +90,7 @@ const Submissions = ({ estimatedSOC }) => {
           <LabeledSelect label={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData} />
         </FlexBox>
 
-        <MetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
+        <MetricsTable headers={submissionsColumns} formattedData={formattedData} setFormattedData={setFormattedData} />
       </Container>
     </>
   );

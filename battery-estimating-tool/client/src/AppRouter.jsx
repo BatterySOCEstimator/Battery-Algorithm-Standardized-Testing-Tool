@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Heropage from './App';
 import Help from './Webpages/Help';
@@ -11,22 +11,26 @@ import ModelComparison from './Webpages/ModelComparison';
 import LoginError from './Webpages/LoginError';
 import { data} from "./Helperfunc.js";
 import HelpTopic from './Webpages/HelpTopic';
+import { getUserInfo } from "./auth-client.ts";
 const AppRouter = () => {
   // Lifted state here
-  const [estimatedSOC, setEstimatedSOC] = useState(data);
+  const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    getUserInfo().then(setUser);
+    }, []);
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Heropage />} />
-        <Route path="/help" element={<Help />} />
+        <Route path="/" element={<Heropage user={user} />} />
+        <Route path="/help" element={<Help user={user} />} />
         <Route path="/help/:topic" element={<HelpTopic />} />
-        <Route path="/leaderboards" element={<Leaderboards estimatedSOC={estimatedSOC} />} />
+        <Route path="/leaderboards" element={<Leaderboards  user={user}  />} />
         <Route path="/registration" element={<Registration />} />
-        <Route path="/submissions" element={<Submissions estimatedSOC={estimatedSOC} />} />
-        <Route path="/submit-model" element={<SubmitModel estimatedSOC={estimatedSOC} setEstimatedSOC={setEstimatedSOC}/>} />
-        <Route path="/model-comparison" element={<ModelComparison estimatedSOC={estimatedSOC} />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/submissions" element={<Submissions  user={user} />} />
+        <Route path="/submit-model" element={<SubmitModel   user={user}  />} />
+        <Route path="/model-comparison" element={<ModelComparison user={user}  />} />
+        <Route path="/login" element={<Login />} user={user} setUser={setUser}/>
         <Route path="/login-error" element={<LoginError />} />
 
       </Routes>

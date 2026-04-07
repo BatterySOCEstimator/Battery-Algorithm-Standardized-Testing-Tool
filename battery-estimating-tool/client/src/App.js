@@ -1,7 +1,7 @@
 import Homepage from './Webpages/Homepage'
-function App() {
+function App({ user }) {
   return (
-    <Homepage/>
+    <Homepage user={user} />
   );
 }
 

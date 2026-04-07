@@ -1,0 +1,33 @@
+// src/Components/Footnote/Footnote.jsx
+import styled from "styled-components";
+
+const Container = styled.footer`
+  width: 100%;
+  background-color: #e0e0e0;
+  color: #555;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: center;
+  font-size: 0.85rem;
+`;
+
+const Content = styled.div`
+  max-width: 1200px;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const Footnote = () => {
+  return (
+    <Container>
+      <Content>
+        © 2026 SOC Benchmarking Platform • Contributors: Dason Wang, Ellen Xiong, Aidan McLean, Paarth Kadakia, Phillip Kollmeyer PhD
+      </Content>
+    </Container>
+  );
+};
+
+export default Footnote;

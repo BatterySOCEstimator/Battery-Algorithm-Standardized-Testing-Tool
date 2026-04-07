@@ -20,7 +20,7 @@ const Container = styled.div`
 `;
 
 const FullscreenContainer = styled.div`
-  height: 100vh;
+  height: 110vh;
   width: 100vw;
   display: flex;
   flex-direction: column;
@@ -68,7 +68,7 @@ const FormCard = styled.div`
 
 const sanitize = (str) => str.trim().replace(/[<>]/g, "");
 
-const SubmitModel = ({ estimatedSOC, setEstimatedSOC }) => {
+const SubmitModel = ({ user }) => {
   const { loading } = useRequireAuth();
   const navigate = useNavigate();
 
@@ -76,6 +76,7 @@ const SubmitModel = ({ estimatedSOC, setEstimatedSOC }) => {
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [selectedModelType, setSelectedModelType] = useState(modelTypes[0]);
+  const [selectedLevel, setSelectedLevel] = useState("NONE");
   const [file, setFile] = useState(null);
   const [zipFile, setZipFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -112,6 +113,7 @@ const SubmitModel = ({ estimatedSOC, setEstimatedSOC }) => {
     formData.append("description", sanitizedDescription);
     formData.append("isPrivate", isPrivate);
     formData.append("modelType", selectedModelType);
+    formData.append("level", selectedLevel);
     if (uploadedFile.name.endsWith(".zip")) {
       formData.append("files", uploadedFile);
       //formData.append("zipFile", uploadedFile); FOR SEPERATE HANDLING IN THE FUTURE ??
@@ -141,6 +143,7 @@ const SubmitModel = ({ estimatedSOC, setEstimatedSOC }) => {
       setDescription("");
       setIsPrivate(false);
       setSelectedModelType(modelTypes[0]);
+      setSelectedLevel("NONE");
       setFile(null);
       setZipFile(null);
     } catch (error) {
@@ -151,10 +154,9 @@ const SubmitModel = ({ estimatedSOC, setEstimatedSOC }) => {
   };
 
   if (loading) return null;
-
   return (
     <>
-      <StyledNavbar />
+      <StyledNavbar  user={user}/>
       <FullscreenContainer>
 
         {/* Feedback alert */}
@@ -196,6 +198,12 @@ const SubmitModel = ({ estimatedSOC, setEstimatedSOC }) => {
                 options={modelTypes}
                 value={selectedModelType}
                 onChange={(e) => setSelectedModelType(e.target.value)}
+              />
+              <LabeledSelect
+                label={"Evaluation Level"}
+                options={["NONE", "LOW", "MED", "HIGH"]}
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(e.target.value)}
               />
               <Form.Group className="d-flex align-items-center" style={{ gap: "10px", marginTop: "8px" }}>
                 <Form.Label className="mb-0">Private</Form.Label>
