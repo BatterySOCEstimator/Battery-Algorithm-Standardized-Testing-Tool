@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 
 from validate_submission import validate_submission
-from obtain_output_data import obtain_output_data
 from create_figures import create_figures
+from batch_scheduler import evaluation_scheduler
 
 
 def _fail(message: str) -> dict:
@@ -23,7 +23,7 @@ def _fail(message: str) -> dict:
 
 
 def process_submission(zip_path, submission_dir, processing_folder,
-                       data, rootfolder, config):
+                       data, rootfolder, config, parallelization_level):
     """
     Process a model submission.
 
@@ -67,6 +67,7 @@ def process_submission(zip_path, submission_dir, processing_folder,
             data=data,
             rootfolder=rootfolder,
             config=config,
+            parallelization_level=parallelization_level
         )
     finally:
         # Always remove the processing folder from sys.path
@@ -78,7 +79,7 @@ def process_submission(zip_path, submission_dir, processing_folder,
     return result
     
 
-def run_evaluation(processing_folder, submission_dir, data, rootfolder, config):
+def run_evaluation(processing_folder, submission_dir, data, rootfolder, config, parallelization_level):
     """ Core evaluation logic; returns result dict."""
 
     # Verify Model.py exists
@@ -100,8 +101,10 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config):
     # Run all test cycles
     print("Running test cycles...", file=sys.stderr)
     try:
+        # INVOKE SCHEUDLER to run parallelized
         output_data, rmse, maxe, mae, rmse_charge, file_data, complexity = \
-            obtain_output_data(config.setups, data, config.inputs, user_model)
+            evaluation_scheduler(config.setups, data, config.inputs, user_model, model_file_py, processing_mode=parallelization_level)
+
     except Exception as e:
         return _fail(f"Error during test cycle evaluation: {e}")
 
