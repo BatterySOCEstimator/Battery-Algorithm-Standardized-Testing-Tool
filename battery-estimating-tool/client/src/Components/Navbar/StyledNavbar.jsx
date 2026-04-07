@@ -17,7 +17,7 @@ const StyledNavbar = ({ user }) => {
   return (
     <Navbar bg="dark" expand="lg" data-bs-theme="dark">
       <Container>
-        <Navbar.Brand href="/">SOCAlgoTestingPlatform</Navbar.Brand>
+        <Navbar.Brand href="/">BatterySOCBenchmark</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
