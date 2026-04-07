@@ -76,7 +76,8 @@ const SubmitModel = ({ user }) => {
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [selectedModelType, setSelectedModelType] = useState(modelTypes[0]);
-  const [selectedLevel, setSelectedLevel] = useState("NONE");
+  const [selectedLevel, setSelectedLevel] = useState("dynamic");
+  const [dropzoneKey, setDropzoneKey] = useState(0);
   const [file, setFile] = useState(null);
   const [zipFile, setZipFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -142,10 +143,10 @@ const SubmitModel = ({ user }) => {
       setName("");
       setDescription("");
       setIsPrivate(false);
-      setSelectedModelType(modelTypes[0]);
-      setSelectedLevel("NONE");
+      setSelectedLevel("dynamic");
       setFile(null);
       setZipFile(null);
+      setDropzoneKey((k) => k + 1);
     } catch (error) {
       setFeedback({ type: "danger", message: `Upload failed: ${error.message}` });
     } finally {
@@ -201,7 +202,7 @@ const SubmitModel = ({ user }) => {
               />
               <LabeledSelect
                 label={"Evaluation Level"}
-                options={["NONE", "LOW", "MED", "HIGH"]}
+                options={["dynamic", "P0", "P1", "P2"]}
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
               />
@@ -225,7 +226,7 @@ const SubmitModel = ({ user }) => {
           <FileCard>📄 {(file ?? zipFile).name}</FileCard>
         )}
 
-        <DropArea {...getRootProps()}>
+        <DropArea key={dropzoneKey} {...getRootProps()}>
           <input {...getInputProps()} />
           <Upload size={60} />
           <p style={{ marginTop: "20px", fontSize: "1.4rem" }}>

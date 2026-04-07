@@ -18,6 +18,7 @@
 /battery-estimating-tool/backend/logs
 # venv
 /battery-estimating-tool/backend/src/evaluator/SETool_Python/venv
+/SETool_Python_OLD/venv
 
 # misc
 .DS_Store

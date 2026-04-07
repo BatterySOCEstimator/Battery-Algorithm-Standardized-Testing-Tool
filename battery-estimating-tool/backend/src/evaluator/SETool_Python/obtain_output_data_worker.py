@@ -49,10 +49,10 @@ def distributed_output_data(setups, data, inputs, processing_folder):
     user_model = PythonModelWrapper(model_module)
 
     # some helpful logging
-    print("--WORKER ALIVE, reporting in--")
-    print(f"Worker CWD: {os.getcwd()}")
-    print(f"Files in CWD: {os.listdir('.')}")
-    print(f"Python Path: {sys.path}")
+    print("--WORKER ALIVE, reporting in--", file=sys.stderr)
+    print(f"Worker CWD: {os.getcwd()}", file=sys.stderr)
+    print(f"Files in CWD: {os.listdir('.')}", file=sys.stderr)
+    print(f"Python Path: {sys.path}", file=sys.stderr)
 
     c = 0  # Counter for charging cycles
     

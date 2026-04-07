@@ -20,7 +20,7 @@ def grade_complexity(file_path):
         with open(file_path, "r") as f:
             tree = ast.parse(f.read())
     except FileNotFoundError:
-        print("Error: Model.py not found by complexity grader, this is extremely unexpected, did you delete the file midway between evaluations?")
+        print("Error: Model.py not found by complexity grader, this is extremely unexpected, did you delete the file midway between evaluations?", file=sys.stderr)
         return 0
 
     score = 0

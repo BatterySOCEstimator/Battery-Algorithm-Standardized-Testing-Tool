@@ -110,7 +110,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
         processing_mode = "P" + str(level)
         default_timeout = False # schedule a timeout based on CPU and memory availability
 
-        print("Dynamically Adjusting Resource Allocation Schedule...")
+        print("Dynamically Adjusting Resource Allocation Schedule...", file=sys.stderr)
         # we need to dynamically select a timeout period based on how active the server is:
         # RAM Utilization
         # .percent gives the used RAM as a percentage of total
@@ -126,7 +126,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
         cpu_score = math.floor(cpu_usage / 10 + 1)
         
         timeout_schedule = str(ram_score + cpu_score) + " minutes"
-        print(f"Task determined to be {processing_mode}, with allocation time of " + timeout_schedule)
+        print(f"Task determined to be {processing_mode}, with allocation time of " + timeout_schedule, file=sys.stderr)
 
 
     if processing_mode=="P1":
@@ -135,8 +135,8 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
         # First, we spin up the cluster
         # Using the named software environment is still the best way to 
         # ensure the Linux workers have the right libraries.
-        print("Scheduler Activated - Processing mode P1")
-        print("Spinning up a cluster...")
+        print("Scheduler Activated - Processing mode P1", file=sys.stderr)
+        print("Spinning up a cluster...", file=sys.stderr)
         cluster = coiled.Cluster(
             name="soc-data-cluster",
             n_workers=2,
@@ -155,7 +155,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             # Instead of sending data inside the function call, we push it to 
             # the workers' memory. This returns a Future pointing to the data.
             # This is MUCH more stable for Windows-to-Linux transfers.
-            print("Scattering data to workers...")
+            print("Scattering data to workers...", file=sys.stderr)
             setups_future = client.scatter(setups)
             data_future = client.scatter(data)
             inputs_future = client.scatter(inputs)
@@ -172,13 +172,13 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
                 return "Model.py written to " + os.getcwd()
 
             # 3. Force the write across the whole cluster
-            print("Force-syncing Model.py to worker disks...")
+            print("Force-syncing Model.py to worker disks...", file=sys.stderr)
             client.run(write_model_to_disk, content=model_code)
 
             # Submit the task
             # We pass the FUTURES as arguments. The worker will automatically
             # swap the future for the actual data once the task starts.
-            print("Submitting task...")
+            print("Submitting task...", file=sys.stderr)
             future = client.submit(
                 distributed_output_data,
                 setups_future, 
@@ -191,7 +191,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             result = client.gather(future)
         finally:
             # Clean up the clusters
-            print("Task Parallelization Complete, check for errors. Cleaning up...")
+            print("Task Parallelization Complete, check for errors. Cleaning up...", file=sys.stderr)
             client.close()
             cluster.close()
             newBench.stop()
@@ -204,8 +204,8 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
         # First, we spin up the cluster
         # Using the named software environment is still the best way to 
         # ensure the Linux workers have the right libraries.
-        print("Scheduler Activated - Processing mode P2")
-        print("Spinning up a cluster with GPUs...")
+        print("Scheduler Activated - Processing mode P2", file=sys.stderr)
+        print("Spinning up a cluster with GPUs...", file=sys.stderr)
         cluster = coiled.Cluster(
             name="soc-data-cluster-heavy-compute",
             n_workers=6,
@@ -225,7 +225,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             # Instead of sending data inside the function call, we push it to 
             # the workers' memory. This returns a Future pointing to the data.
             # This is MUCH more stable for Windows-to-Linux transfers.
-            print("Scattering data to workers...")
+            print("Scattering data to workers...", file=sys.stderr)
             setups_future = client.scatter(setups)
             data_future = client.scatter(data)
             inputs_future = client.scatter(inputs)
@@ -242,14 +242,14 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
                 return "Model.py written to " + os.getcwd()
 
             # 3. Force the write across the whole cluster
-            print("Force-syncing Model.py to worker disks...")
-            print("This may take a while with a larger model!")
+            print("Force-syncing Model.py to worker disks...", file=sys.stderr)
+            print("This may take a while with a larger model!", file=sys.stderr)
             client.run(write_model_to_disk, content=model_code)
 
             # Submit the task
             # We pass the FUTURES as arguments. The worker will automatically
             # swap the future for the actual data once the task starts.
-            print("Submitting task...")
+            print("Submitting task...", file=sys.stderr)
             future = client.submit(
                 distributed_output_data,
                 setups_future, 
@@ -262,7 +262,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             result = client.gather(future)
         finally:
             # Clean up the clusters
-            print("Task Parallelization Complete, check for errors. Cleaning up...")
+            print("Task Parallelization Complete, check for errors. Cleaning up...", file=sys.stderr)
             client.close()
             cluster.close()
             newBench.stop()
