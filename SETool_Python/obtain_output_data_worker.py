@@ -1,5 +1,6 @@
 """
 Obtain output data from all drive cycles, for Linux Worker Environment
+THIS IS ONLY RUN WHEN PARALLELIZED BY THE WORKER
 """
 import numpy as np
 import pandas as pd

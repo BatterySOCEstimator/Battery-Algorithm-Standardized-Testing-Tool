@@ -1,3 +1,12 @@
+"""
+Resource Allocation Scheduler
+Determines which "level" of allocation power to process submissions at.
+Use the Complexity Grader to determine this dynamically, or obeys manual configuration
+specified by the submitter.
+
+Lies in between process_submission and obtain_output
+"""
+
 # critical imports
 import dask.array as da
 
@@ -8,6 +17,7 @@ import threading
 import statistics as stat
 import time
 import os
+import math
 
 # dask and coiled imports
 import numpy as np
@@ -23,8 +33,10 @@ from dask.distributed import Client, SSHCluster
 import coiled
 from coiled import Cluster
 
+# our own imports
 from obtain_output_data import obtain_output_data
 from obtain_output_data_worker import distributed_output_data
+from complexity_grader import grade_complexity
 
 
 # Class to benchmark CPU usage
@@ -90,6 +102,33 @@ class benchmarkCPU(threading.Thread):
 
 # Function to schedule the evaluations
 def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing_mode:str="Local") -> dict:
+    # handle dynamic scaling first, adjust to the heuristic difficulty of the task submitted
+    default_timeout = True
+    timeout_schedule = "5 minutes"
+    if processing_mode=="dynamic":
+        level = grade_complexity(model_loc)
+        processing_mode = "P" + str(level)
+        default_timeout = False # schedule a timeout based on CPU and memory availability
+
+        print("Dynamically Adjusting Resource Allocation Schedule...")
+        # we need to dynamically select a timeout period based on how active the server is:
+        # RAM Utilization
+        # .percent gives the used RAM as a percentage of total
+        ram_usage = psutil.virtual_memory().percent
+
+        # CPU Utilization
+        # interval=0.5 blocks for half a second to get a stable average
+        cpu_usage = psutil.cpu_percent(interval=0.5)
+
+        # we allocate 10 minutes max per CPU or RAM usage, offset by 2 or 1 respectively
+        # minimum allocation time is 3 minutes
+        ram_score = math.floor(ram_usage / 20 + 2)
+        cpu_score = math.floor(cpu_usage / 10 + 1)
+        
+        timeout_schedule = str(ram_score + cpu_score) + " minutes"
+        print(f"Task determined to be {processing_mode}, with allocation time of " + timeout_schedule)
+
+
     if processing_mode=="P1":
         # we need to run the task on a cluster
         """ DASK WORKER AND SCHEDULER, using coiled """
@@ -101,9 +140,9 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
         cluster = coiled.Cluster(
             name="soc-data-cluster",
             n_workers=2,
-            region="us-east1", # Corrected region string
+            region="us-east1",
             worker_memory="8 GiB",
-            shutdown_on_close=True
+            idle_timeout= "1 minute" if default_timeout else timeout_schedule
         )
         client = cluster.get_client()
 
@@ -156,11 +195,80 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             client.close()
             cluster.close()
             newBench.stop()
-            newBench.report("PARALLELIZED CPU, 8GB memory")
+            newBench.report("PARALLELIZED CPU, 2 workers, 8GB memory each")
 
         return result
     elif processing_mode=="P2":
-        return {}
+        # we need to run the task on a cluster
+        """ DASK WORKER AND SCHEDULER, using coiled, now with GPUs """
+        # First, we spin up the cluster
+        # Using the named software environment is still the best way to 
+        # ensure the Linux workers have the right libraries.
+        print("Scheduler Activated - Processing mode P2")
+        print("Spinning up a cluster with GPUs...")
+        cluster = coiled.Cluster(
+            name="soc-data-cluster-heavy-compute",
+            n_workers=6,
+            region="us-east1",
+            # worker_gpu=1,  # single T4 per worker, remove if busy, costs are enormous
+            worker_memory="8 GiB",
+            idle_timeout="1 minute" if default_timeout else timeout_schedule
+        )
+        client = cluster.get_client()
+
+        # Start timer after submission
+        newBench = benchmarkCPU()
+        newBench.start()
+
+        try:
+            # "Scatter" the data
+            # Instead of sending data inside the function call, we push it to 
+            # the workers' memory. This returns a Future pointing to the data.
+            # This is MUCH more stable for Windows-to-Linux transfers.
+            print("Scattering data to workers...")
+            setups_future = client.scatter(setups)
+            data_future = client.scatter(data)
+            inputs_future = client.scatter(inputs)
+
+            # THREE STEP PROCESS TO GET model.py FILES CORRECTLY SENT
+            # 1. Read the local file content
+            with open(model_loc, "rb") as f:
+                model_code = f.read()
+
+            # 2. Define a function to write that code to every worker
+            def write_model_to_disk(dask_worker, content):
+                with open("Model.py", "wb") as f:
+                    f.write(content)
+                return "Model.py written to " + os.getcwd()
+
+            # 3. Force the write across the whole cluster
+            print("Force-syncing Model.py to worker disks...")
+            print("This may take a while with a larger model!")
+            client.run(write_model_to_disk, content=model_code)
+
+            # Submit the task
+            # We pass the FUTURES as arguments. The worker will automatically
+            # swap the future for the actual data once the task starts.
+            print("Submitting task...")
+            future = client.submit(
+                distributed_output_data,
+                setups_future, 
+                data_future, 
+                inputs_future, 
+                "."
+            )
+
+            # Gather the result
+            result = client.gather(future)
+        finally:
+            # Clean up the clusters
+            print("Task Parallelization Complete, check for errors. Cleaning up...")
+            client.close()
+            cluster.close()
+            newBench.stop()
+            newBench.report("PARALLELIZED CPU + NVDA T4 GPU, 4 workers, 8GB memory each")
+
+        return result
     else:
         # run the evaluation locally, as requested
         # --- start benchmarking

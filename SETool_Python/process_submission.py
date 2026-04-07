@@ -102,7 +102,7 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config):
     try:
         # INVOKE SCHEUDLER to run parallelized
         output_data, rmse, maxe, mae, rmse_charge, file_data, complexity = \
-            evaluation_scheduler(config.setups, data, config.inputs, user_model, model_file_py, processing_mode="local")
+            evaluation_scheduler(config.setups, data, config.inputs, user_model, model_file_py, processing_mode="P2")
 
     except Exception as e:
         return _fail(f"Error during test cycle evaluation: {e}")
