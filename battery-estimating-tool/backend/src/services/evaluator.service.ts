@@ -40,7 +40,7 @@ export function runEvaluatorContainer(modelDir: string, parallelizationLevel: st
     const args = [
       'run',
       '--rm',                                        // Remove container when done
-      '--network', 'bridge',                         
+      '--network', 'none',                         
       '--memory', '2g',                              // Memory limit
       '--cpus', '2',                                 // CPU limit
       '--pids-limit', '100',                         // Process limit
