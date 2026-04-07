@@ -1,6 +1,6 @@
 import Form from "react-bootstrap/Form";
 import { useState } from "react";
-const LabeledSelect = ({ label, options, setFormattedData, originalData, onChange }) => {
+const LabeledSelect = ({ label, filter, options, setFormattedData, originalData, onChange }) => {
   const [selected, setSelected] = useState(options[0]);
 
   const handleChange = (e) => {
@@ -12,10 +12,13 @@ const LabeledSelect = ({ label, options, setFormattedData, originalData, onChang
 
     if (!setFormattedData || !originalData) return;
 
-    if (selectedValue === "All Model Types") {
+    if (selectedValue === "All Model Types" || selectedValue === "All Authors" || selectedValue === "All Academic Affiliations") {
       setFormattedData(originalData);
     } else {
-      const filtered = originalData.filter((item) => item[label] === selectedValue);
+      const filtered = originalData.filter((item) => {
+        console.log(item, filter);
+        return item[filter] === selectedValue;
+      });
       setFormattedData(filtered);
     }
   };

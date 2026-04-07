@@ -1,12 +1,15 @@
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {columnKeyMap} from "../../Helperfunc.js";
 import { useState } from 'react';
-const MetricsTable = ({ headers, formattedData, setFormattedData }) => {
+const LeaderBoardMetricsTable = ({ headers, formattedData, setFormattedData }) => {
 
 const [sortConfig, setSortConfig] = useState({
   key: null,
   direction: "asc",
 });
+
+const visibleHeaders = headers.filter(header => header !== 'Status');
 
 const handleSort = (col) => {
   let direction = "asc";
@@ -40,7 +43,7 @@ const handleSort = (col) => {
       <Table style={{ textAlign: 'center' }} striped bordered hover>
           <thead>
 <tr>
-  {headers.map((col) => (
+  {visibleHeaders.map((col) => (
     <th
       key={col}
       onClick={() => handleSort(col)}
@@ -66,7 +69,7 @@ const handleSort = (col) => {
           {formattedData.length === 0 ? (
             // If no data exists, show empty row
             <tr>
-              {headers.map((col) => (
+              {visibleHeaders.map((col) => (
                 <td key={col}>--</td>
               ))}
             </tr>
@@ -74,7 +77,7 @@ const handleSort = (col) => {
             // Render each SOC submission as its own row
             formattedData.map((row, index) => (
             <tr key={index}>
-              {headers.map((col) => (
+              {visibleHeaders.map((col) => (
                 <td key={col}>{row[col] ?? "-"}</td>
               ))}
             </tr>
@@ -86,4 +89,4 @@ const handleSort = (col) => {
   );
 };
 
-export default MetricsTable;
+export default LeaderBoardMetricsTable;

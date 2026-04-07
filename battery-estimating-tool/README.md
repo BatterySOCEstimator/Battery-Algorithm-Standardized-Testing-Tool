@@ -118,11 +118,11 @@ PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
 5. In a separate terminal, run the seed script:
 ```bash
    cd backend
-   npx tsx --env-file=.env src/utils/seed.ts USER_ID_HERE
+   npx tsx --env-file=.env src/services/utils/seed.ts USER_ID_HERE
 ```
    For example, if `userId = 8`:
 ```bash
-   npx tsx --env-file=.env src/utils/seed.ts 8
+   npx tsx --env-file=.env src/services/utils/seed.ts 8
 ```
 
 6. Verify by calling endpoints in the browser console:

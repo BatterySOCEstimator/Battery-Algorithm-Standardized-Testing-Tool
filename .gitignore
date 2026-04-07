@@ -15,7 +15,7 @@
 
 # production
 /battery-estimating-tool/backend/dist
-
+/battery-estimating-tool/backend/logs
 # venv
 /battery-estimating-tool/backend/src/evaluator/SETool_Python/venv
 

@@ -54,6 +54,13 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
 
   const { name, description, isPrivate, modelType } = req.body;
 
+  const level = req.body.level ?? 'NONE';
+  const VALID_LEVELS = ['NONE', 'LOW', 'MED', 'HIGH'];
+  if (!VALID_LEVELS.includes(level)) {
+    res.status(400).json({ error: 'level must be NONE, LOW, MED, or HIGH.' });
+    return;
+  }
+
   // const userId = "e61tIWQu45pnJew9tti6zaY5FYIBuK0f" // FOR TESTING
   const userId = (req as any).user?.id;
   const userEmail = (req as any).user?.email;

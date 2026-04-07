@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
-import { models } from '../db/schema';
-import { asc, desc, eq, and, ilike, gte, lte, SQL } from 'drizzle-orm';
+import { models, user } from '../db/schema';
+import { asc, desc, eq, and, ilike, gte, lte, SQL, getTableColumns } from 'drizzle-orm';
 import { modelTypeEnum } from '@/db/schema';
 import { logger } from '@/services/logger.service';
 
@@ -167,7 +167,46 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+export const fetchUserModelJoin = async (req: Request, res: Response) => {
+    const userId = (req as any).user?.id;
 
+    const {
+        limit = '20',
+        offset = '0',
+    } = req.query as Record<string, string>;
+
+    const parsedLimit = Math.min(Math.max(parseInt(limit), 1), 100);
+    const parsedOffset = Math.max(parseInt(offset), 0);
+
+    if (isNaN(parsedLimit) || isNaN(parsedOffset)) {
+        logger.warn('data/user-model-join - Invalid pagination params', { limit, offset, ip: req.ip, userId });
+        return res.status(400).json({ error: 'limit and offset must be valid numbers' });
+    }
+
+    try {
+        const data = await db
+            .select({
+                // User fields
+                userId: user.id,
+                userName: user.name,
+                firstName: user.first_name,
+                lastName: user.last_name,
+                academicAffiliation: user.academic_affiliation,
+                // All model fields
+                ...getTableColumns(models),
+            })
+            .from(user)
+            .innerJoin(models, eq(models.userId, user.id))
+            .limit(parsedLimit)
+            .offset(parsedOffset);
+
+        logger.info('data/user-model-join - Query successful', { results: data.length, limit: parsedLimit, offset: parsedOffset, userId });
+        return res.json({ data, limit: parsedLimit, offset: parsedOffset, results: data.length });
+    } catch (err) {
+        logger.error('data/user-model-join - DB query failed', { err, ip: req.ip, userId });
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
 /**
  * Fetches a single model by its ID.
  *

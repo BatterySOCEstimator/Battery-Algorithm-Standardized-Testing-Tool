@@ -17,6 +17,8 @@ export const modelTypes = [
 
 export const columns = [
   'Submission',
+  'Author', 
+  'Institution',
   'Model Name',
   'Model Type',
   'Status',
@@ -49,6 +51,8 @@ export const columns = [
 
 export const columnKeyMap = {
   'Submission': 'id',
+  'Author': 'userName',
+  'Institution': 'academicAffiliation',
   'Model Name': 'name',
   'Model Type': 'modelType',
   'Status': 'status',

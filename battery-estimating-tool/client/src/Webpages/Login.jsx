@@ -4,7 +4,8 @@ import picture from "../assets/images/registrationpage.png"
 import { useState } from "react";
 import { login }  from "../auth-client.ts";
 import { Link, useNavigate } from "react-router-dom";
-const Login = () => {
+import { getUserInfo } from "../auth-client.ts";
+const Login = ({ user, setUser }) => {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -36,6 +37,7 @@ const Login = () => {
       });
     } finally {
       setIsLoading(false);
+      getUserInfo().then(setUser);
     }
   };
   return (
