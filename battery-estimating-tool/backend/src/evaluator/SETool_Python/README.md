@@ -29,15 +29,19 @@ This tool processes user-submitted SOC estimation models, runs comprehensive tes
 ## CLI Interface
 
 ```bash
-python standardized_evaluation_tool.py "uploads/user1/TestModel"
+python standardized_evaluation_tool.py "uploads/user1/TestModel" "PLevel"
 ```
 
-The single positional argument is the path to the submission directory.
+The first positional argument is the path to the submission directory.
 That directory must contain exactly **one `.zip`** file (the user's submission).
+
+The second defines the parallelization level, by default, this should
+be passed as "Dynamic" to use our heuristics.
 
 ### Output – stdout (JSON)
 
 **Success**
+
 ```json
 {
   "error": false,
@@ -46,12 +50,13 @@ That directory must contain exactly **one `.zip`** file (the user's submission).
   "Test_Scores": [100.234, 2312.352, 46.321], // list of 18 numbers
   "All_Drive_Cycles_Average_RMSE": 3.1416,
   "All_Drive_Cycles_Average_MAE": 3.1416,
-  "All_Drive_Cycles_Average_MAXE":  3.1416,
+  "All_Drive_Cycles_Average_MAXE": 3.1416,
   "Complexity": "5,6,7" // string of 3 numbers
 }
 ```
 
 **Failure**
+
 ```json
 {
   "error": true,
@@ -70,15 +75,19 @@ interfere with the JSON on stdout.
 ```
 
 For example, if you call:
+
 ```bash
 python standardized_evaluation_tool.py uploads/user1/TestModel
 ```
+
 the zip is written to:
+
 ```
 uploads/user1/TestModel/results/results.zip
 ```
 
 The zip contains:
+
 - `Error_Summary_Table.pkl` – serialised results dict (all RMSE / MAE / MAXE time-series per setup)
 - `Test_01_to_08_RMSE.png`
 - `Test_02_03_06_Blind_vs_NonBlind.png`
@@ -92,6 +101,7 @@ The zip contains:
 - `Test_11_Sensor_Offset_vs_Error.png`
 
 Summary of returned zip file:
+
 - Detailed RMSE, MAE, and MAXE for all test cycles
 - Visualization figures showing:
   - SOC estimation vs actual
@@ -110,12 +120,13 @@ submission.zip
 ```
 
 **Python model format** (`Model.py` Example):
+
 ```python
 # Model.py
 def Model(X, z=None):
     X = np.asarray(X, dtype=float).reshape(-1)
     Current = X[0]
-    Capacity = 4.55 
+    Capacity = 4.55
     if z is None:
         SOC = 0.995
         z = SOC
