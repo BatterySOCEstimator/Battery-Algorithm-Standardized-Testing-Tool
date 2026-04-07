@@ -1,5 +1,7 @@
 # Parallelization Results
 
+## PLEASE GO AHEAD AND READ THE NOTEBOOK! I SPENT SOME TIME ON IT!
+
 Battery Algorithm Standardized Testing Tool - includes all parallelization tests and a thorough explanation of our pipeline
 
 ## Prerequisites
