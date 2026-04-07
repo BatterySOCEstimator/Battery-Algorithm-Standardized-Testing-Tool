@@ -1,5 +1,5 @@
 import { Router } from "express"; 
-import { fetchLeaderboardData, fetchModelData } from "@/controllers/data.controller";
+import { fetchLeaderboardData, fetchModelData, fetchUserModelJoin } from "@/controllers/data.controller";
 import { requireAuth, checkBanStatus } from "@/middleware/auth.middleware";
 
 const router = Router();
@@ -8,6 +8,7 @@ const router = Router();
 router.get("/fetchLeaderboardData", requireAuth, checkBanStatus, fetchLeaderboardData)
 // Fetch one model by ID
 router.get("/fetchModelData/:id", requireAuth, checkBanStatus, fetchModelData)
+router.get("/fetchUserModelJoin", requireAuth, checkBanStatus, fetchUserModelJoin)
 
 // router.post("/fetchVisualizerData", fetchVisualizerData)
 

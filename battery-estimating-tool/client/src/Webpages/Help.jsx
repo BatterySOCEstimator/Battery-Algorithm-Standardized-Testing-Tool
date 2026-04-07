@@ -3,7 +3,7 @@ import { Container } from "react-bootstrap";
 import HelpSection from "../Components/HelpSection/HelpSection";
 import { Outlet } from "react-router-dom";
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
-const Help = () => {
+const Help = ({ user }) => {
   const sections = [
     {
       title: "Submitting a Model",
@@ -39,7 +39,7 @@ const Help = () => {
 
   return (
     <>
-    <StyledNavbar />
+    <StyledNavbar user={user} />
     <Container className="py-3">
       <h2 className="mb-4">Help Center</h2>
 

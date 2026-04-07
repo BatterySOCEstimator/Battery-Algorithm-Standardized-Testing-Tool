@@ -79,26 +79,61 @@ const formatData = (data) => {
   });
 };
 
-const ModelComparison = ({ estimatedSOC }) => {
-  const { loading: authLoading } = useRequireAuth();
+const ModelComparison = ({ user }) => {
+    const { loading: authLoading } = useRequireAuth();
+  const [originalData, setOriginalData] = useState([]);
+  const [formattedData, setFormattedData] = useState([]);
+  const [originalData2, setOriginalData2] = useState([]);
+  const [formattedData2, setFormattedData2] = useState([]);
   const [selectedModel1, setSelectedModel1] = useState(null);
   const [selectedModel2, setSelectedModel2] = useState(null);
   const [toggle, setToggle] = useState(false);
-  const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
-  const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
-  const [originalData2, setOriginalData2] = useState(formatData(estimatedSOC));
-  const [formattedData2, setFormattedData2] = useState(formatData(estimatedSOC));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
-    setOriginalData(formatData(estimatedSOC));
-    setFormattedData(formatData(estimatedSOC));
-    setOriginalData2(formatData(estimatedSOC));
-    setFormattedData2(formatData(estimatedSOC));
-  }, [estimatedSOC]);
-  if (authLoading) return <><StyledNavbar /><Container>Loading...</Container></>;
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/data/fetchLeaderboardData");
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const data = await response.json();
+        const formatted = formatData(data.data);
+        setOriginalData(formatted);
+        setFormattedData(formatted);
+        setOriginalData2(formatted);
+        setFormattedData2(formatted);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
+
+  // const { loading: authLoading } = useRequireAuth();
+  // const [selectedModel1, setSelectedModel1] = useState(null);
+  // const [selectedModel2, setSelectedModel2] = useState(null);
+  // const [toggle, setToggle] = useState(false);
+  // const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
+  // const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
+  // const [originalData2, setOriginalData2] = useState(formatData(estimatedSOC));
+  // const [formattedData2, setFormattedData2] = useState(formatData(estimatedSOC));
+  // useEffect(() => {
+  //   setOriginalData(formatData(estimatedSOC));
+  //   setFormattedData(formatData(estimatedSOC));
+  //   setOriginalData2(formatData(estimatedSOC));
+  //   setFormattedData2(formatData(estimatedSOC));
+  // }, [estimatedSOC]);
+  // if (authLoading) return <><StyledNavbar /><Container>Loading...</Container></>;
 
   return (
     <>
-      <StyledNavbar />
+      <StyledNavbar user={user} />
 
       <Container>
         {/* Title */}
