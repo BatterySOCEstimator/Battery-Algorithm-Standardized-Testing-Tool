@@ -104,7 +104,7 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: true,
-        requireEmailVerification: true,
+        requireEmailVerification: false,
 
         /**
         * Fires when a registration attempt is made with an email that already exists.
