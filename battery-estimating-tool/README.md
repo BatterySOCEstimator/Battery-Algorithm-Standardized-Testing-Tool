@@ -17,26 +17,28 @@ If building the project locally, you will have to create an account.
 
 ### Setup -- Dev
 
-1. Install dependencies:
+1. Install dependencies (start from project root):
 ```bash
-   npm run install:all
+   cd battery-estimating-tool && npm run install:all
 ```
 2. Set up the backend environment:
 ```bash
-   cd backend
+   cd backend # cd to backend first
    cp .env.example .env
 ```
 3. Start the database:
 ```bash
    docker compose up -d
 ```
-4. Push db migration:
+4. Push db schema:
 ```bash
    npx drizzle-kit push
 ```
-5. From the project root, start the app:
+5. Proceed to **Python Evaluation Tool Setup** below and complete steps
+
+6. After, from the project root, start the app:
 ```bash
-   cd ..
+   cd .. # cd back to battery-estimation-tool
    npm run dev
 ```
 
@@ -65,6 +67,12 @@ When a model is submitted, the backend:
    docker build -f Dockerfile.evaluator -t socapp-evaluator . # IN DEV
    docker build -f Dockerfile.evaluator -t socapp-evaluator --build-arg COILED_TOKEN=$COILED_TOKEN . # IN PROD
 ```
+
+If getting a connection error with the step above, instead run 
+```bash
+docker build --network=host -f Dockerfile.evaluator -t socapp-evaluator . # IN DEV
+```
+
 > **Note:** This image is **not** a long-lived service -- the backend spawns a container per evaluation and removes it when done.
 
 ### Local Development (without Docker evaluator)

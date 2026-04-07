@@ -8,6 +8,7 @@
     "dev": "concurrently \"npm run db:start\" \"npm run server:dev\"",
     "db:start": "docker compose up -d",
     "db:stop": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d && until docker exec socapp-db pg_isready; do sleep 1; done && npx drizzle-kit push",
     "server:dev": "tsx watch src/server.ts",
     "server:start": "node dist/server.js",
     "build": "npx tsc && npx tsc-alias -p tsconfig.json && node fix-imports.mjs"
