@@ -54,10 +54,10 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
 
   const { name, description, isPrivate, modelType } = req.body;
 
-  const level = req.body.level ?? 'NONE';
-  const VALID_LEVELS = ['NONE', 'LOW', 'MED', 'HIGH'];
-  if (!VALID_LEVELS.includes(level)) {
-    res.status(400).json({ error: 'level must be NONE, LOW, MED, or HIGH.' });
+  const parallelizationLevel = req.body.level ?? 'P0';
+  const VALID_LEVELS = ['dynamic', 'P0', 'P1', 'P2'];
+  if (!VALID_LEVELS.includes(parallelizationLevel)) {
+    res.status(400).json({ error: 'level must be dynamic, P0, P1, or P2.' });
     return;
   }
 
@@ -140,7 +140,7 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     });
 
     // Run evaluator 
-    void runEvaluation(model.id, modelDir, userId, userEmail, name);
+    void runEvaluation(model.id, modelDir, userId, userEmail, name, parallelizationLevel);
 
   } catch (err) {
     logger.error('model/upload - DB insert failed', { err, userId, modelName: name, ip: req.ip });
@@ -416,11 +416,12 @@ async function runEvaluation(
   modelDir: string,
   userId: string,
   userEmail: string | undefined,
-  modelName: string
+  modelName: string,
+  parallelizationLevel: string
 ) {
   logger.info('model/evaluate - Starting evaluation', { modelId, modelDir, userId });
 
-  const result = await runEvaluatorContainer(modelDir);
+  const result = await runEvaluatorContainer(modelDir, parallelizationLevel);
 
   // The evaluator returns paths relative to the container mount (/uploads/...)
   // Translate to the host path

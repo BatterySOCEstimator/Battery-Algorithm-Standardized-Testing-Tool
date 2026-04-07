@@ -23,7 +23,7 @@ interface EvaluationResult {
  *   - stdout: JSON result
  *   - stderr: diagnostic logs
  */
-export function runEvaluatorContainer(modelDir: string): Promise<EvaluationResult> {
+export function runEvaluatorContainer(modelDir: string, parallelizationLevel: string): Promise<EvaluationResult> {
   return new Promise((resolve, reject) => {
     const imageName = process.env.EVALUATOR_IMAGE ?? 'socapp-evaluator';
     const uploadDir = process.env.UPLOAD_DIR ?? './uploads';
@@ -45,10 +45,12 @@ export function runEvaluatorContainer(modelDir: string): Promise<EvaluationResul
       '--cpus', '2',                                 // CPU limit
       '--pids-limit', '100',                         // Process limit
       '--read-only',                                 // Read-only root filesystem
-      '--tmpfs', '/tmp:size=512m',                   // Writable tmp
+      '--tmpfs', '/tmp:size=512m',     
+      '-e', 'MPLCONFIGDIR=/tmp/matplotlib',                   // Writable tmp
       '-v', `${absoluteUploadDir}:/uploads`,         // Mount uploads directory
       imageName,
       containerModelPath,                            // Argument to entrypoint
+      parallelizationLevel                           // Level of parallelization
     ];
 
     logger.info('evaluator/docker - Spawning container', {

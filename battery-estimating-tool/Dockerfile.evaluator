@@ -8,10 +8,13 @@ WORKDIR /evaluator
 
 # Install Python dependencies
 RUN pip install --no-cache-dir \
-    numpy==2.4.3 \
+    numpy==2.4.4 \
     pandas==3.0.1 \
     scipy==1.17.1 \
-    matplotlib==3.10.8
+    matplotlib==3.10.8 \
+    dask==2026.3.0 \
+    coiled==1.133.1 \
+    pyarrow==23.0.1 
 
 # Copy the evaluation tool source and data files
 COPY backend/src/evaluator/SETool_Python/ /evaluator/

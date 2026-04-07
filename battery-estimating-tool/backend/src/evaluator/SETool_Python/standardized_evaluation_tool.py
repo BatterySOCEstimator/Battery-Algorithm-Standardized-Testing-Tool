@@ -73,12 +73,11 @@ def load_test_data():
     return data
 
 def main():
-    # ---- Parse CLI argument ----
-    if len(sys.argv) < 2:
-        _fail("No submission path provided."
-              "Usage: python standardized_evaluation_tool.py <path_to_submission_dir>")
-    
+     # ---- Parse CLI arguments ----
+    if len(sys.argv) < 3:
+        _fail("Usage: python standardized_evaluation_tool.py <path_to_submission_dir> <parallelization_level>")
     submission_path = sys.argv[1]
+    parallelization_level = sys.argv[2]
     if not os.path.isdir(submission_path):
         _fail(f"Submission path does not exist or is not a directory: {submission_path}")
         
@@ -116,6 +115,7 @@ def main():
             data=data,
             rootfolder=rootfolder,
             config=config,
+            parallelization_level=parallelization_level
         )
     finally:
         # Always clean up the temp processing folder
