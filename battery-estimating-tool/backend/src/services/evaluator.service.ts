@@ -45,7 +45,8 @@ export function runEvaluatorContainer(modelDir: string, parallelizationLevel: st
       '--cpus', '2',                                 // CPU limit
       '--pids-limit', '100',                         // Process limit
       '--read-only',                                 // Read-only root filesystem
-      '--tmpfs', '/tmp:size=512m',     
+      '--tmpfs', '/tmp:size=512m', 
+      '--tmpfs', '/root/.coiled:size=128m',    
       '-e', 'MPLCONFIGDIR=/tmp/matplotlib',                   // Writable tmp
       '-v', `${absoluteUploadDir}:/uploads`,         // Mount uploads directory
       imageName,
