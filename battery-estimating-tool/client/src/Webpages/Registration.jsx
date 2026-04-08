@@ -101,7 +101,7 @@ const Registration = () => {
           <h2 className="fw-bold mb-3">🎉 You're registered!</h2>
           <p className="text-muted mb-4">
             Welcome, <strong>{values.firstName}</strong>! Your account has been
-            created successfully.
+            created successfully. Please validate your email before logging in.
           </p>
           <Link to="/login">
             <Button variant="primary" size="lg">
