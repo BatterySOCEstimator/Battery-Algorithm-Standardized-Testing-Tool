@@ -107,17 +107,6 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config, 
 
     except Exception as e:
         return _fail(f"Error during test cycle evaluation: {e}")
-
-    # # Check for possible exploitation   - BRU make sure to change exploit=False in line 191
-    # if np.mean(rmse) > 15:
-    #     exploit = True
-    #     print("\033[91mWARNING: Possible exploitation detected, no data will be sent to user, please check output data!!!\033[0m")
-    #     # Rename saved file to indicate exploit
-    #     exploit_filename = data_filename.replace('.zip', '_EXPLOIT.zip')
-    #     os.rename(data_filename, exploit_filename)
-    # else:
-    #     exploit = False
-    
     
     # Generate figures + Robustness analysis
     print("Generating figures...", file=sys.stderr)
