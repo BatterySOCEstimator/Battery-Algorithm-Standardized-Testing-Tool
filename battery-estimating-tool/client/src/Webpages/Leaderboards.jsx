@@ -78,12 +78,15 @@ const Leaderboards = ({user}) => {
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data = await response.json();
         console.log(data.data);
-        const formatted = formatData(data.data);
+        const filtered = data.data.filter(model => model.isPrivate == false);
+        console.log(filtered);
+
+        const formatted = formatData(filtered);
+
         setOriginalData(formatted);
         setFormattedData(formatted);
         setUniqueUsernames(getUniqueUsernames(data.data));
         setUniqueUniversities(getUniqueUniversities(data.data));
-        console.log(uniqueUsernames, uniqueUniversities)
       } catch (err) {
         setError(err.message);
       } finally {
