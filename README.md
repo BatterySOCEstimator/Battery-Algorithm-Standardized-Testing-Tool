@@ -1,4 +1,5 @@
 # Battery-Algorithm-Standardized-Testing-Tool
+final video: https://www.youtube.com/watch?v=8j1W0E0ylmE
 
 PLEASE SEE `battery-estimating-tool/README.md`
 
