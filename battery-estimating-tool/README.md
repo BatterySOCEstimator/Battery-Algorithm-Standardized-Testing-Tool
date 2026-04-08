@@ -34,6 +34,9 @@
 After initial setup, just run `npm run dev` from the project root.
 
 ---
+
+
+
 ## Python Evaluation Tool Setup
 
 The evaluation tool runs user-submitted models inside a **sandboxed Docker container** for security. No local Python virtual environment is needed in production — Docker handles everything.
@@ -60,6 +63,11 @@ When a model is submitted, the backend:
 
 
 3. Ensure the following are set in `backend/.env`:
+
+### Account creation
+To be able to access the upload file page and submission you must be logged in. Create an account through the regstration page, 
+verify your email and then login.
+
 ### Local Development (without Docker evaluator)
 
 If you want to run the evaluation script directly for development/debugging:
@@ -86,52 +94,6 @@ PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
 
 ---
 
-## Seeding the Database
-
-1. Start the app with `npm run dev`
-
-2. In the browser console, create a test user:
-```js
-   await signUp({
-     email: "test@test.com",
-     password: "Testtesttest",
-     firstName: "Test1",
-     lastName: "Test",
-     username: "Testuser",
-     academicAffiliation: "Test",
-   });
-```
-
-3. Log in:
-```js
-   await login({
-     email: "test@test.com",
-     password: "Testtesttest",
-   });
-```
-
-4. Get your `userId`:
-```js
-   await getUserInfo();
-```
-
-5. In a separate terminal, run the seed script:
-```bash
-   cd backend
-   npx tsx --env-file=.env src/services/utils/seed.ts USER_ID_HERE
-```
-   For example, if `userId = 8`:
-```bash
-   npx tsx --env-file=.env src/services/utils/seed.ts 8
-```
-
-6. Verify by calling endpoints in the browser console:
-```js
-   fetch('/api/data/fetchLeaderboardData', { credentials: 'include' })
-     .then(r => r.json())
-     .then(console.log);
-```
-
 ### Leaderboard Query Params
 
 | Param    | Default           | Description                          |
@@ -143,9 +105,3 @@ PYTHON_SCRIPT=/absolute/path/to/SETool_Python/standardized_evaluation_tool.py
 
 ---
 
-## TODO:
-- Change password
-- Verify email
-- Change email
-- SSO ?
-- Cookies/Sessions

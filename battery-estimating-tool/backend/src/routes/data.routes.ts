@@ -6,9 +6,9 @@ const router = Router();
 
 // Fetch many models 
 router.get("/fetchLeaderboardData", requireAuth, checkBanStatus, fetchLeaderboardData)
-router.get("/fetchUserModelJoin", requireAuth, checkBanStatus, fetchUserModelJoin)
 // Fetch one model by ID
 router.get("/fetchModelData/:id", requireAuth, checkBanStatus, fetchModelData)
+router.get("/fetchUserModelJoin", requireAuth, checkBanStatus, fetchUserModelJoin)
 
 // router.post("/fetchVisualizerData", fetchVisualizerData)
 
