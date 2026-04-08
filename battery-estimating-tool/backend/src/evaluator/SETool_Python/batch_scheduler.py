@@ -106,6 +106,8 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
     # handle dynamic scaling first, adjust to the heuristic difficulty of the task submitted
     default_timeout = True
     timeout_schedule = "5 minutes"
+    timeout = 0
+    
     if processing_mode=="dynamic":
         level = grade_complexity(model_loc)
         processing_mode = "P" + str(level)
