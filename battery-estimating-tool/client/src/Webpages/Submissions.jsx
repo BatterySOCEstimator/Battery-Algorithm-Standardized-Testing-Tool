@@ -5,7 +5,7 @@ import styled from "styled-components";
 import useRequireAuth from "../Hooks/useRequireAuth";
 import { modelTypes, submissionsColumns, columnKeyMap } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
-
+import { getUserInfo } from "../auth-client.ts";
 const FlexBox = styled.div`
     display:flex;
     gap: 24px;
@@ -50,7 +50,12 @@ const Submissions = ({ user }) => {
   const [originalData, setOriginalData] = useState([]);
   const [formattedData, setFormattedData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null)
+
+useEffect(() => {
+
+}, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,7 +63,11 @@ const Submissions = ({ user }) => {
         const response = await fetch("/api/data/fetchLeaderboardData");
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data = await response.json();
-        const formatted = formatData(data.data);
+        const user = await getUserInfo();
+        const userId = user.id;
+        const filtered = data.data.filter(model => model.userId === userId);
+        const formatted = formatData(filtered);
+        
         setOriginalData(formatted);
         setFormattedData(formatted);
       } catch (err) {
@@ -67,7 +76,12 @@ const Submissions = ({ user }) => {
         setLoading(false);
       }
     };
+    
+      
+
+
     fetchData();
+  
   }, []);
 
   if (loading) return <><StyledNavbar  user={user}/><Container>Loading...</Container></>;
