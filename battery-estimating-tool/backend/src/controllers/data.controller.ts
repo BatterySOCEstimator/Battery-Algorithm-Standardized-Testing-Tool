@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
 import { models, user } from '../db/schema';
-import { asc, desc, eq, and, ilike, gte, lte, SQL, getTableColumns } from 'drizzle-orm';
+import { asc, desc, eq, and, or, ilike, gte, lte, SQL, getTableColumns } from 'drizzle-orm';
 import { modelTypeEnum } from '@/db/schema';
 import { logger } from '@/services/logger.service';
 
@@ -135,9 +135,13 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
         return res.status(400).json({ error: `modelType must be one of: ${VALID_MODEL_TYPES.join(', ')}` });
     }
 
-    // Only return public models that have been evaluated 
+    // Return public models, plus private models owned by the requesting user, that have been evaluated
+    const visibilityFilter = userId
+        ? or(eq(models.isPrivate, false), eq(models.userId, userId))!
+        : eq(models.isPrivate, false);
+
     const filters: SQL[] = [
-        eq(models.isPrivate, false),
+        visibilityFilter,
         eq(models.alreadyEvaluated, true),
     ];
 
