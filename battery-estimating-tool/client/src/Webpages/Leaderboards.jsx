@@ -62,43 +62,43 @@ const getUniqueUsernames = (data) => {
 const getUniqueUniversities = (data) => {
   return [...new Set(data.map(item => item.academicAffiliation))];
 };
-const Leaderboards = ({user}) => {
-  const [uniqueUsernames, setUniqueUsernames] = useState([]);
-  const [uniqueUniversities, setUniqueUniversities] = useState([]);
-  const { loading: authLoading } = useRequireAuth();
-  const [originalData, setOriginalData] = useState([]);
-  const [formattedData, setFormattedData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/data/fetchUserModelJoin");
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const data = await response.json();
-        console.log(data.data);
-        const filtered = data.data.filter(model => model.isPrivate == false);
-        console.log(filtered);
+const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, formattedData, loading, error, setFormattedData}) => {
+  // const [uniqueUsernames, setUniqueUsernames] = useState([]);
+  // const [uniqueUniversities, setUniqueUniversities] = useState([]);
+  // const { loading: authLoading } = useRequireAuth();
+  // const [originalData, setOriginalData] = useState([]);
+  // const [formattedData, setFormattedData] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await fetch("/api/data/fetchUserModelJoin");
+  //       if (!response.ok) throw new Error(`Error: ${response.status}`);
+  //       const data = await response.json();
+  //       console.log(data.data);
+  //       const filtered = data.data.filter(model => model.isPrivate == false);
+  //       console.log(filtered);
 
-        const formatted = formatData(filtered);
+  //       const formatted = formatData(filtered);
 
-        setOriginalData(formatted);
-        setFormattedData(formatted);
-        setUniqueUsernames(getUniqueUsernames(data.data));
-        setUniqueUniversities(getUniqueUniversities(data.data));
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  //       setOriginalData(formatted);
+  //       setFormattedData(formatted);
+  //       setUniqueUsernames(getUniqueUsernames(data.data));
+  //       setUniqueUniversities(getUniqueUniversities(data.data));
+  //     } catch (err) {
+  //       setError(err.message);
+  //     } finally {
+  //       setLoading(false);
         
-      }
-    };
-    fetchData();
-  }, []);
+  //     }
+  //   };
+  //   fetchData();
+  // }, []);
 
   if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  // if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
   if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
 
   return (
