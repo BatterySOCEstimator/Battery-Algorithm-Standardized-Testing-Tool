@@ -7,6 +7,7 @@ import useRequireAuth from "../Hooks/useRequireAuth";
 import { modelTypes, columnKeyMap, columns } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
 import ModelCharts from "../Components/ModelCharts/ModelCharts.jsx";
+import { Alert } from "react-bootstrap";
 const tableHeaders = [
   // "Ranking",
   "Submission",
@@ -96,6 +97,7 @@ const ModelComparison = ({ user }) => {
   const [formattedData2, setFormattedData2] = useState([]);
   const [selectedModel1, setSelectedModel1] = useState(null);
   const [selectedModel2, setSelectedModel2] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
   const [toggle, setToggle] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -147,10 +149,28 @@ const ModelComparison = ({ user }) => {
       <StyledNavbar user={user} />
 
       <Container>
-        {/* Title */}
+                {submitted && selectedModel1 && selectedModel2 && selectedModel1 === selectedModel2 && (
+          <Alert variant="danger" dismissible onClose={() => setSubmitted(false)}>
+            Cannot compare two of the same models
+          </Alert>
+        )}
+
+        {submitted && (!selectedModel1 || !selectedModel2) && (
+          <Alert variant="danger" dismissible onClose={() => setSubmitted(false)}>
+            Must select more than one model type
+          </Alert>
+        )}
         <FlexBox style={{ "alignItems": "center", justifyContent: "space-between" }}>
           <Title>Model Comparison</Title>
-          <Button variant="outline-success" onClick={() => setToggle(!toggle)}>
+          <Button
+            variant="outline-success"
+            onClick={() => {
+              setSubmitted(true);
+              if (selectedModel1 && selectedModel2 && selectedModel1 !== selectedModel2) {
+                setToggle(!toggle);
+              }
+            }}
+          >
             {toggle ? "Hide Graphical Comparison" : "Display Graphical Comparison"}
           </Button>
 
