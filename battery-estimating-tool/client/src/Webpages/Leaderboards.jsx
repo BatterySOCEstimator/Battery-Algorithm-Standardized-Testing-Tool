@@ -65,7 +65,7 @@ const getUniqueUniversities = (data) => {
 const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, formattedData, loading, error, setFormattedData}) => {
   // const [uniqueUsernames, setUniqueUsernames] = useState([]);
   // const [uniqueUniversities, setUniqueUniversities] = useState([]);
-  // const { loading: authLoading } = useRequireAuth();
+  const { loading: authLoading } = useRequireAuth();
   // const [originalData, setOriginalData] = useState([]);
   // const [formattedData, setFormattedData] = useState([]);
   // const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
   // }, []);
 
   if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  // if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
   if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
 
   return (
