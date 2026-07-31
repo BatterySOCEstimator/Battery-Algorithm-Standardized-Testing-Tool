@@ -30,8 +30,8 @@ const Login = ({ user, setUser }) => {
           ? { email: identifier, password }
           : { username: identifier, password }
       );
-      const userInfo = await getUserInfo();
-      setUser(userInfo);
+      //const userInfo = await getUserInfo();
+      //setUser(userInfo);
       navigate("/leaderboards");
     } catch (err) {
       navigate("/login-error", {
@@ -39,6 +39,7 @@ const Login = ({ user, setUser }) => {
       });
     } finally {
       setIsLoading(false);
+      getUserInfo().then(setUser);
     }
   };
   return (
