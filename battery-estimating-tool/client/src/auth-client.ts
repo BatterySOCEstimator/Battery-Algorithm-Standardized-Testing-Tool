@@ -88,12 +88,12 @@ export async function login(options: {
 
         if (isEmail(identifier)) {
             authClient.signIn.email(
-                { email: identifier, password, callbackURL: "/leaderboards" },
+                { email: identifier, password },
                 callbacks
             );
         } else {
             authClient.signIn.username(
-                { username: identifier, password, callbackURL: "/leaderboards" },
+                { username: identifier, password },
                 callbacks
             );
         }
