@@ -1,3 +1,4 @@
+//Constants for model types filtering 
 export const modelTypes = [
   "All Model Types",
   "Machine Learning",
@@ -14,7 +15,7 @@ export const modelTypes = [
   "Hybrid Model",
   "Not Specified"
 ];
-
+//Constants for table display on leaderboards
 export const columns = [
   'Submission',
   'Author', 
@@ -48,7 +49,7 @@ export const columns = [
   'All Drive Cycles Average MAE',
   'All Drive Cycles Average MAXE'
 ];
-
+//Constants for table display on submissions page
 export const submissionsColumns = [
   'Submission',
   'Model Name',
@@ -80,6 +81,7 @@ export const submissionsColumns = [
   'All Drive Cycles Average MAE',
   'All Drive Cycles Average MAXE'
 ];
+//Maps raw JSON keys to readable column names
 export const columnKeyMap = {
   'Submission': 'id',
   'Author': 'userName',

@@ -1,27 +1,34 @@
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {columnKeyMap} from "../../Helperfunc.js";
+import {columnKeyMap} from "../../Constants/Helperfunc.js";
 import { useState } from 'react';
+
+// Metrics table component for leaderboard page
 const LeaderBoardMetricsTable = ({ headers, formattedData, setFormattedData }) => {
 
+// initialize ascending sort and no column selected
 const [sortConfig, setSortConfig] = useState({
   key: null,
   direction: "asc",
 });
 
-const visibleHeaders = headers.filter(header => header !== 'Status');
+  // Filter out 'Status' column from display; keep all other headers visible
+  const visibleHeaders = headers.filter(header => header !== 'Status');
 
-const handleSort = (col) => {
-  let direction = "asc";
+// toggles sort for their on click handling, ascending or descending.
+  const handleSort = (col) => {
+    let direction = "asc";
 
-  if (sortConfig.key === col && sortConfig.direction === "asc") {
-    direction = "desc";
+    if (sortConfig.key === col && sortConfig.direction === "asc") {
+      direction = "desc";
   }
 
+  // Sort rows by the clicked column; handle numeric vs string values
   const sorted = [...formattedData].sort((a, b) => {
     let valA = a[col];
     let valB = b[col];
 
+    // Try numeric sort first
     const numA = parseFloat(valA);
     const numB = parseFloat(valB);
 
@@ -29,20 +36,22 @@ const handleSort = (col) => {
       return direction === "asc" ? numA - numB : numB - numA;
     }
 
+    // Fall back to lexicographic sort
     return direction === "asc"
       ? String(valA).localeCompare(String(valB))
       : String(valB).localeCompare(String(valA));
   });
-
+  // Update sort configuration and formatted data state
   setSortConfig({ key: col, direction });
   setFormattedData(sorted);
 };
-  console.log(formattedData)
+  // Render the table with horizontally scrollable container for mobile
   return (
     <div style={{ overflowX: 'auto', width: '100%' }}>
       <Table style={{ textAlign: 'center' }} striped bordered hover>
           <thead>
 <tr>
+  {/* Go through each header and give it a key, click handler and style*/}
   {visibleHeaders.map((col) => (
     <th
       key={col}
@@ -52,6 +61,8 @@ const handleSort = (col) => {
       <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
         <span style={{ width: "12px", display: "inline-block" }} />
         {col}
+         {/* Show sort direction indicator (▲/▼) for the selected column */}
+
         <span style={{ width: "12px", display: "inline-block" }}>
           {sortConfig.key === col
             ? sortConfig.direction === "asc"
@@ -65,6 +76,7 @@ const handleSort = (col) => {
 </tr>
 </thead>
 
+        {/* Table body: render placeholder if empty */}
         <tbody>
           {formattedData.length === 0 ? (
             // If no data exists, show empty row

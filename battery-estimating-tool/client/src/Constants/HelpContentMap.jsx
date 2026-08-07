@@ -1,5 +1,7 @@
+//Constants found for each link on the help page.
 import styled from "styled-components";
 
+// Container for a help topic card
 const HelpContainer = styled.div`
   max-width: 800px;
   margin: 24px auto;
@@ -14,15 +16,18 @@ const HelpContainer = styled.div`
   line-height: 1.6;
 `;
 
+// Title used at the top of each help topic
 const Title = styled.h2`
   margin-bottom: 16px;
   font-weight: 600;
 `;
 
+// Generic section wrapper for spacing
 const Section = styled.div`
   margin-bottom: 20px;
 `;
 
+// Step block highlights an individual instruction step
 const Step = styled.div`
   background: #f8f9fa;
   border: 1px solid #e0e0e0;
@@ -32,16 +37,19 @@ const Step = styled.div`
   border-radius: 6px;
 `;
 
+// Title for a step within a Step block
 const StepTitle = styled.h5`
   margin: 0 0 6px 0;
   font-weight: 600;
 `;
 
+// Paragraph text 
 const Paragraph = styled.p`
   margin: 0;
   color: #444;
 `;
 
+// Simple list styles 
 const List = styled.ul`
   padding-left: 20px;
 `;
@@ -50,6 +58,7 @@ const ListItem = styled.li`
   margin-bottom: 6px;
 `;
 
+// Small badge for file extensions and toggles
 const Badge = styled.span`
   background: #e6f4f1;
   color: #359daa;
@@ -61,6 +70,8 @@ const Badge = styled.span`
 
 
 
+// Each key e.g. "submission-process" corresponds to a route like `/help/submission-process` that must be found in Help.jsx.
+// The `title` is used for the page header, and the `content` is the content for the help topic.
 export const HelpContentMap = {
   "submission-process": {
   title: "Submission Process",
@@ -255,3 +266,4 @@ export const HelpContentMap = {
   ),
 },
 }
+// Note: Add new topics by adding another key here with `title` and `content`.

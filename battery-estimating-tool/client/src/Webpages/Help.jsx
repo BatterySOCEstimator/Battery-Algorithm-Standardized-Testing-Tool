@@ -1,9 +1,12 @@
+// Help page
 import React from "react";
 import { Container } from "react-bootstrap";
 import HelpSection from "../Components/HelpSection/HelpSection";
 import { Outlet } from "react-router-dom";
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
 const Help = ({ user }) => {
+  // Feed these values into the help section component. Each section will have a title
+  // and a list of links (needing a label and href) that correspond to the help topics. 
   const sections = [
     {
       title: "Submitting a Model",
@@ -11,7 +14,7 @@ const Help = ({ user }) => {
         { label: "Submission Process", href: "/help/submission-process" },
         { label: "Valid Files", href: "/help/valid-files" },
         { label: "Code Ownership", href: "/help/code-ownership" },
-        {label: "Public Submission vs Private Submission", href: "/help/public-private-submission"},
+        { label: "Public Submission vs Private Submission", href: "/help/public-private-submission" },
       ],
     },
     {
@@ -39,15 +42,20 @@ const Help = ({ user }) => {
 
   return (
     <>
-    <StyledNavbar user={user} />
-    <Container className="py-3">
-      <h2 className="mb-4">Help Center</h2>
+      {/* Title */}
+      <StyledNavbar user={user} />
 
-      {sections.map((section, index) => (
-        <HelpSection key={index} title={section.title} links={section.links} />
-      ))}
-    <Outlet />
-    </Container>
+      <Container className="py-3">
+        <h2 className="mb-4">Help Center</h2>
+
+        {/* Render each help section as a list of topic links */}
+        {sections.map((section, index) => (
+          <HelpSection key={index} title={section.title} links={section.links} />
+        ))}
+
+        {/* Render the selected help topic content */}
+        <Outlet />
+      </Container>
     </>
   );
 };

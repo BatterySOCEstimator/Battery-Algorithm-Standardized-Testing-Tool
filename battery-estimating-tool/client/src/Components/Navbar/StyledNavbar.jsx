@@ -1,3 +1,4 @@
+// Bootstrap and router primitives used to build the responsive top navigation
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
@@ -15,13 +16,16 @@ const StyledNavbar = ({ user }) => {
   // }, []);
 
   return (
+    // container for top navbar includes background and size settings
     <Navbar bg="dark" expand="lg" data-bs-theme="dark">
       <Container>
+        {/* BatterySOCBenchmark */}
         <Navbar.Brand href="/">BatterySOCBenchmark</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
 
+            {/* Primary navigation links for main app features */}
             <Nav.Link as={Link} to="/leaderboards">Leaderboards</Nav.Link>
             <Nav.Link as={Link} to="/submit-model">Submit Model</Nav.Link>
             <Nav.Link as={Link} to="/submissions">Submissions</Nav.Link>
@@ -41,6 +45,7 @@ const StyledNavbar = ({ user }) => {
             </NavDropdown> */}
           </Nav>
           {user ? (
+            // When a user is present show avatar initials, name and logout
             <div className="d-flex align-items-center" style={{ gap: "8px" }}>
               <div
                 className="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center p-0"
@@ -52,6 +57,7 @@ const StyledNavbar = ({ user }) => {
               <Button variant="outline-light" size="sm" onClick={logout}>Logout</Button>
             </div>
           ) : (
+            // Guest actions: register or login
             <>
               <Button href="/registration" variant="outline-success">Register</Button>
               <Button style={{ marginLeft: "8px" }} href="/login" variant="light">Login</Button>

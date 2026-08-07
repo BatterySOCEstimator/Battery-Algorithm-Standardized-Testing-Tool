@@ -1,3 +1,5 @@
+// SubmitModel page: UI and logic to upload a new model submission.
+// Imports: React hooks, drag-drop helpers, UI toolkit and project helpers.
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload } from "lucide-react";
@@ -6,7 +8,7 @@ import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import { Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
-import { modelTypes, columns} from "../Helperfunc.js";
+import { modelTypes, columns} from "../Constants/Helperfunc.js";
 import useRequireAuth from "../Hooks/useRequireAuth";
 
 
@@ -66,23 +68,35 @@ const FormCard = styled.div`
   margin-bottom: 24px;
 `;
 
+// Small sanitizer to remove leading/trailing whitespace and strip <,>
+// to avoid basic injection of markup in free-text fields.
 const sanitize = (str) => str.trim().replace(/[<>]/g, "");
 
 const SubmitModel = ({ user }) => {
+  // Prevent rendering until auth check completes
   const { loading } = useRequireAuth();
   const navigate = useNavigate();
 
+  // Controlled form fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [selectedModelType, setSelectedModelType] = useState(modelTypes[0]);
   const [selectedLevel, setSelectedLevel] = useState("dynamic");
+
+  // Dropzone key lets us reset the drop area by bumping the key
   const [dropzoneKey, setDropzoneKey] = useState(0);
+
+  // File state: either a single file or a zip containing many files
   const [file, setFile] = useState(null);
   const [zipFile, setZipFile] = useState(null);
+
+  // Submission state and user feedback messages
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type: "success"|"danger", message: string }
 
+  // onDrop: pick the first accepted file and store it
+  // If it's a .zip we keep it separate so the backend can handle zips differently
   const onDrop = useCallback((acceptedFiles) => {
     const uploaded = acceptedFiles[0];
     if (uploaded?.name.endsWith(".zip")) {
@@ -94,15 +108,17 @@ const SubmitModel = ({ user }) => {
     }
   }, []);
 
+  // Hook up dropzone (single-file uploads)
   const { getRootProps, getInputProps } = useDropzone({ onDrop, multiple: false });
 
+  // handleSubmit: client-side validation + multipart upload
   const handleSubmit = async () => {
     setFeedback(null);
 
     const sanitizedName = sanitize(name);
     const sanitizedDescription = sanitize(description);
 
-    // Validation
+    // Basic validation with feedback shown at top
     if (!sanitizedName) return setFeedback({ type: "danger", message: "Name is required." });
     if (!sanitizedDescription) return setFeedback({ type: "danger", message: "Description is required." });
     if (!file && !zipFile) return setFeedback({ type: "danger", message: "Please upload a model file." });
@@ -138,8 +154,8 @@ const SubmitModel = ({ user }) => {
         throw new Error(err || `Server error ${response.status}`);
       }
 
+      // Success: show message and reset form fields
       setFeedback({ type: "success", message: "Model uploaded successfully!" });
-      // Reset form
       setName("");
       setDescription("");
       setIsPrivate(false);
@@ -154,13 +170,14 @@ const SubmitModel = ({ user }) => {
     }
   };
 
+  // Do not render until auth state is known
   if (loading) return null;
   return (
     <>
-      <StyledNavbar  user={user}/>
+      <StyledNavbar user={user} />
       <FullscreenContainer>
 
-        {/* Feedback alert */}
+        {/* Feedback alert: success or error messages from the submit flow */}
         {feedback && (
           <div style={{ width: "60vw", marginBottom: "16px" }}>
             <Alert variant={feedback.type} onClose={() => setFeedback(null)} dismissible>
@@ -194,6 +211,7 @@ const SubmitModel = ({ user }) => {
             </Form.Group>
 
             <FlexBox className="align-items-center">
+              {/* Model type and evaluation level selectors */}
               <LabeledSelect
                 label={"Model Type"}
                 options={modelTypes}
@@ -206,6 +224,8 @@ const SubmitModel = ({ user }) => {
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
               />
+
+              {/* Privacy toggle */}
               <Form.Group className="d-flex align-items-center" style={{ gap: "10px", marginTop: "8px" }}>
                 <Form.Label className="mb-0">Private</Form.Label>
                 <Form.Check
@@ -218,14 +238,17 @@ const SubmitModel = ({ user }) => {
           </Form>
         </FormCard>
 
+        {/* Submit button shows spinner while uploading */}
         <Button onClick={handleSubmit} style={{ marginBottom: "16px" }} disabled={submitting}>
           {submitting ? <><Spinner size="sm" className="me-2" />Uploading...</> : "Submit Model"}
         </Button>
 
+        {/* Preview uploaded filename (zip or single file) */}
         {(file || zipFile) && (
           <FileCard>📄 {(file ?? zipFile).name}</FileCard>
         )}
 
+        {/* Drop area: supports drag & drop or click to open file picker */}
         <DropArea key={dropzoneKey} {...getRootProps()}>
           <input {...getInputProps()} />
           <Upload size={60} />

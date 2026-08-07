@@ -1,7 +1,10 @@
+// UI components and styling imports for the leaderboard page
 import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
-import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
+
+// Data constants and formatting utilities
+import { modelTypes, columns, columnKeyMap } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 import useRequireAuth from "../Hooks/useRequireAuth";
 import { Button } from "react-bootstrap";
@@ -14,6 +17,8 @@ window.login = login;
 window.logout = logout;
 window.getUserInfo = getUserInfo;
 window.resendVerificationEmail = resendVerificationEmail;
+
+// Layout helpers for the leaderboard page
 const FlexBox = styled.div`
     display:flex;
     gap: 24px;
@@ -34,6 +39,8 @@ const TitleSection = styled.div`
   align-items: center;
   margin-bottom: 20px;
 `;
+
+// Convert raw API rows into the table-friendly display format
 const formatData = (data) => {
   return data.map((row) => {
     const obj = {};
@@ -43,26 +50,63 @@ const formatData = (data) => {
       let value = row[key];
 
       if (key === "isPrivate") {
+        // Convert boolean to human-readable text
         value = value ? "Private" : "Public";
       }
 
       if (key === "createdAt" || key === "updatedAt") {
+        // Format timestamps to locale strings
         value = new Date(value).toLocaleString();
       }
 
+      // Use a dash for missing values
       obj[col] = value ?? "-";
     });
 
     return obj;
   });
 };
+
+// Helpers to extract unique filter values from data
 const getUniqueUsernames = (data) => {
   return [...new Set(data.map(item => item.userName))];
 };
 const getUniqueUniversities = (data) => {
   return [...new Set(data.map(item => item.academicAffiliation))];
 };
+
+// Leaderboards page component — receives filtered data and state from parent router
 const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, formattedData, loading, error, setFormattedData}) => {
+  
+  const [selectedFilters, setSelectedFilters] = useState({
+  "Filter by Author": "All Authors",
+  "Filter by Academic Affiliation": "All Academic Affiliations",
+  "Model Type": "All Model Types",
+});
+
+  const handleFilterChange = (label, value) => {
+  setSelectedFilters((prev) => ({
+    ...prev,
+    [label]: value,
+  }));
+  console.log(selectedFilters)
+};
+useEffect(() => {
+  const filtered = originalData.filter((item) => {
+    return (
+      (selectedFilters["Filter by Author"] === "All Authors" ||
+        item.Author === selectedFilters["Filter by Author"]) &&
+      (selectedFilters["Filter by Academic Affiliation"] ===
+        "All Academic Affiliations" ||
+        item.Institution ===
+          selectedFilters["Filter by Academic Affiliation"]) &&
+      (selectedFilters["Model Type"] === "All Model Types" ||
+        item["Model Type"] === selectedFilters["Model Type"])
+    );
+  });
+
+  setFormattedData(filtered);
+}, [selectedFilters, originalData]);
   // const [uniqueUsernames, setUniqueUsernames] = useState([]);
   // const [uniqueUniversities, setUniqueUniversities] = useState([]);
   // const { loading: authLoading } = useRequireAuth();
@@ -97,8 +141,10 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
   //   fetchData();
   // }, []);
 
+  // Display loading state while the parent is preparing data
   if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
   // if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  // Display any errors from data fetching or processing
   if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
 
   return (
@@ -112,7 +158,7 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
         </TitleSection>
         {/* Filters label */}
         <FiltersLabel>Filters:</FiltersLabel>
-        {/* Filters Row */}
+        {/* Filters items */}
         <FlexBox>
           <LabeledSelect 
             label={"Filter by Author"} 
@@ -120,6 +166,8 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
             options={["All Authors", uniqueUsernames]} 
             originalData={originalData} 
             setFormattedData={setFormattedData} 
+            onFilterChange={handleFilterChange}
+
           />
           <LabeledSelect 
             label={"Filter by Academic Affiliation"} 
@@ -127,10 +175,15 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
             options={["All Academic Affiliations", uniqueUniversities]} 
             originalData={originalData} 
             setFormattedData={setFormattedData} 
+              onFilterChange={handleFilterChange}
+
           />
-          <LabeledSelect label={"Model Type"} filter = {"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData} />
+          <LabeledSelect label={"Model Type"} filter={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData}
+            onFilterChange={handleFilterChange}
+ />
         </FlexBox>
 
+        {/* Main metrics table component */}
         <LeaderBoardMetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
       </Container>
     </>

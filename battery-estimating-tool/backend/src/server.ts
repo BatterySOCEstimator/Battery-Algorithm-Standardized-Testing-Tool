@@ -69,6 +69,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
     res.status(500).json({ error: "Internal server error" });
 });
 
+//listen for all request on port 8000, the reason that we never have to mention server.ts on the frontend
 app.listen(port, () => {
     logger.info(`Server listening on port ${port}`);
 });

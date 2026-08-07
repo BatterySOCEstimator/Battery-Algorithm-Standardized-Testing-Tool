@@ -8,6 +8,7 @@ const router = Router();
 router.get("/fetchLeaderboardData", requireAuth, checkBanStatus, fetchLeaderboardData)
 // Fetch one model by ID
 router.get("/fetchModelData/:id", requireAuth, checkBanStatus, fetchModelData)
+//Fetch the models of the specific user.
 router.get("/fetchUserModelJoin", requireAuth, checkBanStatus, fetchUserModelJoin)
 
 // router.post("/fetchVisualizerData", fetchVisualizerData)

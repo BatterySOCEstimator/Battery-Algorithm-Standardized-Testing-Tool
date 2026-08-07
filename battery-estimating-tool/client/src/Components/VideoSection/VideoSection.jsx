@@ -1,5 +1,6 @@
 import styled from "styled-components";
 
+// Section container for the video and text
 const Section = styled.div`
   width: 100%;
   padding: 80px 40px;
@@ -7,7 +8,7 @@ const Section = styled.div`
   justify-content: center;
   background-color: #f8f9fa;
 `;
-
+// Inner content wrapper to center the video and text
 const Content = styled.div`
   max-width: 85vw;
   width: 100%;
@@ -19,7 +20,7 @@ const Content = styled.div`
     flex-direction: column;
   }
 `;
-
+// Wrapper for the video iframe with responsive sizing
 const VideoWrapper = styled.div`
   flex: 1;
 
@@ -36,16 +37,16 @@ const VideoWrapper = styled.div`
   }
   }
 `;
-
+// Wrapper for the text content next to the video
 const TextWrapper = styled.div`
   flex: 1;
 `;
-
+// Title for the text section
 const Title = styled.h2`
   font-size: 2rem;
   margin-bottom: 16px;
 `;
-
+// Paragraph text for the text section
 const Text = styled.p`
   font-size: 1.1rem;
   line-height: 1.6;

@@ -1,3 +1,4 @@
+// UI and auth imports for the login page
 import { Container, Row, Col, Form, Button, Card, Spinner } from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import picture from "../assets/images/registrationpage.png"
@@ -5,25 +6,35 @@ import { useState } from "react";
 import { login }  from "../auth-client.ts";
 import { Link, useNavigate } from "react-router-dom";
 import { getUserInfo } from "../auth-client.ts";
+
+// Login page component
 const Login = ({ user, setUser }) => {
   const navigate = useNavigate();
+  // Form state for the user login fields
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Determine whether the entered value looks like an email
   const isEmail = (value) => value.includes("@");
 
+  // Handle login form submission and redirect on success or failure
   const handleSubmit = async (e) => {
+    //stop fields from clearing on submit
     e.preventDefault();
 
+    // check for a username and password
     if (!identifier || !password) {
       navigate("/login-error", {
         state: { message: "Please enter your email/username and password." },
       });
       return;
     }
-
+    // start loading spinner
     setIsLoading(true);
+
+    // Try logging in redirect to leaderboards on success, remove spinner and set user in navbar. 
+    // Otherwise redirect to login error page.
     try {
       await login(
         isEmail(identifier)
@@ -41,6 +52,7 @@ const Login = ({ user, setUser }) => {
     }
   };
   return (
+    // Full-screen layout for the login card
     <Container
       fluid
       className="d-flex align-items-center justify-content-center min-vh-100 bg-light"

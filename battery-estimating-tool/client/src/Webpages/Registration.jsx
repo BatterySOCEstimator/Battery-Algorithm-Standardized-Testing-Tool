@@ -1,10 +1,15 @@
+// Bootstrap UI components and router imports for the registration page
 import { Container, Row, Col, Form, Button, Card, Alert } from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock, FaAt, FaUniversity } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import picture from "../assets/images/registrationpage.png";
+// Auth helper to create new user accounts
 import { signUp } from "../auth-client.ts";
+
+// User registration form with validation
 const Registration = () => {
+  // Form field values
   const [values, setValues] = useState({
     firstName: "",
     lastName: "",
@@ -15,11 +20,16 @@ const Registration = () => {
     confirmPassword: "",
   });
 
+  // Validation error messages per field
   const [errors, setErrors] = useState({});
+  // Flag indicating form submission was attempted
   const [submitted, setSubmitted] = useState(false);
+  // Flag indicating successful registration
   const [success, setSuccess] = useState(false);
 
+  // Handle input changes; clear errors for the field as user types
   const handleInputChange = (e) => {
+    // set the value of the field in the state
     const { name, value } = e.target;
     setValues((prev) => ({ ...prev, [name]: value }));
 
@@ -29,15 +39,20 @@ const Registration = () => {
     }
   };
 
+  // Validate all form fields; return object of errors (empty if all valid)
   const validate = () => {
+    // initialize an empty object to hold validation errors
     const newErrors = {};
 
+    // Validate first name
     if (!values.firstName.trim())
       newErrors.firstName = "First name is required.";
 
+    // Validate last name
     if (!values.lastName.trim())
       newErrors.lastName = "Last name is required.";
 
+    // Validate username: 5-20 chars, alphanumeric + underscores
     if (!values.username.trim()) {
       newErrors.username = "Username is required.";
     } else if (!/^[a-zA-Z0-9_]{5,20}$/.test(values.username)) {
@@ -45,21 +60,25 @@ const Registration = () => {
         "Username must be 5–20 characters and contain only letters, numbers, or underscores.";
     }
 
+    // Validate email format
     if (!values.email.trim()) {
       newErrors.email = "Email is required.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
       newErrors.email = "Please enter a valid email address.";
     }
 
+    // Validate academic affiliation
     if (!values.academicAffiliation.trim())
       newErrors.academicAffiliation = "Academic affiliation is required.";
 
+    // Validate password: minimum 8 characters
     if (!values.password) {
       newErrors.password = "Password is required.";
     } else if (values.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters.";
     }
 
+    // Validate password confirmation
     if (!values.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password.";
     } else if (values.password !== values.confirmPassword) {
@@ -69,10 +88,12 @@ const Registration = () => {
     return newErrors;
   };
 
+  // Handle form submission: validate fields and call signUp if valid
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
 
+    // Check for validation errors
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -88,6 +109,7 @@ const Registration = () => {
     signUp({email: values.email, password: values.password, firstName: values.firstName, lastName: values.lastName, username: values.username, academicAffiliation: values.academicAffiliation });
   };
 
+  // Success screen: show confirmation and link to login
   if (success) {
     return (
       <Container
@@ -113,6 +135,7 @@ const Registration = () => {
     );
   }
 
+  // Main registration form with side-by-side layout
   return (
     <Container
       fluid
@@ -140,6 +163,7 @@ const Registration = () => {
           <Col md={6} className="p-5">
             <h2 className="fw-bold mb-4">Sign up</h2>
 
+            {/* Show validation error alert if submission attempted with errors */}
             {submitted && Object.keys(errors).length > 0 && (
               <Alert variant="danger" className="mb-3">
                 Please fix the errors below before continuing.
@@ -319,6 +343,7 @@ const Registration = () => {
                 </Button>
               </div>
 
+              {/* Link to login page */}
               <div className="text-center">
                 <small className="text-muted">
                   <Link
