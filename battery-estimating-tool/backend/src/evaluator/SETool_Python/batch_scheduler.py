@@ -147,7 +147,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             n_workers=2,
             region="northamerica-northeast2",
             worker_memory="8 GiB",
-            idle_timeout= "1 minute" if default_timeout else timeout_schedule
+            idle_timeout= "30 minutes" if default_timeout else timeout_schedule
         )
         client = cluster.get_client()
 
@@ -166,19 +166,32 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             inputs_future = client.scatter(inputs)
 
             # THREE STEP PROCESS TO GET model.py FILES CORRECTLY SENT
-            # 1. Read the local file content
-            with open(model_loc, "rb") as f:
-                model_code = f.read()
+            # 1. Read the local files into a dictionary
+            model_dir = os.path.dirname(model_loc)
+            payload = {}
 
-            # 2. Define a function to write that code to every worker
-            def write_model_to_disk(dask_worker, content):
-                with open("Model.py", "wb") as f:
-                    f.write(content)
-                return "Model.py written to " + os.getcwd()
+            print(f"Reading files from {model_dir}...", file=sys.stderr)
+            for filename in os.listdir(model_dir):
+                file_path = os.path.join(model_dir, filename)
+                if os.path.isfile(file_path):
+                    with open(file_path, "rb") as f:
+                        payload[filename] = f.read()
+
+            print(f"Larger models may require data files; preparing files from {model_dir}...", file=sys.stderr)
+            # 2. Define the function to write ALL files to the worker's CWD
+            def write_files_to_disk(dask_worker, file_dict):
+                import os
+                results = []
+                # Loop through the dictionary and write each one exactly like your old code
+                for filename, content in file_dict.items():
+                    with open(filename, "wb") as f:
+                        f.write(content)
+                    results.append(filename)
+                return "Files written to " + os.getcwd() + ": " + ", ".join(results)
 
             # 3. Force the write across the whole cluster
-            print("Force-syncing Model.py to worker disks...", file=sys.stderr)
-            client.run(write_model_to_disk, content=model_code)
+            print(f"Force-syncing {len(payload)} files to worker disks...", file=sys.stderr)
+            client.run(write_files_to_disk, file_dict=payload)
 
             # Submit the task
             # We pass the FUTURES as arguments. The worker will automatically
@@ -218,7 +231,7 @@ def evaluation_scheduler(setups, data, inputs, user_model, model_loc, processing
             worker_memory="8 GiB",
             region="northamerica-northeast2",
             # worker_gpu=1,  # single T4 per worker, remove if busy, costs are enormous
-            idle_timeout="1 minute" if default_timeout else timeout_schedule
+            idle_timeout="15 minutes" if default_timeout else timeout_schedule
         )
         client = cluster.get_client()
 
