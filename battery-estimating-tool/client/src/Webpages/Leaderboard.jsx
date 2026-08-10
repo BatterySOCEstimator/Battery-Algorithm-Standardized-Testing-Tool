@@ -3,7 +3,6 @@ import StyledNavbar from "../Components/Navbar/StyledNavbar.jsx";
 import styled from "styled-components";
 import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
-import useRequireAuth from "../Hooks/useRequireAuth.js";
 import { Button } from "react-bootstrap";
 
 // EXPOSED FUNCTIONS FOR TESTING
@@ -85,7 +84,7 @@ const Leaderboard = ({
 }) => {
   // const [uniqueUsernames, setUniqueUsernames] = useState([]);
   // const [uniqueUniversities, setUniqueUniversities] = useState([]);
-  const { loading: authLoading } = useRequireAuth();
+  // const { loading: authLoading } = useRequireAuth();
   // const [originalData, setOriginalData] = useState([]);
   // const [formattedData, setFormattedData] = useState([]);
   // const [loading, setLoading] = useState(true);
@@ -124,13 +123,13 @@ const Leaderboard = ({
         <Container>Loading...</Container>
       </>
     );
-  if (authLoading)
-    return (
-      <>
-        <StyledNavbar user={user} />
-        <Container>Loading...</Container>
-      </>
-    );
+  // if (authLoading)
+  //   return (
+  //     <>
+  //       <StyledNavbar user={user} />
+  //       <Container>Loading...</Container>
+  //     </>
+  //   );
   if (error)
     return (
       <>

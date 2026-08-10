@@ -3,7 +3,7 @@ import SelectableMetricsTable from "../Components/SelectableMetricsTable/Selecta
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import Button from 'react-bootstrap/esm/Button';
-import useRequireAuth from "../Hooks/useRequireAuth";
+//import useRequireAuth from "../Hooks/useRequireAuth";
 import { modelTypes, columnKeyMap, columns } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
 import ModelCharts from "../Components/ModelCharts/ModelCharts.jsx";
@@ -90,7 +90,7 @@ const getUniqueUniversities = (data) => {
 const ModelComparison = ({ user }) => {
   const [uniqueUsernames, setUniqueUsernames] = useState([]);
   const [uniqueUniversities, setUniqueUniversities] = useState([]);
-  const { loading: authLoading } = useRequireAuth();
+  //const { loading: authLoading } = useRequireAuth();
   const [originalData, setOriginalData] = useState([]);
   const [formattedData, setFormattedData] = useState([]);
   const [originalData2, setOriginalData2] = useState([]);
@@ -125,7 +125,7 @@ const ModelComparison = ({ user }) => {
   }, []);
 
   if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  //if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
   if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
 
   // const { loading: authLoading } = useRequireAuth();
