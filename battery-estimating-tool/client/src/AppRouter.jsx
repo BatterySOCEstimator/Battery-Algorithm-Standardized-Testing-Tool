@@ -93,7 +93,7 @@ const AppRouter = () => {
         <Route path="/submissions" element={<Submissions  user={user} />} />
         <Route path="/submit-model" element={<SubmitModel   user={user}  />} />
         <Route path="/model-comparison" element={<ModelComparison user={user}  />} />
-        <Route path="/login" element={<Login />} user={user} setUser={setUser}/>
+        <Route path="/login" element={<Login user={user} setUser={setUser} />} />
         <Route path="/login-error" element={<LoginError />} />
 
       </Routes>
