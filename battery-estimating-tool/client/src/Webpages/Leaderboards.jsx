@@ -108,7 +108,7 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
         {/* Title and Contact Button */}
         <TitleSection>
           <Title style={{ margin: 0 }}>Leaderboards</Title>
-          <Button variant="outline-secondary" onClick={() => window.location.href = 'mailto:kollmeyp@mcmaster.ca'}>Contact Administrator</Button>
+          <Button variant="outline-secondary" onClick={() => window.location.href = 'mailto:socbench@mcmaster.ca'}>Contact Administrator</Button>
         </TitleSection>
         {/* Filters label */}
         <FiltersLabel>Filters:</FiltersLabel>
