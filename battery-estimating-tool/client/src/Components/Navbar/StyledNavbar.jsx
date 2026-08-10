@@ -24,7 +24,7 @@ const StyledNavbar = ({ user }) => {
 
             <Nav.Link as={Link} to="/leaderboard">Leaderboard</Nav.Link>
             <Nav.Link as={Link} to="/submit-model">Submit Model</Nav.Link>
-            <Nav.Link as={Link} to="/submissions">Submissions</Nav.Link>
+            <Nav.Link as={Link} to="/submissions">View Submissions</Nav.Link>
             <Nav.Link as={Link} to="/model-comparison">Model Comparison</Nav.Link>
             <Nav.Link as={Link} to="/help">Help</Nav.Link>
 

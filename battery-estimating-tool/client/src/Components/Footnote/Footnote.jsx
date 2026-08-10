@@ -24,7 +24,7 @@ const Footnote = () => {
   return (
     <Container>
       <Content>
-        © 2026 SOC Benchmarking Platform • Contributors: Dason Wang, Ellen Xiong, Aidan McLean, Paarth Kadakia, Phillip Kollmeyer PhD
+        © Battery SOC Benchmarking Platform
       </Content>
     </Container>
   );
