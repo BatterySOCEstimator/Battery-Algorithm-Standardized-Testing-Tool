@@ -1,7 +1,7 @@
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {columnKeyMap} from "../../Helperfunc.js";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 const LeaderBoardMetricsTable = ({ headers, formattedData, setFormattedData }) => {
 
 const [sortConfig, setSortConfig] = useState({
@@ -9,7 +9,9 @@ const [sortConfig, setSortConfig] = useState({
   direction: "asc",
 });
 
-const visibleHeaders = headers.filter(header => header !== 'Status');
+const visibleHeaders = headers
+  .filter(header => header !== "Status")
+  .map(header => header === "Submitted at" ? "Submitted" : header);
 
 const handleSort = (col) => {
   let direction = "asc";
@@ -37,6 +39,9 @@ const handleSort = (col) => {
   setSortConfig({ key: col, direction });
   setFormattedData(sorted);
 };
+useEffect(() => {
+  handleSort("Weighted Error");
+}, []);
   console.log(formattedData)
   return (
     <div style={{ overflowX: 'auto', width: '100%' }}>
@@ -78,7 +83,11 @@ const handleSort = (col) => {
             formattedData.map((row, index) => (
             <tr key={index}>
               {visibleHeaders.map((col) => (
-                <td key={col}>{row[col] ?? "-"}</td>
+                <td key={col}>
+                  {col === "Submitted"
+                    ? row["Submitted at"]?.split(",")[0]
+                    : row[col] ?? "-"}
+                </td>
               ))}
             </tr>
           ))

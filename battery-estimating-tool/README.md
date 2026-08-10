@@ -159,13 +159,13 @@ await getUserInfo();
 
 ```bash
    cd backend
-   npx tsx --env-file=.env src/utils/seed.ts USER_ID_HERE
+   npx tsx --env-file=.env src/services/utils/seed.ts USER_ID_HERE
 ```
 
 For example, if `userId = 8`:
 
 ```bash
-   npx tsx --env-file=.env src/utils/seed.ts 8
+   npx tsx --env-file=.env src/services/utils/seed.ts 8
 ```
 
 6. Verify by calling endpoints in the browser console:

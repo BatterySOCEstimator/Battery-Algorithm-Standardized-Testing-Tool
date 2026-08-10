@@ -1,23 +1,29 @@
-import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
-import StyledNavbar from "../Components/Navbar/StyledNavbar"
+import LabeledSelect from "../Components/LabeledSelect/LabeledSelect.jsx";
+import StyledNavbar from "../Components/Navbar/StyledNavbar.jsx";
 import styled from "styled-components";
 import { modelTypes, columns, columnKeyMap } from "../Helperfunc.js";
 import { useState, useEffect } from "react";
-import useRequireAuth from "../Hooks/useRequireAuth";
+import useRequireAuth from "../Hooks/useRequireAuth.js";
 import { Button } from "react-bootstrap";
 
 // EXPOSED FUNCTIONS FOR TESTING
-import { signUp, login, logout, getUserInfo, resendVerificationEmail } from "../auth-client.ts";
+import {
+  signUp,
+  login,
+  logout,
+  getUserInfo,
+  resendVerificationEmail,
+} from "../auth-client.ts";
 import LeaderBoardMetricsTable from "../Components/LeaderBoardMetricsTable/LeaderBoardMetricsTable.jsx";
-(window).signUp = signUp;
+window.signUp = signUp;
 window.login = login;
 window.logout = logout;
 window.getUserInfo = getUserInfo;
 window.resendVerificationEmail = resendVerificationEmail;
 const FlexBox = styled.div`
-    display:flex;
-    gap: 24px;
-`
+  display: flex;
+  gap: 24px;
+`;
 const Container = styled.div`
   padding: 20px;
 `;
@@ -56,13 +62,27 @@ const formatData = (data) => {
     return obj;
   });
 };
+
+const leaderboardColumns = columns.filter(
+  (col) => col !== "Visibility" && col !== "Completed at",
+);
+
 const getUniqueUsernames = (data) => {
-  return [...new Set(data.map(item => item.userName))];
+  return [...new Set(data.map((item) => item.userName))];
 };
 const getUniqueUniversities = (data) => {
-  return [...new Set(data.map(item => item.academicAffiliation))];
+  return [...new Set(data.map((item) => item.academicAffiliation))];
 };
-const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, formattedData, loading, error, setFormattedData}) => {
+const Leaderboard = ({
+  user,
+  uniqueUsernames,
+  uniqueUniversities,
+  originalData,
+  formattedData,
+  loading,
+  error,
+  setFormattedData,
+}) => {
   // const [uniqueUsernames, setUniqueUsernames] = useState([]);
   // const [uniqueUniversities, setUniqueUniversities] = useState([]);
   const { loading: authLoading } = useRequireAuth();
@@ -91,15 +111,33 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
   //       setError(err.message);
   //     } finally {
   //       setLoading(false);
-        
+
   //     }
   //   };
   //   fetchData();
   // }, []);
 
-  if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
+  if (loading)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <Container>Loading...</Container>
+      </>
+    );
+  if (authLoading)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <Container>Loading...</Container>
+      </>
+    );
+  if (error)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <Container>Error: {error}</Container>
+      </>
+    );
 
   return (
     <>
@@ -107,33 +145,50 @@ const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, 
       <Container>
         {/* Title and Contact Button */}
         <TitleSection>
-          <Title style={{ margin: 0 }}>Leaderboards</Title>
-          <Button variant="outline-secondary" onClick={() => window.location.href = 'mailto:socbench@mcmaster.ca'}>Contact Administrator</Button>
+          <Title style={{ margin: 0 }}>Leaderboard</Title>
+          <Button
+            variant="outline-secondary"
+            onClick={() =>
+              (window.location.href = "mailto:socbench@mcmaster.ca")
+            }
+          >
+            Contact Administrator
+          </Button>
         </TitleSection>
         {/* Filters label */}
         <FiltersLabel>Filters:</FiltersLabel>
         {/* Filters Row */}
         <FlexBox>
-          <LabeledSelect 
-            label={"Filter by Author"} 
+          <LabeledSelect
+            label={"Filter by Author"}
             filter={"Author"}
-            options={["All Authors", uniqueUsernames]} 
-            originalData={originalData} 
-            setFormattedData={setFormattedData} 
+            options={["All Authors", uniqueUsernames]}
+            originalData={originalData}
+            setFormattedData={setFormattedData}
           />
-          <LabeledSelect 
-            label={"Filter by Academic Affiliation"} 
+          <LabeledSelect
+            label={"Filter by Academic Affiliation"}
             filter={"Institution"}
-            options={["All Academic Affiliations", uniqueUniversities]} 
-            originalData={originalData} 
-            setFormattedData={setFormattedData} 
+            options={["All Academic Affiliations", uniqueUniversities]}
+            originalData={originalData}
+            setFormattedData={setFormattedData}
           />
-          <LabeledSelect label={"Model Type"} filter = {"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData} />
+          <LabeledSelect
+            label={"Model Type"}
+            filter={"Model Type"}
+            options={modelTypes}
+            originalData={originalData}
+            setFormattedData={setFormattedData}
+          />
         </FlexBox>
 
-        <LeaderBoardMetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
+        <LeaderBoardMetricsTable
+          headers={leaderboardColumns}
+          formattedData={formattedData}
+          setFormattedData={setFormattedData}
+        />
       </Container>
     </>
   );
 };
-export default Leaderboards
+export default Leaderboard;

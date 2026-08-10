@@ -22,7 +22,7 @@ const StyledNavbar = ({ user }) => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
 
-            <Nav.Link as={Link} to="/leaderboards">Leaderboards</Nav.Link>
+            <Nav.Link as={Link} to="/leaderboard">Leaderboard</Nav.Link>
             <Nav.Link as={Link} to="/submit-model">Submit Model</Nav.Link>
             <Nav.Link as={Link} to="/submissions">Submissions</Nav.Link>
             <Nav.Link as={Link} to="/model-comparison">Model Comparison</Nav.Link>

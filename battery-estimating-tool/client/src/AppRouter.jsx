@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Heropage from './App';
 import Help from './Webpages/Help';
-import Leaderboards from './Webpages/Leaderboards';
+import Leaderboard from './Webpages/Leaderboard.jsx';
 import Registration from './Webpages/Registration';
 import Submissions from './Webpages/Submissions';
 import SubmitModel from './Webpages/SubmitModel';
@@ -87,7 +87,7 @@ const AppRouter = () => {
         <Route path="/" element={<Heropage user={user} />} />
         <Route path="/help" element={<Help user={user} />} />
         <Route path="/help/:topic" element={<HelpTopic />} />
-        <Route path="/leaderboards" element={<Leaderboards  user={user}  uniqueUsernames={uniqueUsernames} uniqueUniversities={uniqueUniversities} originalData={originalData} formattedData={formattedData}  loading={loading} error={error} setFormattedData={setFormattedData}/>} 
+        <Route path="/leaderboard" element={<Leaderboard  user={user}  uniqueUsernames={uniqueUsernames} uniqueUniversities={uniqueUniversities} originalData={originalData} formattedData={formattedData}  loading={loading} error={error} setFormattedData={setFormattedData}/>} 
           />
         <Route path="/registration" element={<Registration />} />
         <Route path="/submissions" element={<Submissions  user={user} />} />
