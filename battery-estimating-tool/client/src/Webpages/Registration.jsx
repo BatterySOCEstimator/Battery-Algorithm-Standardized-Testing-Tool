@@ -1,11 +1,20 @@
 // Bootstrap UI components and router imports for the registration page
-import { Container, Row, Col, Form, Button, Card, Alert } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  Card,
+  Alert,
+} from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock, FaAt, FaUniversity } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import picture from "../assets/images/registrationpage.png";
 // Auth helper to create new user accounts
 import { signUp } from "../auth-client.ts";
+import StyledNavbar from "../Components/Navbar/StyledNavbar.jsx";
 
 // User registration form with validation
 const Registration = () => {
@@ -49,8 +58,7 @@ const Registration = () => {
       newErrors.firstName = "First name is required.";
 
     // Validate last name
-    if (!values.lastName.trim())
-      newErrors.lastName = "Last name is required.";
+    if (!values.lastName.trim()) newErrors.lastName = "Last name is required.";
 
     // Validate username: 5-20 chars, alphanumeric + underscores
     if (!values.username.trim()) {
@@ -106,7 +114,14 @@ const Registration = () => {
 
     // TODO: call your API here, e.g.:
     // await registerUser(values);
-    signUp({email: values.email, password: values.password, firstName: values.firstName, lastName: values.lastName, username: values.username, academicAffiliation: values.academicAffiliation });
+    signUp({
+      email: values.email,
+      password: values.password,
+      firstName: values.firstName,
+      lastName: values.lastName,
+      username: values.username,
+      academicAffiliation: values.academicAffiliation,
+    });
   };
 
   // Success screen: show confirmation and link to login
@@ -137,228 +152,234 @@ const Registration = () => {
 
   // Main registration form with side-by-side layout
   return (
-    <Container
-      fluid
-      className="d-flex align-items-center justify-content-center min-vh-100 bg-light"
-    >
-      <Card
-        className="shadow-sm border-0 rounded-4 p-4"
-        style={{ maxWidth: "900px", width: "100%" }}
+    <>
+      <StyledNavbar />
+      <Container
+        fluid
+        className="d-flex align-items-center justify-content-center min-vh-100 bg-light"
       >
-        <Row className="g-0 align-items-center">
-          {/* Left side - Illustration */}
-          <Col
-            md={6}
-            className="d-none d-md-flex align-items-center justify-content-center"
-          >
-            <img
-              src={picture}
-              alt="Illustration"
-              className="img-fluid p-4"
-              style={{ maxHeight: "350px" }}
-            />
-          </Col>
+        <Card
+          className="shadow-sm border-0 rounded-4 p-4"
+          style={{ maxWidth: "900px", width: "100%" }}
+        >
+          <Row className="g-0 align-items-center">
+            {/* Left side - Illustration */}
+            <Col
+              md={6}
+              className="d-none d-md-flex align-items-center justify-content-center"
+            >
+              <img
+                src={picture}
+                alt="Illustration"
+                className="img-fluid p-4"
+                style={{ maxHeight: "350px" }}
+              />
+            </Col>
 
-          {/* Right side - Form */}
-          <Col md={6} className="p-5">
-            <h2 className="fw-bold mb-4">Sign up</h2>
+            {/* Right side - Form */}
+            <Col md={6} className="p-5">
+              <h2 className="fw-bold mb-4">Sign up</h2>
 
-            {/* Show validation error alert if submission attempted with errors */}
-            {submitted && Object.keys(errors).length > 0 && (
-              <Alert variant="danger" className="mb-3">
-                Please fix the errors below before continuing.
-              </Alert>
-            )}
+              {/* Show validation error alert if submission attempted with errors */}
+              {submitted && Object.keys(errors).length > 0 && (
+                <Alert variant="danger" className="mb-3">
+                  Please fix the errors below before continuing.
+                </Alert>
+              )}
 
-            <Form onSubmit={handleSubmit} noValidate>
-              {/* First Name & Last Name */}
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3" controlId="formFirstName">
-                    <div
-                      className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                        errors.firstName ? "border-danger" : ""
-                      }`}
-                    >
-                      <FaUser className="me-2 text-muted" />
-                      <Form.Control
-                        type="text"
-                        name="firstName"
-                        placeholder="First Name"
-                        value={values.firstName}
-                        onChange={handleInputChange}
-                        className="border-0 shadow-none"
-                        isInvalid={!!errors.firstName}
-                      />
-                    </div>
-                    <Form.Control.Feedback type="invalid" className="d-block">
-                      {errors.firstName}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3" controlId="formLastName">
-                    <div
-                      className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                        errors.lastName ? "border-danger" : ""
-                      }`}
-                    >
-                      <FaUser className="me-2 text-muted" />
-                      <Form.Control
-                        type="text"
-                        name="lastName"
-                        placeholder="Last Name"
-                        value={values.lastName}
-                        onChange={handleInputChange}
-                        className="border-0 shadow-none"
-                        isInvalid={!!errors.lastName}
-                      />
-                    </div>
-                    <Form.Control.Feedback type="invalid" className="d-block">
-                      {errors.lastName}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
+              <Form onSubmit={handleSubmit} noValidate>
+                {/* First Name & Last Name */}
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formFirstName">
+                      <div
+                        className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
+                          errors.firstName ? "border-danger" : ""
+                        }`}
+                      >
+                        <FaUser className="me-2 text-muted" />
+                        <Form.Control
+                          type="text"
+                          name="firstName"
+                          placeholder="First Name"
+                          value={values.firstName}
+                          onChange={handleInputChange}
+                          className="border-0 shadow-none"
+                          isInvalid={!!errors.firstName}
+                        />
+                      </div>
+                      <Form.Control.Feedback type="invalid" className="d-block">
+                        {errors.firstName}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formLastName">
+                      <div
+                        className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
+                          errors.lastName ? "border-danger" : ""
+                        }`}
+                      >
+                        <FaUser className="me-2 text-muted" />
+                        <Form.Control
+                          type="text"
+                          name="lastName"
+                          placeholder="Last Name"
+                          value={values.lastName}
+                          onChange={handleInputChange}
+                          className="border-0 shadow-none"
+                          isInvalid={!!errors.lastName}
+                        />
+                      </div>
+                      <Form.Control.Feedback type="invalid" className="d-block">
+                        {errors.lastName}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-              {/* Username */}
-              <Form.Group className="mb-3" controlId="formUsername">
-                <div
-                  className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                    errors.username ? "border-danger" : ""
-                  }`}
-                >
-                  <FaAt className="me-2 text-muted" />
-                  <Form.Control
-                    type="text"
-                    name="username"
-                    placeholder="Username"
-                    value={values.username}
-                    onChange={handleInputChange}
-                    className="border-0 shadow-none"
-                    isInvalid={!!errors.username}
-                  />
-                </div>
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {errors.username}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              {/* Email */}
-              <Form.Group className="mb-3" controlId="formEmail">
-                <div
-                  className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                    errors.email ? "border-danger" : ""
-                  }`}
-                >
-                  <FaEnvelope className="me-2 text-muted" />
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    placeholder="Your Email"
-                    value={values.email}
-                    onChange={handleInputChange}
-                    className="border-0 shadow-none"
-                    isInvalid={!!errors.email}
-                  />
-                </div>
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {errors.email}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              {/* Academic Affiliation */}
-              <Form.Group className="mb-3" controlId="formAcademicAffiliation">
-                <div
-                  className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                    errors.academicAffiliation ? "border-danger" : ""
-                  }`}
-                >
-                  <FaUniversity className="me-2 text-muted" />
-                  <Form.Control
-                    type="text"
-                    name="academicAffiliation"
-                    placeholder="Academic Affiliation"
-                    value={values.academicAffiliation}
-                    onChange={handleInputChange}
-                    className="border-0 shadow-none"
-                    isInvalid={!!errors.academicAffiliation}
-                  />
-                </div>
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {errors.academicAffiliation}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              {/* Password */}
-              <Form.Group className="mb-3" controlId="formPassword">
-                <div
-                  className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                    errors.password ? "border-danger" : ""
-                  }`}
-                >
-                  <FaLock className="me-2 text-muted" />
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={values.password}
-                    onChange={handleInputChange}
-                    className="border-0 shadow-none"
-                    isInvalid={!!errors.password}
-                  />
-                </div>
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {errors.password}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              {/* Confirm Password */}
-              <Form.Group className="mb-4" controlId="formConfirmPassword">
-                <div
-                  className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                    errors.confirmPassword ? "border-danger" : ""
-                  }`}
-                >
-                  <FaLock className="me-2 text-muted" />
-                  <Form.Control
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Repeat your password"
-                    value={values.confirmPassword}
-                    onChange={handleInputChange}
-                    className="border-0 shadow-none"
-                    isInvalid={!!errors.confirmPassword}
-                  />
-                </div>
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {errors.confirmPassword}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              {/* Register Button */}
-              <div className="d-grid mb-3">
-                <Button type="submit" variant="primary" size="lg">
-                  Register
-                </Button>
-              </div>
-
-              {/* Link to login page */}
-              <div className="text-center">
-                <small className="text-muted">
-                  <Link
-                    to="/login"
-                    style={{ color: "inherit", textDecoration: "none" }}
+                {/* Username */}
+                <Form.Group className="mb-3" controlId="formUsername">
+                  <div
+                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
+                      errors.username ? "border-danger" : ""
+                    }`}
                   >
-                    I am already a member
-                  </Link>
-                </small>
-              </div>
-            </Form>
-          </Col>
-        </Row>
-      </Card>
-    </Container>
+                    <FaAt className="me-2 text-muted" />
+                    <Form.Control
+                      type="text"
+                      name="username"
+                      placeholder="Username"
+                      value={values.username}
+                      onChange={handleInputChange}
+                      className="border-0 shadow-none"
+                      isInvalid={!!errors.username}
+                    />
+                  </div>
+                  <Form.Control.Feedback type="invalid" className="d-block">
+                    {errors.username}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                {/* Email */}
+                <Form.Group className="mb-3" controlId="formEmail">
+                  <div
+                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
+                      errors.email ? "border-danger" : ""
+                    }`}
+                  >
+                    <FaEnvelope className="me-2 text-muted" />
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      placeholder="Your Email"
+                      value={values.email}
+                      onChange={handleInputChange}
+                      className="border-0 shadow-none"
+                      isInvalid={!!errors.email}
+                    />
+                  </div>
+                  <Form.Control.Feedback type="invalid" className="d-block">
+                    {errors.email}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                {/* Academic Affiliation */}
+                <Form.Group
+                  className="mb-3"
+                  controlId="formAcademicAffiliation"
+                >
+                  <div
+                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
+                      errors.academicAffiliation ? "border-danger" : ""
+                    }`}
+                  >
+                    <FaUniversity className="me-2 text-muted" />
+                    <Form.Control
+                      type="text"
+                      name="academicAffiliation"
+                      placeholder="Academic Affiliation"
+                      value={values.academicAffiliation}
+                      onChange={handleInputChange}
+                      className="border-0 shadow-none"
+                      isInvalid={!!errors.academicAffiliation}
+                    />
+                  </div>
+                  <Form.Control.Feedback type="invalid" className="d-block">
+                    {errors.academicAffiliation}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                {/* Password */}
+                <Form.Group className="mb-3" controlId="formPassword">
+                  <div
+                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
+                      errors.password ? "border-danger" : ""
+                    }`}
+                  >
+                    <FaLock className="me-2 text-muted" />
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      value={values.password}
+                      onChange={handleInputChange}
+                      className="border-0 shadow-none"
+                      isInvalid={!!errors.password}
+                    />
+                  </div>
+                  <Form.Control.Feedback type="invalid" className="d-block">
+                    {errors.password}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                {/* Confirm Password */}
+                <Form.Group className="mb-4" controlId="formConfirmPassword">
+                  <div
+                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
+                      errors.confirmPassword ? "border-danger" : ""
+                    }`}
+                  >
+                    <FaLock className="me-2 text-muted" />
+                    <Form.Control
+                      type="password"
+                      name="confirmPassword"
+                      placeholder="Repeat your password"
+                      value={values.confirmPassword}
+                      onChange={handleInputChange}
+                      className="border-0 shadow-none"
+                      isInvalid={!!errors.confirmPassword}
+                    />
+                  </div>
+                  <Form.Control.Feedback type="invalid" className="d-block">
+                    {errors.confirmPassword}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                {/* Register Button */}
+                <div className="d-grid mb-3">
+                  <Button type="submit" variant="primary" size="lg">
+                    Register
+                  </Button>
+                </div>
+
+                {/* Link to login page */}
+                <div className="text-center">
+                  <small className="text-muted">
+                    <Link
+                      to="/login"
+                      style={{ color: "inherit", textDecoration: "none" }}
+                    >
+                      I am already a member
+                    </Link>
+                  </small>
+                </div>
+              </Form>
+            </Col>
+          </Row>
+        </Card>
+      </Container>
+    </>
   );
 };
 export default Registration;
@@ -508,8 +529,6 @@ export default Registration;
 //               />
 //             </div>
 //           </Form.Group>
-
-     
 
 //           {/* Register Button */}
 //           <div className="d-grid mb-3">

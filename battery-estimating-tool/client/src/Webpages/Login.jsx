@@ -69,7 +69,6 @@ const Login = ({ user, setUser }) => {
     <>
       <StyledNavbar user={user} />
 
-      // Full-screen layout for the login card
     <Container
         fluid
         className="d-flex align-items-center justify-content-center min-vh-100 bg-light"

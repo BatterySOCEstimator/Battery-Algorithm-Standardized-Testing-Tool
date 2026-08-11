@@ -86,37 +86,45 @@ const getUniqueUniversities = (data) => {
 };
 
 // Leaderboards page component — receives filtered data and state from parent router
-const Leaderboards = ({user, uniqueUsernames, uniqueUniversities, originalData, formattedData, loading, error, setFormattedData}) => {
-  
+const Leaderboard = ({
+  user,
+  uniqueUsernames,
+  uniqueUniversities,
+  originalData,
+  formattedData,
+  loading,
+  error,
+  setFormattedData,
+}) => {
   const [selectedFilters, setSelectedFilters] = useState({
-  "Filter by Author": "All Authors",
-  "Filter by Academic Affiliation": "All Academic Affiliations",
-  "Model Type": "All Model Types",
-});
-
-  const handleFilterChange = (label, value) => {
-  setSelectedFilters((prev) => ({
-    ...prev,
-    [label]: value,
-  }));
-  console.log(selectedFilters)
-};
-useEffect(() => {
-  const filtered = originalData.filter((item) => {
-    return (
-      (selectedFilters["Filter by Author"] === "All Authors" ||
-        item.Author === selectedFilters["Filter by Author"]) &&
-      (selectedFilters["Filter by Academic Affiliation"] ===
-        "All Academic Affiliations" ||
-        item.Institution ===
-          selectedFilters["Filter by Academic Affiliation"]) &&
-      (selectedFilters["Model Type"] === "All Model Types" ||
-        item["Model Type"] === selectedFilters["Model Type"])
-    );
+    "Filter by Author": "All Authors",
+    "Filter by Academic Affiliation": "All Academic Affiliations",
+    "Model Type": "All Model Types",
   });
 
-  setFormattedData(filtered);
-}, [selectedFilters, originalData]);
+  const handleFilterChange = (label, value) => {
+    setSelectedFilters((prev) => ({
+      ...prev,
+      [label]: value,
+    }));
+    console.log(selectedFilters);
+  };
+  useEffect(() => {
+    const filtered = originalData.filter((item) => {
+      return (
+        (selectedFilters["Filter by Author"] === "All Authors" ||
+          item.Author === selectedFilters["Filter by Author"]) &&
+        (selectedFilters["Filter by Academic Affiliation"] ===
+          "All Academic Affiliations" ||
+          item.Institution ===
+            selectedFilters["Filter by Academic Affiliation"]) &&
+        (selectedFilters["Model Type"] === "All Model Types" ||
+          item["Model Type"] === selectedFilters["Model Type"])
+      );
+    });
+
+    setFormattedData(filtered);
+  }, [selectedFilters, originalData]);
   // const [uniqueUsernames, setUniqueUsernames] = useState([]);
   // const [uniqueUniversities, setUniqueUniversities] = useState([]);
   // const { loading: authLoading } = useRequireAuth();
@@ -202,7 +210,6 @@ useEffect(() => {
             originalData={originalData}
             setFormattedData={setFormattedData}
             onFilterChange={handleFilterChange}
-
           />
           <LabeledSelect
             label={"Filter by Academic Affiliation"}
@@ -211,7 +218,6 @@ useEffect(() => {
             originalData={originalData}
             setFormattedData={setFormattedData}
             onFilterChange={handleFilterChange}
-
           />
           <LabeledSelect
             label={"Model Type"}

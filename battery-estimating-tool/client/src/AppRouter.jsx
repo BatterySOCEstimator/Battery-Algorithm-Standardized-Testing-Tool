@@ -15,7 +15,7 @@ import ModelComparison from "./Webpages/ModelComparison";
 import LoginError from "./Webpages/LoginError";
 
 // Utility functions and constants
-import { data } from "./Helperfunc.js";
+import { data, columnKeyMap, columns } from "./Constants/Helperfunc.js";
 import HelpTopic from "./Webpages/HelpTopic";
 import { getUserInfo } from "./auth-client.ts";
 import useRequireAuth from "./Hooks/useRequireAuth";
