@@ -64,31 +64,39 @@ const Submissions = ({ user }) => {
   // Loading/error state for the page's data request
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null)
-
+// State for the currently selected filters
 const [selectedFilters, setSelectedFilters] = useState({
   "Model Type": "All Model Types",
+  "Visibility": "All",
 });
 
 const handleFilterChange = (label, value) => {
+  // When passing an argument in a setter function, if you give it a previously undefined variable argument (e.g. prev)
+  // It will inject the current value of the getter function as prev
   setSelectedFilters((prev) => ({
+    // Copy all of the existing filter values.
     ...prev,
+    // find the label of the filter that was changed, and update its value to the new value.
     [label]: value,
   }));
 };
-
+  // This useEffect runs once when the page is loaded or reloads as noted at the end by []
   useEffect(() => {
+    // This function fetches the current user submissions
     const fetchData = async () => {
       try {
         setLoading(true);
+        // Fetch the leaderboard data from the API MUST BE CHANGED WILL ADD A SUBMISSION ENDPOINT LATER
         const response = await fetch("/api/data/fetchLeaderboardData");
         if (!response.ok) throw new Error(`Error: ${response.status}`);
 
         const data = await response.json();
+        //Manual filtering done by the frontend to only show the current user's submissions. Very bad practice but will be fixed.
         const user = await getUserInfo();
         const userId = user.id;
         const filtered = data.data.filter(model => model.userId === userId);
         const formatted = formatData(filtered);
-        
+        // Set the data states with the formatted data (formatted really just means the nonleaderboard user submissions)
         setOriginalData(formatted);
         setFormattedData(formatted);
       } catch (err) {
@@ -101,13 +109,19 @@ const handleFilterChange = (label, value) => {
     fetchData();
   }, []);
 
+  // This is responsible for actually filtering the data based on the selected filters. 
+  // triggers whenever `originalData` or `selectedFilters` changes.
   useEffect(() => {
   if (!originalData) return;
-
+  // The following is the filter function given by javascript. It iterates through each item within the originalData array
   const filtered = originalData.filter((item) => {
     return (
-      selectedFilters["Model Type"] === "All Model Types" ||
-      item["Model Type"] === selectedFilters["Model Type"]
+      // every item within the array is a model submission object. If either of the "All" filters are selected their subsequent conditions are ignored.
+      // Otherwise, check to see if the item matches the selected filter value. If it doesn't, don't include it.
+      (selectedFilters["Model Type"] === "All Model Types" ||
+      item["Model Type"] === selectedFilters["Model Type"]) &&
+      (selectedFilters["Visibility"] === "All" ||
+      item["Visibility"] === selectedFilters["Visibility"])
     );
   });
 
@@ -138,6 +152,13 @@ const handleFilterChange = (label, value) => {
     filter="Model Type"
     value={selectedFilters["Model Type"]}
     options={modelTypes}
+    onFilterChange={handleFilterChange}
+  />
+  <LabeledSelect
+    label="Visibility"
+    filter="Visibility"
+    value={selectedFilters["Visibility"]}
+    options={["All", "Private", "Public"]}
     onFilterChange={handleFilterChange}
   />
 </FlexBox>
