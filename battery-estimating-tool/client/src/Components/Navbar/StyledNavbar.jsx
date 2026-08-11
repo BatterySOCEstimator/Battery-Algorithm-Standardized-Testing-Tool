@@ -25,11 +25,10 @@ const StyledNavbar = ({ user }) => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
 
-            {/* Primary navigation links for main app features */}
-            <Nav.Link as={Link} to="/leaderboards">Leaderboards</Nav.Link>
-            <Nav.Link as={Link} to="/submit-model">Submit Model</Nav.Link>
-            <Nav.Link as={Link} to="/submissions">Submissions</Nav.Link>
+            <Nav.Link as={Link} to="/leaderboard">Leaderboard</Nav.Link>
             <Nav.Link as={Link} to="/model-comparison">Model Comparison</Nav.Link>
+            <Nav.Link as={Link} to="/submit-model">Submit Model</Nav.Link>
+            <Nav.Link as={Link} to="/submissions">View Submissions</Nav.Link>
             <Nav.Link as={Link} to="/help">Help</Nav.Link>
 
             {/* <NavDropdown title="Dropdown" id="basic-nav-dropdown">

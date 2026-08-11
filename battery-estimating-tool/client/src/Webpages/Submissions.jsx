@@ -140,7 +140,7 @@ const handleFilterChange = (label, value) => {
 
       <Container>
         {/* Title */}
-        <Title>Submissions</Title>
+        <Title>Your Submissions</Title>
 
         {/* Filters label */}
         <FiltersLabel>Filters:</FiltersLabel>

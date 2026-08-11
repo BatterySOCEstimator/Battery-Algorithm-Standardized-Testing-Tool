@@ -1,18 +1,23 @@
 // UI components and styling imports for the leaderboard page
-import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
-import StyledNavbar from "../Components/Navbar/StyledNavbar"
+import LabeledSelect from "../Components/LabeledSelect/LabeledSelect.jsx";
+import StyledNavbar from "../Components/Navbar/StyledNavbar.jsx";
 import styled from "styled-components";
 
 // Data constants and formatting utilities
 import { modelTypes, columns, columnKeyMap } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
-import useRequireAuth from "../Hooks/useRequireAuth";
 import { Button } from "react-bootstrap";
 
 // EXPOSED FUNCTIONS FOR TESTING
-import { signUp, login, logout, getUserInfo, resendVerificationEmail } from "../auth-client.ts";
+import {
+  signUp,
+  login,
+  logout,
+  getUserInfo,
+  resendVerificationEmail,
+} from "../auth-client.ts";
 import LeaderBoardMetricsTable from "../Components/LeaderBoardMetricsTable/LeaderBoardMetricsTable.jsx";
-(window).signUp = signUp;
+window.signUp = signUp;
 window.login = login;
 window.logout = logout;
 window.getUserInfo = getUserInfo;
@@ -20,9 +25,9 @@ window.resendVerificationEmail = resendVerificationEmail;
 
 // Layout helpers for the leaderboard page
 const FlexBox = styled.div`
-    display:flex;
-    gap: 24px;
-`
+  display: flex;
+  gap: 24px;
+`;
 const Container = styled.div`
   padding: 20px;
 `;
@@ -68,11 +73,16 @@ const formatData = (data) => {
 };
 
 // Helpers to extract unique filter values from data
+
+const leaderboardColumns = columns.filter(
+  (col) => col !== "Visibility" && col !== "Completed at",
+);
+
 const getUniqueUsernames = (data) => {
-  return [...new Set(data.map(item => item.userName))];
+  return [...new Set(data.map((item) => item.userName))];
 };
 const getUniqueUniversities = (data) => {
-  return [...new Set(data.map(item => item.academicAffiliation))];
+  return [...new Set(data.map((item) => item.academicAffiliation))];
 };
 
 // Leaderboards page component — receives filtered data and state from parent router
@@ -109,7 +119,7 @@ useEffect(() => {
 }, [selectedFilters, originalData]);
   // const [uniqueUsernames, setUniqueUsernames] = useState([]);
   // const [uniqueUniversities, setUniqueUniversities] = useState([]);
-  const { loading: authLoading } = useRequireAuth();
+  // const { loading: authLoading } = useRequireAuth();
   // const [originalData, setOriginalData] = useState([]);
   // const [formattedData, setFormattedData] = useState([]);
   // const [loading, setLoading] = useState(true);
@@ -135,17 +145,35 @@ useEffect(() => {
   //       setError(err.message);
   //     } finally {
   //       setLoading(false);
-        
+
   //     }
   //   };
   //   fetchData();
   // }, []);
 
   // Display loading state while the parent is preparing data
-  if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  // if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  if (loading)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <Container>Loading...</Container>
+      </>
+    );
+  // // if (authLoading)
+  //   return (
+  //     <>
+  //       <StyledNavbar user={user} />
+  //       <Container>Loading...</Container>
+  //     </>
+  //   );
   // Display any errors from data fetching or processing
-  if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
+  if (error)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <Container>Error: {error}</Container>
+      </>
+    );
 
   return (
     <>
@@ -153,40 +181,56 @@ useEffect(() => {
       <Container>
         {/* Title and Contact Button */}
         <TitleSection>
-          <Title style={{ margin: 0 }}>Leaderboards</Title>
-          <Button variant="outline-secondary" onClick={() => window.location.href = 'mailto:kollmeyp@mcmaster.ca'}>Contact Administrator</Button>
+          <Title style={{ margin: 0 }}>Leaderboard</Title>
+          <Button
+            variant="outline-secondary"
+            onClick={() =>
+              (window.location.href = "mailto:socbench@mcmaster.ca")
+            }
+          >
+            Contact Administrator
+          </Button>
         </TitleSection>
         {/* Filters label */}
         <FiltersLabel>Filters:</FiltersLabel>
         {/* Filters items */}
         <FlexBox>
-          <LabeledSelect 
-            label={"Filter by Author"} 
+          <LabeledSelect
+            label={"Filter by Author"}
             filter={"Author"}
-            options={["All Authors", uniqueUsernames]} 
-            originalData={originalData} 
-            setFormattedData={setFormattedData} 
+            options={["All Authors", uniqueUsernames]}
+            originalData={originalData}
+            setFormattedData={setFormattedData}
             onFilterChange={handleFilterChange}
 
           />
-          <LabeledSelect 
-            label={"Filter by Academic Affiliation"} 
+          <LabeledSelect
+            label={"Filter by Academic Affiliation"}
             filter={"Institution"}
-            options={["All Academic Affiliations", uniqueUniversities]} 
-            originalData={originalData} 
-            setFormattedData={setFormattedData} 
-              onFilterChange={handleFilterChange}
+            options={["All Academic Affiliations", uniqueUniversities]}
+            originalData={originalData}
+            setFormattedData={setFormattedData}
+            onFilterChange={handleFilterChange}
 
           />
-          <LabeledSelect label={"Model Type"} filter={"Model Type"} options={modelTypes} originalData={originalData} setFormattedData={setFormattedData}
+          <LabeledSelect
+            label={"Model Type"}
+            filter={"Model Type"}
+            options={modelTypes}
+            originalData={originalData}
+            setFormattedData={setFormattedData}
             onFilterChange={handleFilterChange}
- />
+          />
         </FlexBox>
 
         {/* Main metrics table component */}
-        <LeaderBoardMetricsTable headers={columns} formattedData={formattedData} setFormattedData={setFormattedData} />
+        <LeaderBoardMetricsTable
+          headers={leaderboardColumns}
+          formattedData={formattedData}
+          setFormattedData={setFormattedData}
+        />
       </Container>
     </>
   );
 };
-export default Leaderboards
+export default Leaderboard;

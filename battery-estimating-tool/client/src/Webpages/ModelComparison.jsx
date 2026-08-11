@@ -8,7 +8,7 @@ import SelectableMetricsTable from "../Components/SelectableMetricsTable/Selecta
 import StyledNavbar from "../Components/Navbar/StyledNavbar"
 import styled from "styled-components";
 import Button from 'react-bootstrap/esm/Button';
-import useRequireAuth from "../Hooks/useRequireAuth"
+//import useRequireAuth from "../Hooks/useRequireAuth"
 
 // Constants and utilities
 import { modelTypes, columnKeyMap, columns } from "../Constants/Helperfunc.js";
@@ -113,7 +113,7 @@ const ModelComparison = ({ user }) => {
   const [uniqueUniversities, setUniqueUniversities] = useState([]);
 
   // Auth loading state (do not show data until auth resolved)
-  const { loading: authLoading } = useRequireAuth();
+  //const { loading: authLoading } = useRequireAuth();
 
   // Two independent datasets (left and right tables) and their formatted variants
   const [originalData, setOriginalData] = useState([]);
@@ -206,7 +206,7 @@ useEffect(() => {
 }, [selectedFilters2, originalData2]);
 
   if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
+  //if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
   if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
 
   // const { loading: authLoading } = useRequireAuth();

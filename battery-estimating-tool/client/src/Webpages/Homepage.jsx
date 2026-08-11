@@ -8,7 +8,6 @@ function Homepage({ user }) {
     <div>
       <StyledNavbar user={user} />
       <Banner />
-      <VideoSection />
       <Footnote />
     </div>
   );

@@ -53,7 +53,7 @@ const Banner = () => {
       <Content>
         <Title>Benchmark SOC Models Against Industry Standards.</Title>
         <SubTitle>
-         Upload, evaluate, and rank your State of Charge AI model using standardized datasets and metrics created by a team of researchers at McMaster.
+         Upload, evaluate, and rank your State of Charge estimator using a large dataset and standardized evaluation metrics.
         </SubTitle>
         <BatteryIcon />
       </Content>

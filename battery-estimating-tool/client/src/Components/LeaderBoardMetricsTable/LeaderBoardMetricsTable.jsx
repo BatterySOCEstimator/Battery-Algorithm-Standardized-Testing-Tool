@@ -1,7 +1,7 @@
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {columnKeyMap} from "../../Constants/Helperfunc.js";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Metrics table component for leaderboard page
 const LeaderBoardMetricsTable = ({ headers, formattedData, setFormattedData }) => {
@@ -13,7 +13,9 @@ const [sortConfig, setSortConfig] = useState({
 });
 
   // Filter out 'Status' column from display; keep all other headers visible
-  const visibleHeaders = headers.filter(header => header !== 'Status');
+  const visibleHeaders = headers
+  .filter(header => header !== "Status")
+  .map(header => header === "Submitted at" ? "Submitted" : header);
 
 // toggles sort for their on click handling, ascending or descending.
   const handleSort = (col) => {
@@ -45,6 +47,9 @@ const [sortConfig, setSortConfig] = useState({
   setSortConfig({ key: col, direction });
   setFormattedData(sorted);
 };
+useEffect(() => {
+  handleSort("Weighted Error");
+}, []);
   // Render the table with horizontally scrollable container for mobile
   return (
     <div style={{ overflowX: 'auto', width: '100%' }}>
@@ -90,7 +95,11 @@ const [sortConfig, setSortConfig] = useState({
             formattedData.map((row, index) => (
             <tr key={index}>
               {visibleHeaders.map((col) => (
-                <td key={col}>{row[col] ?? "-"}</td>
+                <td key={col}>
+                  {col === "Submitted"
+                    ? row["Submitted at"]?.split(",")[0]
+                    : row[col] ?? "-"}
+                </td>
               ))}
             </tr>
           ))
