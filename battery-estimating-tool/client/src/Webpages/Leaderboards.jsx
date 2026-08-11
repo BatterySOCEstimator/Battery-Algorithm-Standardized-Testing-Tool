@@ -109,7 +109,7 @@ useEffect(() => {
 }, [selectedFilters, originalData]);
   // const [uniqueUsernames, setUniqueUsernames] = useState([]);
   // const [uniqueUniversities, setUniqueUniversities] = useState([]);
-  // const { loading: authLoading } = useRequireAuth();
+  const { loading: authLoading } = useRequireAuth();
   // const [originalData, setOriginalData] = useState([]);
   // const [formattedData, setFormattedData] = useState([]);
   // const [loading, setLoading] = useState(true);

@@ -1,9 +1,17 @@
 // UI and auth imports for the login page
-import { Container, Row, Col, Form, Button, Card, Spinner } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  Card,
+  Spinner,
+} from "react-bootstrap";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
-import picture from "../assets/images/registrationpage.png"
+import picture from "../assets/images/registrationpage.png";
 import { useState } from "react";
-import { login }  from "../auth-client.ts";
+import { login } from "../auth-client.ts";
 import { Link, useNavigate } from "react-router-dom";
 import { getUserInfo } from "../auth-client.ts";
 
@@ -39,16 +47,21 @@ const Login = ({ user, setUser }) => {
       await login(
         isEmail(identifier)
           ? { email: identifier, password }
-          : { username: identifier, password }
+          : { username: identifier, password },
       );
-      navigate("/leaderboards");
+
+      // Get the newly-created session/user BEFORE navigating
+      getUserInfo().then((userInfo) => {
+        setUser(userInfo);
+        navigate("/");
+      });
     } catch (err) {
       navigate("/login-error", {
         state: { message: err?.message ?? "Login failed. Please try again." },
       });
     } finally {
       setIsLoading(false);
-      getUserInfo().then(setUser);
+      //getUserInfo().then(setUser); -- REMOVING TO TEST
     }
   };
   return (
@@ -105,7 +118,12 @@ const Login = ({ user, setUser }) => {
 
               {/* Login Button */}
               <div className="d-grid mb-3">
-                <Button variant="primary" size="lg" type="submit" disabled={isLoading}>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  type="submit"
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <>
                       <Spinner
@@ -126,7 +144,10 @@ const Login = ({ user, setUser }) => {
 
               <div className="text-center">
                 <small className="text-muted">
-                  <Link to="/registration" style={{ color: "inherit", textDecoration: "none" }}>
+                  <Link
+                    to="/registration"
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
                     Create an account
                   </Link>
                 </small>

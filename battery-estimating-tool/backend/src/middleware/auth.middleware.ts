@@ -23,6 +23,7 @@ import { logger } from "@/services/logger.service";
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
 
+    logger.debug('requireAuth Started');
     // Retrieves current session
     const session = await auth.api.getSession({
       headers: new Headers(req.headers as Record<string, string>)
@@ -38,6 +39,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
     // Attaches user
     (req as any).user = session.user;
+    logger.debug('requireAuth Complete');
     next();
   } catch (err) {
     logger.error('requireAuth - Session validation failed', {
