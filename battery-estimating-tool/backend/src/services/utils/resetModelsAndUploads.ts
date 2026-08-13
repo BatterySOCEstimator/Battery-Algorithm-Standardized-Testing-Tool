@@ -1,25 +1,26 @@
 /**
- * Reset script — drops the `models` table and deletes everything under
- * UPLOAD_DIR. Intended for deploying the storageId schema change to an
- * environment (e.g. prod) where existing rows/files predate it and aren't
- * worth migrating.
+ * Reset script — drops the `models` table, deletes everything under
+ * UPLOAD_DIR, then runs `drizzle-kit push --force` to recreate the table
+ * from the current schema (storageId included). Intended for deploying the
+ * storageId schema change to an environment (e.g. prod) where existing
+ * rows/files predate it and aren't worth migrating.
  *
  * Usage:
  *   npx tsx src/services/utils/resetModelsAndUploads.ts           # interactive, asks for confirmation
  *   npx tsx src/services/utils/resetModelsAndUploads.ts --dry-run # prints what would happen, changes nothing
  *
- * After this runs, re-apply the schema (e.g. `npx drizzle-kit push` or your
- * migration step) to recreate the `models` table before the app can accept
- * uploads again — this script only tears down, it does not rebuild.
- *
  * DESTRUCTIVE. Uses whatever DATABASE_URL / UPLOAD_DIR are in the current
  * environment, so double-check those are actually pointed at the target you
- * mean to wipe before confirming.
+ * mean to wipe before confirming. --force is passed to drizzle-kit push
+ * since this script's own "DROP" prompt is already the confirmation for
+ * that data loss — without it, push would stop and wait for a second,
+ * separate interactive confirmation of its own.
  */
 import "dotenv/config";
 import fs from "fs/promises";
 import path from "path";
 import readline from "readline/promises";
+import { spawn } from "child_process";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/index";
 
@@ -54,6 +55,17 @@ async function listUploadEntries(uploadDir: string): Promise<string[]> {
   }
 }
 
+function runDrizzlePush(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const child = spawn("npx", ["drizzle-kit", "push", "--force"], { stdio: "inherit" });
+    child.on("error", reject);
+    child.on("exit", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`drizzle-kit push exited with code ${code}`));
+    });
+  });
+}
+
 async function main() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -68,10 +80,9 @@ async function main() {
   console.log("This will:");
   console.log(`  1. DROP TABLE "models"${rowCount === null ? " (table doesn't currently exist)" : ` — ${rowCount} row(s)`}`);
   console.log(`  2. Delete everything under ${uploadDir} — ${uploadEntries.length} entr${uploadEntries.length === 1 ? "y" : "ies"}`);
+  console.log("  3. Run `drizzle-kit push --force` to recreate models from the current schema");
   console.log();
   console.log(`Target database: ${maskDatabaseUrl(databaseUrl)}`);
-  console.log();
-  console.log("You will need to re-apply the schema (drizzle-kit push / migrate) afterward to recreate the models table.");
 
   if (dryRun) {
     console.log("\n--dry-run: no changes made.");
@@ -98,7 +109,10 @@ async function main() {
   );
   console.log("Done.");
 
-  console.log("\nReset complete. Re-run your schema deploy step (e.g. npx drizzle-kit push) to recreate the models table.");
+  console.log("\nRunning drizzle-kit push...");
+  await runDrizzlePush();
+
+  console.log("\nReset complete.");
   process.exit(0);
 }
 

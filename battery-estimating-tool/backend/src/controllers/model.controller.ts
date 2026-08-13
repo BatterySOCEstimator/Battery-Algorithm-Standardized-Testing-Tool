@@ -114,11 +114,15 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     return
   }
 
-  // Generate the storage directory name up front — a random UUID rather
-  // than the user-supplied `name` (not filesystem-safe) or the DB-assigned
-  // serial `id` (unknown until after insert). Known before the insert, so
-  // it can go in the same insert instead of needing an update afterward.
-  const storageId = crypto.randomUUID();
+  // Reuse the storageId uploadMiddleware generated before Multer ran — that's
+  // the directory Multer actually wrote the files to, so the controller must
+  // use the same value rather than generating its own here.
+  const storageId = (req as any).storageId;
+  if (!storageId) {
+    logger.warn('model/upload - Missing storageId', { name, userId, ip: req.ip });
+    res.status(500).json({ error: 'Internal server error' });
+    return;
+  }
 
   // Store the directory path
   const modelDir = path.join(
