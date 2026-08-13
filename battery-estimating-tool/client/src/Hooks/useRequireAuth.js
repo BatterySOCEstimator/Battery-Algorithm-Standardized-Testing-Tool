@@ -16,7 +16,7 @@ const useRequireAuth = () => {
       }
     };
     checkSession();
-  }, []);
+  }, [navigate]);
 
   return { loading };
 };

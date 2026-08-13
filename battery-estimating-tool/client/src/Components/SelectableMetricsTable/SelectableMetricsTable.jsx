@@ -1,114 +1,115 @@
-import Table from 'react-bootstrap/Table';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import {columnKeyMap} from "../../Constants/Helperfunc.js";
-import { useState } from 'react';
-import styled from 'styled-components';
+import { useState } from "react";
+import { cn } from "#Constants/cn";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "#Components/ui/table";
+import { Card } from "#Components/ui/card";
+import { IconArrowUp, IconArrowDown, IconArrowsSort } from "@tabler/icons-react";
 
-// Metrics table component for comparison page
-const SelectableMetricsTable = ({ headers, formattedData, setFormattedData, selectedModel, setSelectedModel }) => {
+// Selectable metrics table used on the Model Comparison page: clicking a
+// header sorts by that column, clicking a row selects that model (used for
+// the comparison chart) and highlights it.
+const SelectableMetricsTable = ({ headers, formattedData, setFormattedData, selectedModel, setSelectedModel, filters }) => {
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
-  // Scrollable container for the metrics table
-  const TableContainer = styled.div`
-    max-height: 400px;
-    overflow-y: auto;
-    overflow-x: auto;
-    width: 100%;
-    border: 1px solid #ddd;
-  `;
+  // Toggles sort direction on repeat clicks of the same column, ascending
+  // by default on a new column. Sorted data is written straight back into
+  // the parent's formattedData state, same as before.
+  const handleSort = (col) => {
+    const direction = sortConfig.key === col && sortConfig.direction === "asc" ? "desc" : "asc";
 
-// initialize ascending sort and no column selected
-const [sortConfig, setSortConfig] = useState({
-  key: null,
-  direction: "asc",
-});
+    const sorted = [...formattedData].sort((a, b) => {
+      const valA = a[col];
+      const valB = b[col];
 
-// toggles sort for their on click handling, ascending or descending.
-const handleSort = (col) => {
-  let direction = "asc";
+      const numA = parseFloat(valA);
+      const numB = parseFloat(valB);
 
-  if (sortConfig.key === col && sortConfig.direction === "asc") {
-    direction = "desc";
-  }
-  // Sort rows by the clicked column; handle numeric vs string values
-  const sorted = [...formattedData].sort((a, b) => {
-    let valA = a[col];
-    let valB = b[col];
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return direction === "asc" ? numA - numB : numB - numA;
+      }
 
-    // Try numeric sort first
-    const numA = parseFloat(valA);
-    const numB = parseFloat(valB);
+      return direction === "asc"
+        ? String(valA).localeCompare(String(valB))
+        : String(valB).localeCompare(String(valA));
+    });
 
-    if (!isNaN(numA) && !isNaN(numB)) {
-      return direction === "asc" ? numA - numB : numB - numA;
-    }
+    setSortConfig({ key: col, direction });
+    setFormattedData(sorted);
+  };
 
-    // Fall back to lexicographic sort
-    return direction === "asc"
-      ? String(valA).localeCompare(String(valB))
-      : String(valB).localeCompare(String(valA));
-  });
-  
-  // Update sort configuration and formatted data state
-  setSortConfig({ key: col, direction });
-  setFormattedData(sorted);
-};
-  console.log(formattedData)
+  const getSortIcon = (col) => {
+    if (sortConfig.key !== col)
+      return <IconArrowsSort className="h-3.5 w-3.5 shrink-0 opacity-40" />;
+    return sortConfig.direction === "asc" ? (
+      <IconArrowUp className="h-3.5 w-3.5 shrink-0" />
+    ) : (
+      <IconArrowDown className="h-3.5 w-3.5 shrink-0" />
+    );
+  };
+
   return (
-    <TableContainer>
-      <Table style={{ textAlign: 'center' }} striped bordered hover>
-        {/* Table header with clickable columns for sorting */}
-        <thead>
-          <tr>
-            {headers.map((col) => (
-              <th
-                key={col}
-                onClick={() => handleSort(col)}
-                style={{ cursor: "pointer", textAlign: "center" }}
-              >
-                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                  <span style={{ width: "12px", display: "inline-block" }} />
-                  {col}
-                  {/* Show sort direction indicator (▲/▼) for the active column */}
-                  <span style={{ width: "12px", display: "inline-block" }}>
-                    {sortConfig.key === col
-                      ? sortConfig.direction === "asc"
-                        ? "▲"
-                        : "▼"
-                      : ""}
-                  </span>
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        <tbody>
-          {formattedData.length === 0 ? (
-            // If no data exists, show empty row
-            <tr>
+    <Card className="w-full gap-3 py-4">
+      {filters && (
+        <div className="flex flex-wrap items-end gap-4 px-4">{filters}</div>
+      )}
+      <div className="max-h-100 w-full overflow-auto border-y border-border px-2">
+        <Table>
+          <TableHeader>
+            <TableRow>
               {headers.map((col) => (
-                <td key={col}>--</td>
+                <TableHead key={col} className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => handleSort(col)}
+                    className="inline-flex w-full items-center justify-center gap-1.5 font-medium hover:text-foreground"
+                  >
+                    {col}
+                    {getSortIcon(col)}
+                  </button>
+                </TableHead>
               ))}
-            </tr>
-          ) : (
-            // Render each SOC submission as its own row
-            formattedData.map((row, index) => (
-            <tr key={index}>
-              {headers.map((col) => {
-                return (
-                  // Clicking a row selects that model; highlight with teal background
-                  <td onClick={() => setSelectedModel(row)} style={{ cursor: 'pointer', backgroundColor: selectedModel && selectedModel.Submission === row.Submission ? '#359daa' : 'transparent' }} key={col}>{row[col] ?? "-"}</td> 
-                )  
-              })}
-            </tr>
-          ))
-          )}
-        </tbody>
-      </Table>
-    </TableContainer>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {formattedData.length === 0 ? (
+              <TableRow>
+                {headers.map((col) => (
+                  <TableCell key={col} className="text-center text-muted-foreground">
+                    --
+                  </TableCell>
+                ))}
+              </TableRow>
+            ) : (
+              formattedData.map((row, index) => (
+                <TableRow key={row.Submission ?? index}>
+                  {headers.map((col) => (
+                    <TableCell
+                      key={col}
+                      onClick={() => setSelectedModel(row)}
+                      className={cn(
+                        "cursor-pointer text-center",
+                        selectedModel &&
+                          selectedModel.Submission === row.Submission &&
+                          "bg-primary/15",
+                      )}
+                    >
+                      {row[col] ?? "-"}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
   );
 };
 
 export default SelectableMetricsTable;
-
-

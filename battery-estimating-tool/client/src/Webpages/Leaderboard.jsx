@@ -1,12 +1,16 @@
 // UI components and styling imports for the leaderboard page
 import LabeledSelect from "../Components/LabeledSelect/LabeledSelect.jsx";
+import LabeledSearchInput from "../Components/LabeledSearchInput/LabeledSearchInput.jsx";
 import StyledNavbar from "../Components/Navbar/StyledNavbar.jsx";
-import styled from "styled-components";
 
 // Data constants and formatting utilities
 import { modelTypes, columns, columnKeyMap } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
-import { Button } from "react-bootstrap";
+import { Button } from "#Components/ui/button";
+import { Checkbox } from "#Components/ui/checkbox";
+import { Label } from "#Components/ui/label";
+import { Tooltip, TooltipTrigger, TooltipContent } from "#Components/ui/tooltip";
+import { IconHelpCircle } from "@tabler/icons-react";
 
 // EXPOSED FUNCTIONS FOR TESTING
 import {
@@ -22,28 +26,6 @@ window.login = login;
 window.logout = logout;
 window.getUserInfo = getUserInfo;
 window.resendVerificationEmail = resendVerificationEmail;
-
-// Layout helpers for the leaderboard page
-const FlexBox = styled.div`
-  display: flex;
-  gap: 24px;
-`;
-const Container = styled.div`
-  padding: 20px;
-`;
-const Title = styled.h2`
-  margin-bottom: 20px;
-`;
-const FiltersLabel = styled.div`
-  font-weight: 600;
-  margin-bottom: 8px;
-`;
-const TitleSection = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-`;
 
 // Convert raw API rows into the table-friendly display format
 const formatData = (data) => {
@@ -72,170 +54,175 @@ const formatData = (data) => {
   });
 };
 
-// Helpers to extract unique filter values from data
-
 const leaderboardColumns = columns.filter(
   (col) => col !== "Visibility" && col !== "Completed at",
 );
 
-const getUniqueUsernames = (data) => {
-  return [...new Set(data.map((item) => item.userName))];
-};
-const getUniqueUniversities = (data) => {
-  return [...new Set(data.map((item) => item.academicAffiliation))];
-};
+// Leaderboard page component — fetches its own data on mount, so
+// navigating away and back re-fetches fresh data (the route component
+// unmounts when you leave and remounts when you return).
+const Leaderboard = ({ user }) => {
+  const [originalData, setOriginalData] = useState([]);
+  const [formattedData, setFormattedData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-// Leaderboards page component — receives filtered data and state from parent router
-const Leaderboard = ({
-  user,
-  uniqueUsernames,
-  uniqueUniversities,
-  originalData,
-  formattedData,
-  loading,
-  error,
-  setFormattedData,
-}) => {
   const [selectedFilters, setSelectedFilters] = useState({
-    "Filter by Author": "All Authors",
-    "Filter by Academic Affiliation": "All Academic Affiliations",
+    "Filter by Author": "",
+    "Filter by Academic Affiliation": "",
     "Model Type": "All Model Types",
   });
+  // Your own private models are included in the fetched data (the endpoint
+  // returns public models + your own private ones, never other users'
+  // private ones) but hidden from the table/downloads unless this is on.
+  const [showPrivate, setShowPrivate] = useState(false);
 
   const handleFilterChange = (label, value) => {
     setSelectedFilters((prev) => ({
       ...prev,
       [label]: value,
     }));
-    console.log(selectedFilters);
   };
+
+  // Fetches the leaderboard data. Runs on every mount, so switching to this
+  // tab always pulls fresh data instead of showing stale state.
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // fetchLeaderboardData scopes results server-side to public models
+        // plus your own private ones (never other users' private models).
+        // limit=100 is the backend's max page size — the table already
+        // does its own client-side sort/filter/pagination over the full
+        // result set.
+        const response = await fetch("/api/data/fetchLeaderboardData?limit=100");
+        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        const data = await response.json();
+
+        const formatted = formatData(data.data);
+        setOriginalData(formatted);
+        setFormattedData(formatted);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   useEffect(() => {
     const filtered = originalData.filter((item) => {
       return (
-        (selectedFilters["Filter by Author"] === "All Authors" ||
-          item.Author === selectedFilters["Filter by Author"]) &&
-        (selectedFilters["Filter by Academic Affiliation"] ===
-          "All Academic Affiliations" ||
-          item.Institution ===
-            selectedFilters["Filter by Academic Affiliation"]) &&
+        (showPrivate || item.Visibility !== "Private") &&
+        (item.Author ?? "")
+          .toLowerCase()
+          .includes(selectedFilters["Filter by Author"].toLowerCase()) &&
+        (item.Affiliation ?? "")
+          .toLowerCase()
+          .includes(
+            selectedFilters["Filter by Academic Affiliation"].toLowerCase(),
+          ) &&
         (selectedFilters["Model Type"] === "All Model Types" ||
           item["Model Type"] === selectedFilters["Model Type"])
       );
     });
 
     setFormattedData(filtered);
-  }, [selectedFilters, originalData]);
-  // const [uniqueUsernames, setUniqueUsernames] = useState([]);
-  // const [uniqueUniversities, setUniqueUniversities] = useState([]);
-  // const { loading: authLoading } = useRequireAuth();
-  // const [originalData, setOriginalData] = useState([]);
-  // const [formattedData, setFormattedData] = useState([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const response = await fetch("/api/data/fetchUserModelJoin");
-  //       if (!response.ok) throw new Error(`Error: ${response.status}`);
-  //       const data = await response.json();
-  //       console.log(data.data);
-  //       const filtered = data.data.filter(model => model.isPrivate == false);
-  //       console.log(filtered);
+  }, [selectedFilters, originalData, showPrivate]);
 
-  //       const formatted = formatData(filtered);
-
-  //       setOriginalData(formatted);
-  //       setFormattedData(formatted);
-  //       setUniqueUsernames(getUniqueUsernames(data.data));
-  //       setUniqueUniversities(getUniqueUniversities(data.data));
-  //     } catch (err) {
-  //       setError(err.message);
-  //     } finally {
-  //       setLoading(false);
-
-  //     }
-  //   };
-  //   fetchData();
-  // }, []);
-
-  // Display loading state while the parent is preparing data
+  // Display loading state while data is being fetched
   if (loading)
     return (
       <>
         <StyledNavbar user={user} />
-        <Container>Loading...</Container>
+        <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">Loading...</div>
       </>
     );
-  // // if (authLoading)
-  //   return (
-  //     <>
-  //       <StyledNavbar user={user} />
-  //       <Container>Loading...</Container>
-  //     </>
-  //   );
   // Display any errors from data fetching or processing
   if (error)
     return (
       <>
         <StyledNavbar user={user} />
-        <Container>Error: {error}</Container>
+        <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">Error: {error}</div>
       </>
     );
 
   return (
     <>
       <StyledNavbar user={user} />
-      <Container>
+      <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">
         {/* Title and Contact Button */}
-        <TitleSection>
-          <Title style={{ margin: 0 }}>Leaderboard</Title>
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-foreground">
+            Leaderboard
+          </h2>
           <Button
-            variant="outline-secondary"
+            variant="outline"
             onClick={() =>
               (window.location.href = "mailto:socbench@mcmaster.ca")
             }
           >
             Contact Administrator
           </Button>
-        </TitleSection>
-        {/* Filters label */}
-        <FiltersLabel>Filters:</FiltersLabel>
-        {/* Filters items */}
-        <FlexBox>
-          <LabeledSelect
-            label={"Filter by Author"}
-            filter={"Author"}
-            options={["All Authors", uniqueUsernames]}
-            originalData={originalData}
-            setFormattedData={setFormattedData}
-            onFilterChange={handleFilterChange}
-          />
-          <LabeledSelect
-            label={"Filter by Academic Affiliation"}
-            filter={"Institution"}
-            options={["All Academic Affiliations", uniqueUniversities]}
-            originalData={originalData}
-            setFormattedData={setFormattedData}
-            onFilterChange={handleFilterChange}
-          />
-          <LabeledSelect
-            label={"Model Type"}
-            filter={"Model Type"}
-            options={modelTypes}
-            originalData={originalData}
-            setFormattedData={setFormattedData}
-            onFilterChange={handleFilterChange}
-          />
-        </FlexBox>
-
-        {/* Main metrics table component */}
+        </div>
+        {/* Main metrics table component, with filters in its toolbar */}
         <LeaderBoardMetricsTable
           headers={leaderboardColumns}
           formattedData={formattedData}
           setFormattedData={setFormattedData}
+          originalData={originalData}
+          showPrivate={showPrivate}
+          filters={
+            <>
+              <LabeledSearchInput
+                label="Filter by Author"
+                value={selectedFilters["Filter by Author"]}
+                onChange={(value) =>
+                  handleFilterChange("Filter by Author", value)
+                }
+                placeholder="Search authors..."
+              />
+              <LabeledSearchInput
+                label="Filter by Affiliation"
+                value={selectedFilters["Filter by Academic Affiliation"]}
+                onChange={(value) =>
+                  handleFilterChange("Filter by Academic Affiliation", value)
+                }
+                placeholder="Search affiliations..."
+              />
+              <LabeledSelect
+                label={"Model Type"}
+                filter={"Model Type"}
+                options={modelTypes}
+                originalData={originalData}
+                setFormattedData={setFormattedData}
+                onFilterChange={handleFilterChange}
+              />
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="show-private"
+                  checked={showPrivate}
+                  onCheckedChange={setShowPrivate}
+                />
+                <Label htmlFor="show-private" className="cursor-pointer font-normal">
+                  Show private models
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger className="flex items-center text-muted-foreground hover:text-foreground">
+                    <IconHelpCircle className="h-4 w-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    If you are signed in, your private models will display on the
+                    leaderboard and in downloaded CSV files when this box is checked.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </>
+          }
         />
-      </Container>
+      </div>
     </>
   );
 };

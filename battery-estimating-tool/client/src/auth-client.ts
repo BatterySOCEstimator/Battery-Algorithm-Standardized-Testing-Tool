@@ -40,11 +40,6 @@ export async function signUp(data: {
             academicAffiliation,
         },
         {
-            onRequest: (ctx) => console.log("Registering..."),
-            onSuccess: (ctx) => {
-                //window.location.href = "/";
-                console.log("Registration successful!")
-            },
             onError: (ctx) => alert(ctx.error.message),
         }
     );
@@ -66,11 +61,7 @@ export async function login(options: {
 
     return new Promise<void>((resolve, reject) => {
         const callbacks = {
-            onRequest: () => console.log("Logging in..."),
-            onSuccess: () => {
-                console.log("Login successful!");
-                resolve();
-            },
+            onSuccess: () => resolve(),
             onError: (ctx: any) => {
                 if (ctx.error.status === 403) {
                     authClient.signOut();
@@ -98,52 +89,6 @@ export async function login(options: {
             );
         }
     });
-    // if (email) {
-    //     return authClient.signIn.email(
-    //         {
-    //             email,
-    //             password,
-    //             callbackURL: `http://localhost:3000/leaderboards`,
-    //         },
-            
-    //         {
-    //             onRequest: () => console.log("Logging in..."),
-    //             onSuccess: () => console.log("Login successful!"),
-    //             onError: (ctx) => {
-    //                 if (ctx.error.status === 403) {
-    //                     authClient.signOut();
-    //                     resendVerificationEmail(email!);
-    //                     alert("Please verify your email before signing in. Check your inbox.");
-    //                 } else {
-    //                     alert(ctx.error.message);
-    //                 }
-    //             },
-    //         }
-    //     );
-    // } else if (username) {
-    //     return authClient.signIn.username(
-    //         {
-    //             username,
-    //             password,
-    //             callbackURL: `http://localhost:3000/leaderboards`,
-    //         },
-    //         {
-    //             onRequest: () => console.log("Logging in..."),
-    //             onSuccess: () => console.log("Login successful!"),
-    //             onError: (ctx) => {
-    //                 if (ctx.error.status === 403) {
-    //                     authClient.signOut();
-    //                     resendVerificationEmail(email!);
-    //                     alert("Please verify your email before signing in. Check your inbox.");
-    //                 } else {
-    //                     alert(ctx.error.message);
-    //                 }
-    //             },
-    //         }
-    //     );
-    // } else {
-    //     throw new Error("Either email or username must be provided");
-    // }
 }
 
 // LOGOUT
@@ -152,12 +97,10 @@ export async function logout() {
         const session = await authClient.getSession();
 
         if (!session?.data?.user) {
-            console.log("No user currently logged in.");
             return; // don't call signOut
         }
 
         await authClient.signOut(); // Clear session
-        console.log("Logout successful");
 
         // Redirect manually
         window.location.href = "/";
@@ -175,7 +118,6 @@ type AuthUser = Awaited<
 export async function getUserInfo(): Promise<AuthUser | null> {
     try {
         const session = await authClient.getSession();
-        // console.log("session:", session); // FOR TESTING
         return session?.data?.user ?? null;
     } catch {
         return null;

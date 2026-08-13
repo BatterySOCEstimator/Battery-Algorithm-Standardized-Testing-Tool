@@ -9,6 +9,8 @@
  * Not intended for production use.
  */
 import "dotenv/config";
+import crypto from "crypto";
+import path from "path";
 import { db } from "@/db/index";
 import { models } from "@/db/schema";
 
@@ -20,7 +22,12 @@ if (!userId) {
 }
 
 function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
-  return [
+  // Each entry below has a placeholder filePath ("./uploads/test") since
+  // there's no real uploaded file to point at. Map in a real storageId and
+  // matching filePath (same uploads/{userId}/{storageId} convention as the
+  // actual upload flow) so these rows pass deleteModel's path-traversal
+  // guard instead of always failing it as "suspicious".
+  const rawModels: Omit<typeof models.$inferInsert, "storageId">[] = [
     {
       name: "EKF Battery SOC Estimator",
       filePath: "./uploads/test",
@@ -799,6 +806,15 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
       allDriveCyclesAvgMaxe: 6.92,
     },
   ];
+
+  return rawModels.map((model) => {
+    const storageId = crypto.randomUUID();
+    return {
+      ...model,
+      storageId,
+      filePath: path.join(process.env.UPLOAD_DIR ?? "./uploads", userId, storageId),
+    };
+  });
 }
 
 async function seed() {

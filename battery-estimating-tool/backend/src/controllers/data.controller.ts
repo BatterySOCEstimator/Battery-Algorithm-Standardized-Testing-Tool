@@ -154,11 +154,19 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
     const column = models[sortBy as SortableColumn];
     const orderFn = order === 'asc' ? asc : desc;
 
-    // Query db
+    // Query db — joins `user` so the response includes author/affiliation
+    // fields, same as fetchUserModelJoin, but scoped through this
+    // endpoint's visibility + alreadyEvaluated filters instead of
+    // returning every model unfiltered.
     try {
         const data = await db
-            .select()
+            .select({
+                ...getTableColumns(models),
+                userName: user.name,
+                academicAffiliation: user.academic_affiliation,
+            })
             .from(models)
+            .innerJoin(user, eq(models.userId, user.id))
             .where(and(...filters))
             .orderBy(orderFn(column))
             .limit(parsedLimit)

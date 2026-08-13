@@ -1,33 +1,17 @@
 // Submissions page: shows the current user's model submissions.
-// Imports: UI components, helper utilities and hooks used on this page.
 import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
-import MetricsTable from "../Components/MetricsTable/MetricsTable"
-import StyledNavbar from "../Components/Navbar/StyledNavbar"
-import styled from "styled-components";
+import LabeledSearchInput from "../Components/LabeledSearchInput/LabeledSearchInput";
+import SubmissionsMetricsTable from "../Components/SubmissionsMetricsTable/SubmissionsMetricsTable";
+import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import useRequireAuth from "../Hooks/useRequireAuth";
 import { modelTypes, submissionsColumns, columnKeyMap } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 // Auth helper to obtain current user information
 import { getUserInfo } from "../auth-client.ts";
-const FlexBox = styled.div`
-    display:flex;
-    gap: 24px;
-`
-const Container = styled.div`
-  padding: 20px;
-`;
 
-const Title = styled.h2`
-  margin-bottom: 20px;
-`;
-
-const FiltersLabel = styled.div`
-  font-weight: 600;
-  margin-bottom: 8px;
-`;
 // Transform raw submission objects from the API into the shape expected
-// by `MetricsTable`. Handles key mapping, boolean -> label conversion,
-// date formatting and fills missing values with a placeholder.
+// by `SubmissionsMetricsTable`. Handles key mapping, boolean -> label
+// conversion, date formatting and fills missing values with a placeholder.
 const formatData = (data) => {
   return data.map((row) => {
     const obj = {};
@@ -49,6 +33,10 @@ const formatData = (data) => {
       obj[col] = value ?? "-";
     });
 
+    // Not a visible table column, but the edit dialog needs the model's
+    // actual current description to pre-populate its field.
+    obj.Description = row.description ?? "";
+
     return obj;
   });
 };
@@ -63,38 +51,58 @@ const Submissions = ({ user }) => {
 
   // Loading/error state for the page's data request
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null)
-// State for the currently selected filters
-const [selectedFilters, setSelectedFilters] = useState({
-  "Model Type": "All Model Types",
-  "Visibility": "All",
-});
+  const [error, setError] = useState(null);
 
-const handleFilterChange = (label, value) => {
-  // When passing an argument in a setter function, if you give it a previously undefined variable argument (e.g. prev)
-  // It will inject the current value of the getter function as prev
-  setSelectedFilters((prev) => ({
-    // Copy all of the existing filter values.
-    ...prev,
-    // find the label of the filter that was changed, and update its value to the new value.
-    [label]: value,
-  }));
-};
+  // State for the currently selected filters
+  const [selectedFilters, setSelectedFilters] = useState({
+    Title: "",
+    "Model Type": "All Model Types",
+    Visibility: "All",
+  });
+
+  const handleFilterChange = (label, value) => {
+    setSelectedFilters((prev) => ({
+      ...prev,
+      [label]: value,
+    }));
+  };
+
+  // Applies a row-action's changes to local state right away, ahead of
+  // the (currently stubbed) backend actually persisting them.
+  const handleRowUpdate = (id, changes) => {
+    const patch = (list) =>
+      list.map((row) => (row.Submission === id ? { ...row, ...changes } : row));
+    setOriginalData(patch);
+    setFormattedData(patch);
+  };
+
+  const handleRowDelete = (id) => {
+    const remove = (list) => list.filter((row) => row.Submission !== id);
+    setOriginalData(remove);
+    setFormattedData(remove);
+  };
+
   // This useEffect runs once when the page is loaded or reloads as noted at the end by []
   useEffect(() => {
     // This function fetches the current user submissions
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch the leaderboard data from the API MUST BE CHANGED WILL ADD A SUBMISSION ENDPOINT LATER
-        const response = await fetch("/api/data/fetchLeaderboardData");
+        // fetchLeaderboardData hardcodes `alreadyEvaluated = true` server-side
+        // (it's built for the public leaderboard), which silently hid your
+        // own pending/unevaluated models here. fetchUserModelJoin has no
+        // such filtering — same endpoint Leaderboard.jsx uses — so switch to
+        // that and keep doing the userId filter client-side below.
+        // limit=100 is the backend's max page size — the table already does
+        // its own client-side sort/filter/pagination over the full result set.
+        const response = await fetch("/api/data/fetchUserModelJoin?limit=100");
         if (!response.ok) throw new Error(`Error: ${response.status}`);
 
         const data = await response.json();
         //Manual filtering done by the frontend to only show the current user's submissions. Very bad practice but will be fixed.
         const user = await getUserInfo();
         const userId = user.id;
-        const filtered = data.data.filter(model => model.userId === userId);
+        const filtered = data.data.filter((model) => model.userId === userId);
         const formatted = formatData(filtered);
         // Set the data states with the formatted data (formatted really just means the nonleaderboard user submissions)
         setOriginalData(formatted);
@@ -109,69 +117,93 @@ const handleFilterChange = (label, value) => {
     fetchData();
   }, []);
 
-  // This is responsible for actually filtering the data based on the selected filters. 
+  // This is responsible for actually filtering the data based on the selected filters.
   // triggers whenever `originalData` or `selectedFilters` changes.
   useEffect(() => {
-  if (!originalData) return;
-  // The following is the filter function given by javascript. It iterates through each item within the originalData array
-  const filtered = originalData.filter((item) => {
-    return (
-      // every item within the array is a model submission object. If either of the "All" filters are selected their subsequent conditions are ignored.
-      // Otherwise, check to see if the item matches the selected filter value. If it doesn't, don't include it.
-      (selectedFilters["Model Type"] === "All Model Types" ||
-      item["Model Type"] === selectedFilters["Model Type"]) &&
-      (selectedFilters["Visibility"] === "All" ||
-      item["Visibility"] === selectedFilters["Visibility"])
-    );
-  });
+    if (!originalData) return;
+    const filtered = originalData.filter((item) => {
+      return (
+        (item["Model Name"] ?? "")
+          .toLowerCase()
+          .includes(selectedFilters["Title"].toLowerCase()) &&
+        (selectedFilters["Model Type"] === "All Model Types" ||
+          item["Model Type"] === selectedFilters["Model Type"]) &&
+        (selectedFilters["Visibility"] === "All" ||
+          item["Visibility"] === selectedFilters["Visibility"])
+      );
+    });
 
-  setFormattedData(filtered);
-}, [selectedFilters, originalData]);
+    setFormattedData(filtered);
+  }, [selectedFilters, originalData]);
 
   // Top-level states: loading, authPending or error
-  if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
+  if (loading)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">Loading...</div>
+      </>
+    );
+  if (authLoading)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">Loading...</div>
+      </>
+    );
+  if (error)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">Error: {error}</div>
+      </>
+    );
 
   // Render: Navbar, filters and the submissions table
   return (
     <>
       <StyledNavbar user={user} />
+      <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-foreground">Your Submissions</h2>
+        </div>
 
-      <Container>
-        {/* Title */}
-        <Title>Your Submissions</Title>
-
-        {/* Filters label */}
-        <FiltersLabel>Filters:</FiltersLabel>
-
-        {/* Filters Row */}
-        <FlexBox>
-  <LabeledSelect
-    label="Model Type"
-    filter="Model Type"
-    value={selectedFilters["Model Type"]}
-    options={modelTypes}
-    onFilterChange={handleFilterChange}
-  />
-  <LabeledSelect
-    label="Visibility"
-    filter="Visibility"
-    value={selectedFilters["Visibility"]}
-    options={["All", "Private", "Public"]}
-    onFilterChange={handleFilterChange}
-  />
-</FlexBox>
-
-        {/* MetricsTable handles sorting/pagination and displays formattedData */}
-        <MetricsTable
+        {/* Main metrics table component, with filters in its toolbar */}
+        <SubmissionsMetricsTable
           headers={submissionsColumns}
           formattedData={formattedData}
           setFormattedData={setFormattedData}
+          onRowUpdate={handleRowUpdate}
+          onRowDelete={handleRowDelete}
+          originalData={originalData}
+          filters={
+            <>
+              <LabeledSearchInput
+                label="Model Name"
+                value={selectedFilters["Title"]}
+                onChange={(value) => handleFilterChange("Title", value)}
+                placeholder="Search by Model Name..."
+              />
+              <LabeledSelect
+                label="Model Type"
+                filter="Model Type"
+                value={selectedFilters["Model Type"]}
+                options={modelTypes}
+                onFilterChange={handleFilterChange}
+              />
+              <LabeledSelect
+                label="Visibility"
+                filter="Visibility"
+                value={selectedFilters["Visibility"]}
+                options={["All", "Private", "Public"]}
+                onFilterChange={handleFilterChange}
+              />
+            </>
+          }
         />
-      </Container>
+      </div>
     </>
   );
 };
 
-export default Submissions
+export default Submissions;

@@ -1,20 +1,28 @@
-// Bootstrap UI components and router imports for the registration page
-import {
-  Container,
-  Row,
-  Col,
-  Form,
-  Button,
-  Card,
-  Alert,
-} from "react-bootstrap";
-import { FaUser, FaEnvelope, FaLock, FaAt, FaUniversity } from "react-icons/fa";
+// UI components and router imports for the registration page
+import { Card } from "#Components/ui/card";
+import { Input } from "#Components/ui/input";
+import { Button } from "#Components/ui/button";
+import { Alert, AlertDescription } from "#Components/ui/alert";
+import { cn } from "#Constants/cn";
+import { IconUser, IconMail, IconLock, IconAt, IconSchool } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import picture from "../assets/images/registrationpage.png";
 // Auth helper to create new user accounts
 import { signUp } from "../auth-client.ts";
 import StyledNavbar from "../Components/Navbar/StyledNavbar.jsx";
+
+// A labeled input with a leading icon and inline validation error, used for
+// every field on this form.
+const FormField = ({ icon: Icon, error, ...inputProps }) => (
+  <div>
+    <div className="relative">
+      <Icon className="absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Input {...inputProps} className={cn("pl-9", error && "border-destructive")} />
+    </div>
+    {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+  </div>
+);
 
 // User registration form with validation
 const Registration = () => {
@@ -112,8 +120,6 @@ const Registration = () => {
     setErrors({});
     setSuccess(true);
 
-    // TODO: call your API here, e.g.:
-    // await registerUser(values);
     signUp({
       email: values.email,
       password: values.password,
@@ -127,26 +133,18 @@ const Registration = () => {
   // Success screen: show confirmation and link to login
   if (success) {
     return (
-      <Container
-        fluid
-        className="d-flex align-items-center justify-content-center min-vh-100 bg-light"
-      >
-        <Card
-          className="shadow-sm border-0 rounded-4 p-5 text-center"
-          style={{ maxWidth: "480px", width: "100%" }}
-        >
-          <h2 className="fw-bold mb-3">🎉 You're registered!</h2>
-          <p className="text-muted mb-4">
-            Welcome, <strong>{values.firstName}</strong>! Your account has been
-            created successfully. Please validate your email before logging in.
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-background px-4 py-8">
+        <Card className="w-full max-w-sm p-8 text-center">
+          <h2 className="mb-3 text-2xl font-semibold text-foreground">🎉 You're registered!</h2>
+          <p className="mb-6 text-sm text-muted-foreground">
+            Welcome, <strong className="text-foreground">{values.firstName}</strong>! Your account
+            has been created successfully. Please validate your email before logging in.
           </p>
           <Link to="/login">
-            <Button variant="primary" size="lg">
-              Go to Login
-            </Button>
+            <Button size="lg">Go to Login</Button>
           </Link>
         </Card>
-      </Container>
+      </div>
     );
   }
 
@@ -154,402 +152,118 @@ const Registration = () => {
   return (
     <>
       <StyledNavbar />
-      <Container
-        fluid
-        className="d-flex align-items-center justify-content-center min-vh-100 bg-light"
-      >
-        <Card
-          className="shadow-sm border-0 rounded-4 p-4"
-          style={{ maxWidth: "900px", width: "100%" }}
-        >
-          <Row className="g-0 align-items-center">
-            {/* Left side - Illustration */}
-            <Col
-              md={6}
-              className="d-none d-md-flex align-items-center justify-content-center"
-            >
-              <img
-                src={picture}
-                alt="Illustration"
-                className="img-fluid p-4"
-                style={{ maxHeight: "350px" }}
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-background px-4 py-8">
+        <Card className="grid w-full max-w-4xl gap-0 overflow-hidden p-0 md:grid-cols-2">
+          {/* Left side - Illustration */}
+          <div className="hidden items-center justify-center bg-muted p-8 md:flex">
+            <img src={picture} alt="Illustration" className="max-h-87.5 w-full object-contain" />
+          </div>
+
+          {/* Right side - Form */}
+          <div className="p-8 sm:p-10">
+            <h2 className="mb-6 text-2xl font-semibold text-foreground">Sign up</h2>
+
+            {/* Show validation error alert if submission attempted with errors */}
+            {submitted && Object.keys(errors).length > 0 && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>Please fix the errors below before continuing.</AlertDescription>
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+              {/* First Name & Last Name */}
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  icon={IconUser}
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={values.firstName}
+                  onChange={handleInputChange}
+                  error={errors.firstName}
+                />
+                <FormField
+                  icon={IconUser}
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={values.lastName}
+                  onChange={handleInputChange}
+                  error={errors.lastName}
+                />
+              </div>
+
+              {/* Username */}
+              <FormField
+                icon={IconAt}
+                type="text"
+                name="username"
+                placeholder="Username"
+                value={values.username}
+                onChange={handleInputChange}
+                error={errors.username}
               />
-            </Col>
 
-            {/* Right side - Form */}
-            <Col md={6} className="p-5">
-              <h2 className="fw-bold mb-4">Sign up</h2>
+              {/* Email */}
+              <FormField
+                icon={IconMail}
+                type="email"
+                name="email"
+                placeholder="Your Email"
+                value={values.email}
+                onChange={handleInputChange}
+                error={errors.email}
+              />
 
-              {/* Show validation error alert if submission attempted with errors */}
-              {submitted && Object.keys(errors).length > 0 && (
-                <Alert variant="danger" className="mb-3">
-                  Please fix the errors below before continuing.
-                </Alert>
-              )}
+              {/* Academic Affiliation */}
+              <FormField
+                icon={IconSchool}
+                type="text"
+                name="academicAffiliation"
+                placeholder="Academic Affiliation"
+                value={values.academicAffiliation}
+                onChange={handleInputChange}
+                error={errors.academicAffiliation}
+              />
 
-              <Form onSubmit={handleSubmit} noValidate>
-                {/* First Name & Last Name */}
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3" controlId="formFirstName">
-                      <div
-                        className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                          errors.firstName ? "border-danger" : ""
-                        }`}
-                      >
-                        <FaUser className="me-2 text-muted" />
-                        <Form.Control
-                          type="text"
-                          name="firstName"
-                          placeholder="First Name"
-                          value={values.firstName}
-                          onChange={handleInputChange}
-                          className="border-0 shadow-none"
-                          isInvalid={!!errors.firstName}
-                        />
-                      </div>
-                      <Form.Control.Feedback type="invalid" className="d-block">
-                        {errors.firstName}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3" controlId="formLastName">
-                      <div
-                        className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                          errors.lastName ? "border-danger" : ""
-                        }`}
-                      >
-                        <FaUser className="me-2 text-muted" />
-                        <Form.Control
-                          type="text"
-                          name="lastName"
-                          placeholder="Last Name"
-                          value={values.lastName}
-                          onChange={handleInputChange}
-                          className="border-0 shadow-none"
-                          isInvalid={!!errors.lastName}
-                        />
-                      </div>
-                      <Form.Control.Feedback type="invalid" className="d-block">
-                        {errors.lastName}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                  </Col>
-                </Row>
+              {/* Password */}
+              <FormField
+                icon={IconLock}
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={values.password}
+                onChange={handleInputChange}
+                error={errors.password}
+              />
 
-                {/* Username */}
-                <Form.Group className="mb-3" controlId="formUsername">
-                  <div
-                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                      errors.username ? "border-danger" : ""
-                    }`}
-                  >
-                    <FaAt className="me-2 text-muted" />
-                    <Form.Control
-                      type="text"
-                      name="username"
-                      placeholder="Username"
-                      value={values.username}
-                      onChange={handleInputChange}
-                      className="border-0 shadow-none"
-                      isInvalid={!!errors.username}
-                    />
-                  </div>
-                  <Form.Control.Feedback type="invalid" className="d-block">
-                    {errors.username}
-                  </Form.Control.Feedback>
-                </Form.Group>
+              {/* Confirm Password */}
+              <FormField
+                icon={IconLock}
+                type="password"
+                name="confirmPassword"
+                placeholder="Repeat your password"
+                value={values.confirmPassword}
+                onChange={handleInputChange}
+                error={errors.confirmPassword}
+              />
 
-                {/* Email */}
-                <Form.Group className="mb-3" controlId="formEmail">
-                  <div
-                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                      errors.email ? "border-danger" : ""
-                    }`}
-                  >
-                    <FaEnvelope className="me-2 text-muted" />
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      placeholder="Your Email"
-                      value={values.email}
-                      onChange={handleInputChange}
-                      className="border-0 shadow-none"
-                      isInvalid={!!errors.email}
-                    />
-                  </div>
-                  <Form.Control.Feedback type="invalid" className="d-block">
-                    {errors.email}
-                  </Form.Control.Feedback>
-                </Form.Group>
+              {/* Register Button */}
+              <Button type="submit" size="lg" className="mt-2">
+                Register
+              </Button>
 
-                {/* Academic Affiliation */}
-                <Form.Group
-                  className="mb-3"
-                  controlId="formAcademicAffiliation"
-                >
-                  <div
-                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                      errors.academicAffiliation ? "border-danger" : ""
-                    }`}
-                  >
-                    <FaUniversity className="me-2 text-muted" />
-                    <Form.Control
-                      type="text"
-                      name="academicAffiliation"
-                      placeholder="Academic Affiliation"
-                      value={values.academicAffiliation}
-                      onChange={handleInputChange}
-                      className="border-0 shadow-none"
-                      isInvalid={!!errors.academicAffiliation}
-                    />
-                  </div>
-                  <Form.Control.Feedback type="invalid" className="d-block">
-                    {errors.academicAffiliation}
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                {/* Password */}
-                <Form.Group className="mb-3" controlId="formPassword">
-                  <div
-                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                      errors.password ? "border-danger" : ""
-                    }`}
-                  >
-                    <FaLock className="me-2 text-muted" />
-                    <Form.Control
-                      type="password"
-                      name="password"
-                      placeholder="Password"
-                      value={values.password}
-                      onChange={handleInputChange}
-                      className="border-0 shadow-none"
-                      isInvalid={!!errors.password}
-                    />
-                  </div>
-                  <Form.Control.Feedback type="invalid" className="d-block">
-                    {errors.password}
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                {/* Confirm Password */}
-                <Form.Group className="mb-4" controlId="formConfirmPassword">
-                  <div
-                    className={`d-flex align-items-center border-bottom mb-1 pb-1 ${
-                      errors.confirmPassword ? "border-danger" : ""
-                    }`}
-                  >
-                    <FaLock className="me-2 text-muted" />
-                    <Form.Control
-                      type="password"
-                      name="confirmPassword"
-                      placeholder="Repeat your password"
-                      value={values.confirmPassword}
-                      onChange={handleInputChange}
-                      className="border-0 shadow-none"
-                      isInvalid={!!errors.confirmPassword}
-                    />
-                  </div>
-                  <Form.Control.Feedback type="invalid" className="d-block">
-                    {errors.confirmPassword}
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                {/* Register Button */}
-                <div className="d-grid mb-3">
-                  <Button type="submit" variant="primary" size="lg">
-                    Register
-                  </Button>
-                </div>
-
-                {/* Link to login page */}
-                <div className="text-center">
-                  <small className="text-muted">
-                    <Link
-                      to="/login"
-                      style={{ color: "inherit", textDecoration: "none" }}
-                    >
-                      I am already a member
-                    </Link>
-                  </small>
-                </div>
-              </Form>
-            </Col>
-          </Row>
+              {/* Link to login page */}
+              <div className="text-center">
+                <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">
+                  I am already a member
+                </Link>
+              </div>
+            </form>
+          </div>
         </Card>
-      </Container>
+      </div>
     </>
   );
 };
 export default Registration;
-// import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
-// import { FaUser, FaEnvelope, FaLock, FaAt, FaUniversity } from "react-icons/fa";
-// import { Link } from "react-router-dom";
-// import { useState } from "react";
-// import picture from "../assets/images/registrationpage.png"
-// const Registration = () => {
-//   const [values, setValues] = useState({
-//     firstName: "",
-//     lastName: "",
-//     email: ""
-//   });
-
-//   const handleInputChange = (event) => {
-//     event.preventDefault();
-
-//     const { name, value } = event.target;
-//     setValues((values) => ({
-//       ...values,
-//       [name]: value
-//     }));
-//   };
-
-//   const [submitted, setSubmitted] = useState(false);
-//   const [valid, setValid] = useState(false);
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     if (values.firstName && values.lastName && values.email) {
-//       setValid(true);
-//     }
-//     setSubmitted(true);
-//   };
-//   return (
-// <Container
-//   fluid
-//   className="d-flex align-items-center justify-content-center min-vh-100 bg-light"
-// >
-//   <Card
-//     className="shadow-sm border-0 rounded-4 p-4"
-//     style={{ maxWidth: "900px", width: "100%" }}
-//   >
-//     <Row className="g-0 align-items-center">
-//       {/* Left side - Illustration */}
-//       <Col
-//         md={6}
-//         className="d-none d-md-flex align-items-center justify-content-center"
-//       >
-//         <img
-//           src={picture}
-//           alt="Illustration"
-//           className="img-fluid p-4"
-//           style={{ maxHeight: "350px" }}
-//         />
-//       </Col>
-
-//       {/* Right side - Form */}
-//       <Col md={6} className="p-5">
-//         <h2 className="fw-bold mb-4">Sign up</h2>
-//         <Form onSubmit={handleSubmit}>
-//           {/* First Name & Last Name */}
-//           <Row>
-//             <Col md={6}>
-//               <Form.Group className="mb-3" controlId="formFirstName">
-//                 <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-//                   <FaUser className="me-2 text-muted" />
-//                   <Form.Control
-//                     type="text"
-//                     placeholder="First Name"
-//                     className="border-0 shadow-none"
-//                   />
-//                 </div>
-//               </Form.Group>
-//             </Col>
-//             <Col md={6}>
-//               <Form.Group className="mb-3" controlId="formLastName">
-//                 <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-//                   <FaUser className="me-2 text-muted" />
-//                   <Form.Control
-//                     type="text"
-//                     placeholder="Last Name"
-//                     className="border-0 shadow-none"
-//                   />
-//                 </div>
-//               </Form.Group>
-//             </Col>
-//           </Row>
-
-//           {/* Username */}
-//           <Form.Group className="mb-3" controlId="formUsername">
-//             <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-//               <FaAt className="me-2 text-muted" />
-//               <Form.Control
-//                 type="text"
-//                 placeholder="Username"
-//                 className="border-0 shadow-none"
-//               />
-//             </div>
-//           </Form.Group>
-
-//           {/* Email */}
-//           <Form.Group className="mb-3" controlId="formEmail">
-//             <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-//               <FaEnvelope className="me-2 text-muted" />
-//               <Form.Control
-//                 type="email"
-//                 placeholder="Your Email"
-//                 className="border-0 shadow-none"
-//               />
-//             </div>
-//           </Form.Group>
-
-//           {/* Academic Affiliation */}
-//           <Form.Group className="mb-3" controlId="formAcademicAffiliation">
-//             <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-//               <FaUniversity className="me-2 text-muted" />
-//               <Form.Control
-//                 type="text"
-//                 placeholder="Academic Affiliation"
-//                 className="border-0 shadow-none"
-//               />
-//             </div>
-//           </Form.Group>
-
-//           {/* Password */}
-//           <Form.Group className="mb-3" controlId="formPassword">
-//             <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-//               <FaLock className="me-2 text-muted" />
-//               <Form.Control
-//                 type="password"
-//                 placeholder="Password"
-//                 className="border-0 shadow-none"
-//               />
-//             </div>
-//           </Form.Group>
-
-//           {/* Confirm Password */}
-//           <Form.Group className="mb-4" controlId="formConfirmPassword">
-//             <div className="d-flex align-items-center border-bottom mb-2 pb-1">
-//               <FaLock className="me-2 text-muted" />
-//               <Form.Control
-//                 type="password"
-//                 placeholder="Repeat your password"
-//                 className="border-0 shadow-none"
-//               />
-//             </div>
-//           </Form.Group>
-
-//           {/* Register Button */}
-//           <div className="d-grid mb-3">
-//             <Button variant="primary" size="lg">
-//               Register
-//             </Button>
-//           </div>
-
-//           <div className="text-center">
-//             <small className="text-muted">
-//               <Link to="/login" style={{ color: "inherit", textDecoration: "none" }}>
-//                 I am already a member
-//               </Link>
-//             </small>
-//           </div>
-//         </Form>
-//       </Col>
-//     </Row>
-//   </Card>
-// </Container>
-//   );
-// };
-
-// export default Registration;

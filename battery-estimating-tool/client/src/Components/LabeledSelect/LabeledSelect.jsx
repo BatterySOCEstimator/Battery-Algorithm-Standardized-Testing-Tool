@@ -1,32 +1,39 @@
-import Form from "react-bootstrap/Form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#Components/ui/select";
+import { Label } from "#Components/ui/label";
 
-const LabeledSelect = ({
-  label,
-  filter,
-  value,
-  options,
-  onFilterChange,
-}) => {
-  const handleChange = (e) => {
-    onFilterChange(label, e.target.value);
+const LabeledSelect = ({ label, filter, value, options, onFilterChange }) => {
+  const handleValueChange = (nextValue) => {
+    onFilterChange(label, nextValue);
   };
 
-  return (
-    <Form.Group className="mb-3">
-      {label && <Form.Label>{label}</Form.Label>}
+  const isControlled = value !== undefined;
 
-      <Form.Select
-        style={{ maxWidth: "300px" }}
-        value={value}
-        onChange={handleChange}
+  return (
+    <div className="flex flex-col gap-1.5">
+      {label && <Label>{label}</Label>}
+
+      <Select
+        {...(isControlled ? { value } : { defaultValue: options[0] })}
+        onValueChange={handleValueChange}
       >
-        {options.map((opt, index) => (
-          <option key={index} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </Form.Select>
-    </Form.Group>
+        <SelectTrigger className="max-w-75">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt, index) => (
+            <SelectItem key={index} value={opt}>
+              {opt}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 };
 

@@ -130,6 +130,12 @@ export const models = pgTable(
       .default("pending"),
 
     // STORAGE
+    // App-generated (crypto.randomUUID()) identifier used as the model's
+    // storage directory name — uploads/{userId}/{storageId} — instead of
+    // the user-supplied `name` (not filesystem-safe) or the DB-assigned
+    // serial `id` (unknown until after insert, since it's only known once
+    // the row exists).
+    storageId: text("storage_id").notNull().unique(),
     filePath: text("file_path").notNull().default(''),
     zipFilePath: text("zip_file_path").notNull().default(''),
     resultsPath: text('results_path'),

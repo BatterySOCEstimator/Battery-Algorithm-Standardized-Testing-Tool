@@ -4,59 +4,33 @@
 
 // UI components and helpers
 import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
+import LabeledSearchInput from "../Components/LabeledSearchInput/LabeledSearchInput";
 import SelectableMetricsTable from "../Components/SelectableMetricsTable/SelectableMetricsTable.jsx";
-import StyledNavbar from "../Components/Navbar/StyledNavbar"
-import styled from "styled-components";
-import Button from 'react-bootstrap/esm/Button';
+import StyledNavbar from "../Components/Navbar/StyledNavbar";
+import { Button } from "#Components/ui/button";
+import { Alert, AlertDescription } from "#Components/ui/alert";
+import { IconX } from "@tabler/icons-react";
 //import useRequireAuth from "../Hooks/useRequireAuth"
 
 // Constants and utilities
 import { modelTypes, columnKeyMap, columns } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 import ModelCharts from "../Components/ModelCharts/ModelCharts.jsx";
-import { Alert } from "react-bootstrap";
 
 // Columns shown in the selectable tables (human-facing headers)
 const tableHeaders = [
   // "Ranking",
   "Submission",
-  // "Author",
-  // "Affiliation",
+  "Author",
+  "Affiliation",
   "Model Name",
   "Model Type",
   "Weighted Error"
 ];
 
-// Flexbox container for layout
-const FlexBox = styled.div`
-    display:flex;
-    gap: 24px;
-`
-
-// Container for page content with padding
-const Container = styled.div`
-  padding: 20px;
-`;
-
-// Title styling for headings
-const Title = styled.h2`
-  margin-bottom: 20px;
-`;
-
-// padding for model labels
-const ModelNumber = styled.h4`
-  margin-bottom: 20px;
-`;
-
-// size and padding for filter title
-const FiltersLabel = styled.div`
-  font-weight: 600;
-  margin-bottom: 8px;
-`;
-
 // Transform two model objects into a comparison-friendly format
 function transformModels(modelA, modelB, columnKeyMap) {
-  // reverse the keys 
+  // reverse the keys
   const reverseMap = Object.fromEntries(
     Object.entries(columnKeyMap).map(([label, key]) => [key, label])
   );
@@ -99,19 +73,7 @@ const formatData = (data) => {
   });
 };
 
-// Utility helpers used to populate filter dropdowns
-const getUniqueUsernames = (data) => {
-  return [...new Set(data.map((item) => item.userName))];
-};
-const getUniqueUniversities = (data) => {
-  return [...new Set(data.map((item) => item.academicAffiliation))];
-};
-
 const ModelComparison = ({ user }) => {
-  // Filter dropdown options
-  const [uniqueUsernames, setUniqueUsernames] = useState([]);
-  const [uniqueUniversities, setUniqueUniversities] = useState([]);
-
   // Auth loading state (do not show data until auth resolved)
   //const { loading: authLoading } = useRequireAuth();
 
@@ -146,10 +108,6 @@ const ModelComparison = ({ user }) => {
         setFormattedData(formatted);
         setOriginalData2(formatted);
         setFormattedData2(formatted);
-
-        // Prepare filter dropdown options
-        setUniqueUsernames(getUniqueUsernames(data.data));
-        setUniqueUniversities(getUniqueUniversities(data.data));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -160,94 +118,107 @@ const ModelComparison = ({ user }) => {
   }, []);
 
   const [selectedFilters1, setSelectedFilters1] = useState({
-  "Filter by Author": "All Authors",
-  "Filter by Academic Affiliation": "All Academic Affiliations",
-  "Model Type": "All Model Types",
-});
-
-const [selectedFilters2, setSelectedFilters2] = useState({
-  "Filter by Author": "All Authors",
-  "Filter by Academic Affiliation": "All Academic Affiliations",
-  "Model Type": "All Model Types",
-});
-const handleFilterChange1 = (label, value) => {
-  setSelectedFilters1(prev => ({
-    ...prev,
-    [label]: value,
-  }));
-};
-
-const handleFilterChange2 = (label, value) => {
-  setSelectedFilters2(prev => ({
-    ...prev,
-    [label]: value,
-  }));
-};
-const filterData = (data, filters) => {
-  return data.filter((item) => {
-    return (
-      (filters["Filter by Author"] === "All Authors" ||
-        item.Author === filters["Filter by Author"]) &&
-      (filters["Filter by Academic Affiliation"] ===
-        "All Academic Affiliations" ||
-        item.Institution ===
-          filters["Filter by Academic Affiliation"]) &&
-      (filters["Model Type"] === "All Model Types" ||
-        item["Model Type"] === filters["Model Type"])
-    );
+    "Filter by Author": "",
+    "Filter by Academic Affiliation": "",
+    "Model Type": "All Model Types",
   });
-};
-useEffect(() => {
-  setFormattedData(filterData(originalData, selectedFilters1));
-}, [selectedFilters1, originalData]);
 
-useEffect(() => {
-  setFormattedData2(filterData(originalData2, selectedFilters2));
-}, [selectedFilters2, originalData2]);
+  const [selectedFilters2, setSelectedFilters2] = useState({
+    "Filter by Author": "",
+    "Filter by Academic Affiliation": "",
+    "Model Type": "All Model Types",
+  });
+  const handleFilterChange1 = (label, value) => {
+    setSelectedFilters1((prev) => ({
+      ...prev,
+      [label]: value,
+    }));
+  };
 
-  if (loading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  //if (authLoading) return <><StyledNavbar user={user} /><Container>Loading...</Container></>;
-  if (error) return <><StyledNavbar user={user} /><Container>Error: {error}</Container></>;
+  const handleFilterChange2 = (label, value) => {
+    setSelectedFilters2((prev) => ({
+      ...prev,
+      [label]: value,
+    }));
+  };
+  const filterData = (data, filters) => {
+    return data.filter((item) => {
+      return (
+        (item.Author ?? "")
+          .toLowerCase()
+          .includes(filters["Filter by Author"].toLowerCase()) &&
+        (item.Affiliation ?? "")
+          .toLowerCase()
+          .includes(filters["Filter by Academic Affiliation"].toLowerCase()) &&
+        (filters["Model Type"] === "All Model Types" ||
+          item["Model Type"] === filters["Model Type"])
+      );
+    });
+  };
+  useEffect(() => {
+    setFormattedData(filterData(originalData, selectedFilters1));
+  }, [selectedFilters1, originalData]);
 
-  // const { loading: authLoading } = useRequireAuth();
-  // const [selectedModel1, setSelectedModel1] = useState(null);
-  // const [selectedModel2, setSelectedModel2] = useState(null);
-  // const [toggle, setToggle] = useState(false);
-  // const [originalData, setOriginalData] = useState(formatData(estimatedSOC));
-  // const [formattedData, setFormattedData] = useState(formatData(estimatedSOC));
-  // const [originalData2, setOriginalData2] = useState(formatData(estimatedSOC));
-  // const [formattedData2, setFormattedData2] = useState(formatData(estimatedSOC));
-  // useEffect(() => {
-  //   setOriginalData(formatData(estimatedSOC));
-  //   setFormattedData(formatData(estimatedSOC));
-  //   setOriginalData2(formatData(estimatedSOC));
-  //   setFormattedData2(formatData(estimatedSOC));
-  // }, [estimatedSOC]);
-  // if (authLoading) return <><StyledNavbar /><Container>Loading...</Container></>;
+  useEffect(() => {
+    setFormattedData2(filterData(originalData2, selectedFilters2));
+  }, [selectedFilters2, originalData2]);
+
+  if (loading)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">Loading...</div>
+      </>
+    );
+  if (error)
+    return (
+      <>
+        <StyledNavbar user={user} />
+        <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">Error: {error}</div>
+      </>
+    );
 
   return (
     <>
       <StyledNavbar user={user} />
 
-      <Container>
+      <div className="mx-auto max-w-7xl px-5 pt-4 pb-5">
         {/* Comparing two of the same model alert */}
         {submitted && selectedModel1 && selectedModel2 && selectedModel1 === selectedModel2 && (
-          <Alert variant="danger" dismissible onClose={() => setSubmitted(false)}>
-            Cannot compare two of the same models
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription className="flex flex-row items-center justify-between">
+              Cannot compare two of the same models
+              <button
+                type="button"
+                onClick={() => setSubmitted(false)}
+                className="text-current opacity-70 hover:opacity-100"
+              >
+                <IconX className="size-4" />
+              </button>
+            </AlertDescription>
           </Alert>
         )}
         {/* Only one model selected alert */}
         {submitted && (!selectedModel1 || !selectedModel2) && (
-          <Alert variant="danger" dismissible onClose={() => setSubmitted(false)}>
-            Must select more than one model type
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription className="flex flex-row items-center justify-between">
+              Must select more than one model type
+              <button
+                type="button"
+                onClick={() => setSubmitted(false)}
+                className="text-current opacity-70 hover:opacity-100"
+              >
+                <IconX className="size-4" />
+              </button>
+            </AlertDescription>
           </Alert>
         )}
 
         {/* Header with toggle to show/hide the graphical comparison */}
-        <FlexBox style={{ alignItems: "center", justifyContent: "space-between" }}>
-          <Title>Model Comparison</Title>
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-foreground">Model Comparison</h2>
           <Button
-            variant="outline-success"
+            variant="outline"
             onClick={() => {
               setSubmitted(true);
               if (selectedModel1 && selectedModel2 && selectedModel1 !== selectedModel2) {
@@ -257,7 +228,7 @@ useEffect(() => {
           >
             {toggle ? "Hide Graphical Comparison" : "Display Graphical Comparison"}
           </Button>
-        </FlexBox>
+        </div>
 
         {/* Chart component receives transformed metrics (metric name + values for both models)
             `isHidden` controls whether the chart is visible */}
@@ -269,36 +240,7 @@ useEffect(() => {
         />
 
         {/* Left side (Model 1) controls and table */}
-        <ModelNumber>Model 1</ModelNumber>
-        {/* Filters label */}
-        <FiltersLabel>Filters:</FiltersLabel>
-
-        {/* Filters items */}
-        <FlexBox>
-         <LabeledSelect
-  label="Filter by Author"
-  filter="Author"
-  value={selectedFilters1["Filter by Author"]}
-  options={["All Authors", ...uniqueUsernames]}
-  onFilterChange={handleFilterChange1}
-/>
-
-<LabeledSelect
-  label="Filter by Academic Affiliation"
-  filter="Institution"
-  value={selectedFilters1["Filter by Academic Affiliation"]}
-  options={["All Academic Affiliations", ...uniqueUniversities]}
-  onFilterChange={handleFilterChange1}
-/>
-
-<LabeledSelect
-  label="Model Type"
-  filter="Model Type"
-  value={selectedFilters1["Model Type"]}
-  options={modelTypes}
-  onFilterChange={handleFilterChange1}
-/>
-        </FlexBox>
+        <h3 className="mb-3 text-lg font-semibold text-foreground">Model 1</h3>
 
         <SelectableMetricsTable
           formattedData={formattedData}
@@ -306,39 +248,35 @@ useEffect(() => {
           headers={tableHeaders}
           selectedModel={selectedModel1}
           setSelectedModel={setSelectedModel1}
+          filters={
+            <>
+              <LabeledSearchInput
+                label="Filter by Author"
+                value={selectedFilters1["Filter by Author"]}
+                onChange={(value) => handleFilterChange1("Filter by Author", value)}
+                placeholder="Search authors..."
+              />
+              <LabeledSearchInput
+                label="Filter by Academic Affiliation"
+                value={selectedFilters1["Filter by Academic Affiliation"]}
+                onChange={(value) =>
+                  handleFilterChange1("Filter by Academic Affiliation", value)
+                }
+                placeholder="Search affiliations..."
+              />
+              <LabeledSelect
+                label="Model Type"
+                filter="Model Type"
+                value={selectedFilters1["Model Type"]}
+                options={modelTypes}
+                onFilterChange={handleFilterChange1}
+              />
+            </>
+          }
         />
 
         {/* Right side (Model 2) controls and table */}
-        <ModelNumber style={{ paddingTop: "24px" }}>Model 2</ModelNumber>
-
-        <FiltersLabel>Filters:</FiltersLabel>
-
-        {/* Filters Row */}
-        <FlexBox>
-        <LabeledSelect
-  label="Filter by Author"
-  filter="Author"
-  value={selectedFilters2["Filter by Author"]}
-  options={["All Authors", ...uniqueUsernames]}
-  onFilterChange={handleFilterChange2}
-/>
-
-<LabeledSelect
-  label="Filter by Academic Affiliation"
-  filter="Institution"
-  value={selectedFilters2["Filter by Academic Affiliation"]}
-  options={["All Academic Affiliations", ...uniqueUniversities]}
-  onFilterChange={handleFilterChange2}
-/>
-
-<LabeledSelect
-  label="Model Type"
-  filter="Model Type"
-  value={selectedFilters2["Model Type"]}
-  options={modelTypes}
-  onFilterChange={handleFilterChange2}
-/>
-        </FlexBox>
+        <h3 className="mt-6 mb-3 text-lg font-semibold text-foreground">Model 2</h3>
 
         <SelectableMetricsTable
           formattedData={formattedData2}
@@ -346,10 +284,35 @@ useEffect(() => {
           headers={tableHeaders}
           selectedModel={selectedModel2}
           setSelectedModel={setSelectedModel2}
+          filters={
+            <>
+              <LabeledSearchInput
+                label="Filter by Author"
+                value={selectedFilters2["Filter by Author"]}
+                onChange={(value) => handleFilterChange2("Filter by Author", value)}
+                placeholder="Search authors..."
+              />
+              <LabeledSearchInput
+                label="Filter by Academic Affiliation"
+                value={selectedFilters2["Filter by Academic Affiliation"]}
+                onChange={(value) =>
+                  handleFilterChange2("Filter by Academic Affiliation", value)
+                }
+                placeholder="Search affiliations..."
+              />
+              <LabeledSelect
+                label="Model Type"
+                filter="Model Type"
+                value={selectedFilters2["Model Type"]}
+                options={modelTypes}
+                onFilterChange={handleFilterChange2}
+              />
+            </>
+          }
         />
-      </Container>
+      </div>
     </>
   );
 };
 
-export default ModelComparison
+export default ModelComparison;

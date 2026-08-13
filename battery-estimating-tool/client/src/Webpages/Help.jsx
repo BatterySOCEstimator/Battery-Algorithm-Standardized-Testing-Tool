@@ -45,17 +45,19 @@ const Help = ({ user }) => {
       {/* Title */}
       <StyledNavbar user={user} />
 
-      <Container className="py-3">
-        <h2 className="mb-4">Help Center</h2>
+      <div className="bootstrap-scope">
+        <Container className="py-3">
+          <h2 className="mb-4">Help Center</h2>
 
-        {/* Render each help section as a list of topic links */}
-        {sections.map((section, index) => (
-          <HelpSection key={index} title={section.title} links={section.links} />
-        ))}
+          {/* Render each help section as a list of topic links */}
+          {sections.map((section, index) => (
+            <HelpSection key={index} title={section.title} links={section.links} />
+          ))}
 
-        {/* Render the selected help topic content */}
-        <Outlet />
-      </Container>
+          {/* Render the selected help topic content */}
+          <Outlet />
+        </Container>
+      </div>
     </>
   );
 };

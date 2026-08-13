@@ -53,6 +53,38 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 /**
+ * Middleware that attaches `req.user` when a valid session is present, but
+ * never blocks the request otherwise. For routes that must stay reachable
+ * by anonymous users (e.g. the public leaderboard) while still behaving
+ * differently for a logged-in user (e.g. including their own private rows).
+ *
+ * Unlike {@link requireAuth}, a missing or invalid session just leaves
+ * `req.user` unset and calls `next()` — it never responds with an error.
+ *
+ * @param req - Express request object. Headers are forwarded to the auth API for session lookup.
+ * @param res - Express response object (unused; present for middleware signature).
+ * @param next - Express next function, always called.
+ */
+export async function attachUserIfPresent(req: Request, res: Response, next: NextFunction) {
+  try {
+    const session = await auth.api.getSession({
+      headers: new Headers(req.headers as Record<string, string>)
+    });
+    if (session?.user) {
+      (req as any).user = session.user;
+    }
+  } catch (err) {
+    logger.warn('attachUserIfPresent - Session lookup failed, continuing unauthenticated', {
+      ip: req.ip,
+      method: req.method,
+      path: req.path,
+      err,
+    });
+  }
+  next();
+}
+
+/**
  * Middleware that blocks requests from banned or unauthenticated users.
  *
  * Expects `req.user` to be populated — apply {@link requireAuth} before this middleware.

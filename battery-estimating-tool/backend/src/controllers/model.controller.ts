@@ -9,6 +9,10 @@ import { sendEmail } from '@/services/email.service';
 import { logger } from '@/services/logger.service';
 import { runEvaluatorContainer } from '@/services/evaluator.service';
 
+// Shared with updateModel — keeps upload and edit enforcing the same limits.
+const MODEL_NAME_MAX_LENGTH = 50;
+const MODEL_DESCRIPTION_MAX_LENGTH = 1000;
+
 /**
  * Handles model file upload and registers the model in the database.
  *
@@ -34,6 +38,7 @@ import { runEvaluatorContainer } from '@/services/evaluator.service';
  *
  * @throws {400} If no files are uploaded.
  * @throws {400} If `name` or `description` are missing from the request body.
+ * @throws {400} If `name` exceeds {@link MODEL_NAME_MAX_LENGTH} or `description` exceeds {@link MODEL_DESCRIPTION_MAX_LENGTH} characters.
  * @throws {400} If `modelType` is provided but not a valid enum value.
  * @throws {401} If the request is not authenticated or `req.user.id` is missing.
  * @throws {500} If the database insert fails.
@@ -82,10 +87,22 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
-  // Check if name and description are provided 
+  // Check if name and description are provided
   if (!name || !description) {
     logger.warn('model/upload - Missing required fields', { name, description, userId, ip: req.ip });
     res.status(400).json({ error: 'name and description are required.' });
+    return;
+  }
+
+  // Enforce length limits
+  if (name.length > MODEL_NAME_MAX_LENGTH) {
+    logger.warn('model/upload - Name too long', { nameLength: name.length, userId, ip: req.ip });
+    res.status(400).json({ error: `name must be ${MODEL_NAME_MAX_LENGTH} characters or fewer.` });
+    return;
+  }
+  if (description.length > MODEL_DESCRIPTION_MAX_LENGTH) {
+    logger.warn('model/upload - Description too long', { descriptionLength: description.length, userId, ip: req.ip });
+    res.status(400).json({ error: `description must be ${MODEL_DESCRIPTION_MAX_LENGTH} characters or fewer.` });
     return;
   }
 
@@ -97,11 +114,17 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     return
   }
 
+  // Generate the storage directory name up front — a random UUID rather
+  // than the user-supplied `name` (not filesystem-safe) or the DB-assigned
+  // serial `id` (unknown until after insert). Known before the insert, so
+  // it can go in the same insert instead of needing an update afterward.
+  const storageId = crypto.randomUUID();
+
   // Store the directory path
   const modelDir = path.join(
     process.env.UPLOAD_DIR ?? './uploads',
     userId,
-    name,
+    storageId,
   );
 
   try {
@@ -117,6 +140,7 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
       isPrivate: isPrivate === 'true' || isPrivate === true,
       userId,
       modelType: modelType ?? 'Not Specified',
+      storageId,
       filePath: modelDir,
       zipFilePath,
       status: 'pending',
@@ -264,6 +288,138 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
     }
 
     res.status(500).json({ error: 'Failed to delete model.' });
+  }
+};
+
+/**
+ * Updates a model's title, description, type, and/or visibility by ID.
+ *
+ * Only the authenticated user who owns the model can update it. Any subset
+ * of the updatable fields may be provided in the request body — fields that
+ * are omitted are left unchanged.
+ *
+ * @param req - Express request object. Must include:
+ *   - `req.params.id` — Numeric ID of the model to update (required).
+ *   - `req.user.id` — ID of the authenticated user (set by auth middleware).
+ *   - `req.body.name` — New model name (optional).
+ *   - `req.body.description` — New model description (optional).
+ *   - `req.body.modelType` — New model type (optional). Must be one of the values in `modelTypeEnum` if provided.
+ *   - `req.body.isPrivate` — New visibility (optional).
+ * @param res - Express response object used to return JSON data or errors.
+ *
+ * @returns A JSON response containing:
+ * - `message`: Success message.
+ * - `model`: The updated model record.
+ *
+ * @throws {400} If `id` is not a valid number.
+ * @throws {400} If `modelType` is provided but not a valid enum value.
+ * @throws {400} If none of the updatable fields are provided.
+ * @throws {401} If the request is not authenticated or `req.user.id` is missing.
+ * @throws {404} If no model exists with the given ID owned by the authenticated user.
+ * @throws {500} If the database update fails.
+ *
+ * @remarks
+ * - Ownership is enforced by querying with both `id` and `userId` — users cannot update models they don't own.
+ * - Only the fields present in the request body are updated; omitted fields are left unchanged.
+ */
+export const updateModel = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as any).user?.id;
+
+  // Validate userId
+  if (!userId) {
+    logger.warn('model/update - Unauthorized request', { ip: req.ip, method: req.method, path: req.path });
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  // Parse and validate id
+  const id = parseInt(req.params.id as string, 10);
+  if (isNaN(id)) {
+    logger.warn('model/update - Invalid model ID', { id: req.params.id, userId, ip: req.ip });
+    res.status(400).json({ error: 'Invalid model ID.' });
+    return;
+  }
+
+  // Find the model with specified id owned by user
+  const [model] = await db
+    .select()
+    .from(models)
+    .where(and(eq(models.id, id), eq(models.userId, userId)))
+    .limit(1);
+
+  // If no model found
+  if (!model) {
+    logger.warn('model/update - Model not found', { modelId: id, userId, ip: req.ip });
+    res.status(404).json({ error: 'Model not found.' });
+    return;
+  }
+
+  const { name, description, modelType, isPrivate } = req.body;
+
+  // Validate modelType, if provided
+  const VALID_MODEL_TYPES = modelTypeEnum.enumValues;
+  type ModelType = typeof modelTypeEnum.enumValues[number];
+
+  if (modelType !== undefined && !VALID_MODEL_TYPES.includes(modelType as ModelType)) {
+    logger.warn('model/update - Invalid modelType', { modelType, modelId: id, userId, ip: req.ip });
+    res.status(400).json({ error: `modelType must be one of: ${VALID_MODEL_TYPES.join(', ')}` });
+    return;
+  }
+
+  // Enforce length limits, same as uploadModel, when the field is provided
+  if (name !== undefined && name.length > MODEL_NAME_MAX_LENGTH) {
+    logger.warn('model/update - Name too long', { nameLength: name.length, modelId: id, userId, ip: req.ip });
+    res.status(400).json({ error: `name must be ${MODEL_NAME_MAX_LENGTH} characters or fewer.` });
+    return;
+  }
+  if (description !== undefined && description.length > MODEL_DESCRIPTION_MAX_LENGTH) {
+    logger.warn('model/update - Description too long', { descriptionLength: description.length, modelId: id, userId, ip: req.ip });
+    res.status(400).json({ error: `description must be ${MODEL_DESCRIPTION_MAX_LENGTH} characters or fewer.` });
+    return;
+  }
+
+  // Only touch fields that were actually provided — everything else on the
+  // model stays as-is.
+  const updates: Partial<typeof models.$inferInsert> = {};
+  if (name !== undefined) updates.name = name;
+  if (description !== undefined) updates.description = description;
+  if (modelType !== undefined) updates.modelType = modelType;
+  if (isPrivate !== undefined) updates.isPrivate = isPrivate === 'true' || isPrivate === true;
+
+  if (Object.keys(updates).length === 0) {
+    logger.warn('model/update - No updatable fields provided', { modelId: id, userId, ip: req.ip });
+    res.status(400).json({ error: 'No updatable fields provided.' });
+    return;
+  }
+
+  // Build a message naming the model and exactly what changed, e.g.
+  // "Test Coulomb Counter: name, description updated successfully" or
+  // "Test Coulomb Counter: Visibility set to private" — used for both the
+  // success log and the response. Visibility gets its own phrasing since
+  // "set to private/public" reads more naturally than "visibility updated".
+  const updatedFields = Object.keys(updates).filter((field) => field !== 'isPrivate');
+  const messageParts: string[] = [];
+  if (updatedFields.length > 0) {
+    messageParts.push(`${updatedFields.join(', ')} updated successfully`);
+  }
+  if ('isPrivate' in updates) {
+    messageParts.push(`Visibility set to ${updates.isPrivate ? 'private' : 'public'}`);
+  }
+  const successMessage = `${model.name}: ${messageParts.join(', ')}`;
+
+  try {
+    // Update model in db
+    const [updated] = await db
+      .update(models)
+      .set(updates)
+      .where(eq(models.id, id))
+      .returning();
+
+    logger.info(`model/update - ${successMessage}`, { modelId: id, userId, updatedFields: Object.keys(updates) });
+    res.status(200).json({ message: successMessage, model: updated });
+  } catch (err) {
+    logger.error('model/update - Failed to update model', { err, modelId: id, userId, ip: req.ip });
+    res.status(500).json({ error: 'Failed to update model.' });
   }
 };
 

@@ -1,4 +1,4 @@
-import { deleteModel, downloadFile, downloadTrainingData, test, uploadModel } from "@/controllers/model.controller";
+import { deleteModel, downloadFile, downloadTrainingData, test, updateModel, uploadModel } from "@/controllers/model.controller";
 import { checkModelNameUnique, uploadMiddleware } from "@/middleware/model.middleware";
 import { requireAuth, checkBanStatus, requireRole } from "@/middleware/auth.middleware";
 
@@ -14,10 +14,16 @@ router.post('/upload',
     uploadModel             // Actual controller function
 );
 
-router.delete("/delete/:id", 
+router.delete("/delete/:id",
     requireAuth,         // Require authentication -- may need to comment out for testing
     checkBanStatus,      // Check if user is banned -- may need to comment out for testing
     deleteModel          // Actual controller function
+);
+
+router.patch("/update/:id",
+    requireAuth,         // Require authentication -- may need to comment out for testing
+    checkBanStatus,      // Check if user is banned -- may need to comment out for testing
+    updateModel          // Actual controller function
 );
 
 router.get("/download/:token", 

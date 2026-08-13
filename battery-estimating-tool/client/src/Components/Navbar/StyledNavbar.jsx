@@ -1,71 +1,108 @@
-// Bootstrap and router primitives used to build the responsive top navigation
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import Button from 'react-bootstrap/esm/Button';
-import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { getUserInfo, logout } from '../../auth-client.ts';
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { IconMenu2, IconX } from "@tabler/icons-react";
+
+import { logout } from "../../auth-client.ts";
+import { Button, buttonVariants } from "#Components/ui/button";
+import { Avatar, AvatarFallback } from "#Components/ui/avatar";
+import { cn } from "#Constants/cn";
+
+const NAV_LINKS = [
+  { to: "/leaderboard", label: "Leaderboard" },
+  { to: "/model-comparison", label: "Model Comparison" },
+  { to: "/submit-model", label: "Submit Model" },
+  { to: "/submissions", label: "View Submissions" },
+  { to: "/help", label: "Help" },
+];
 
 const StyledNavbar = ({ user }) => {
-
-  // const [user, setUser] = useState(null);
-
-  // useEffect(() => {
-  //   getUserInfo().then(setUser);
-  // }, []);
+  const [open, setOpen] = useState(false);
 
   return (
-    // container for top navbar includes background and size settings
-    <Navbar bg="dark" expand="lg" data-bs-theme="dark">
-      <Container>
-        {/* BatterySOCBenchmark */}
-        <Navbar.Brand href="/">BatterySOCBenchmark</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
+    <nav className="dark border-b border-border bg-background text-foreground">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3">
+        <a href="/" className="shrink-0 text-xl font-semibold text-foreground! no-underline!">
+          BatterySOCBenchmark
+        </a>
 
-            <Nav.Link as={Link} to="/leaderboard">Leaderboard</Nav.Link>
-            <Nav.Link as={Link} to="/model-comparison">Model Comparison</Nav.Link>
-            <Nav.Link as={Link} to="/submit-model">Submit Model</Nav.Link>
-            <Nav.Link as={Link} to="/submissions">View Submissions</Nav.Link>
-            <Nav.Link as={Link} to="/help">Help</Nav.Link>
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-lg p-2 text-foreground hover:bg-muted lg:hidden"
+          aria-controls="basic-navbar-nav"
+          aria-expanded={open}
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          {open ? <IconX className="size-6" /> : <IconMenu2 className="size-6" />}
+        </button>
 
-            {/* <NavDropdown title="Dropdown" id="basic-nav-dropdown">
-              <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.2">
-                Another action
-              </NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="#action/3.4">
-                Separated link
-              </NavDropdown.Item>
-            </NavDropdown> */}
-          </Nav>
-          {user ? (
-            // When a user is present show avatar initials, name and logout
-            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-              <div
-                className="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center p-0"
-                style={{ width: "36px", height: "36px", fontSize: "14px", fontWeight: "600", flexShrink: 0 }}
+        <div
+          id="basic-navbar-nav"
+          className={cn(
+            "w-full flex-col gap-4 lg:w-auto lg:flex-1 lg:flex-row lg:items-center lg:justify-between lg:gap-6",
+            open ? "flex" : "hidden",
+            "lg:flex"
+          )}
+        >
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-6">
+            {NAV_LINKS.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  cn(
+                    "text-base font-medium text-foreground/70! no-underline! hover:text-foreground!",
+                    isActive && "text-primary! hover:text-primary!"
+                  )
+                }
               >
-                {user.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
-              </div>
-              <span className="text-white fw-medium">{user.name}</span>
-              <Button variant="outline-light" size="sm" onClick={logout}>Logout</Button>
+                {label}
+              </NavLink>
+            ))}
+          </div>
+
+          {user ? (
+            <div className="flex items-center gap-2">
+              <Avatar className="size-10">
+                <AvatarFallback className="bg-muted-foreground text-background">
+                  {user.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-base font-medium">{user.name}</span>
+              <Button variant="outline" onClick={logout}>
+                Logout
+              </Button>
             </div>
           ) : (
-            // Guest actions: register or login
-            <>
-              <Button href="/registration" variant="outline-success">Register</Button>
-              <Button style={{ marginLeft: "8px" }} href="/login" variant="light">Login</Button>
-            </>
+            <div className="flex items-center gap-2">
+              <a
+                href="/registration"
+                className={cn(
+                  buttonVariants({ variant: "default" }),
+                  "text-primary-foreground! no-underline!"
+                )}
+              >
+                Register
+              </a>
+              <a
+                href="/login"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "text-foreground! no-underline!"
+                )}
+              >
+                Login
+              </a>
+            </div>
           )}
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+        </div>
+      </div>
+    </nav>
   );
-}
+};
 
 export default StyledNavbar;
