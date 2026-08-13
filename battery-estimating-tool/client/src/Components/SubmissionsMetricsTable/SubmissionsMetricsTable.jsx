@@ -62,7 +62,7 @@ const SubmissionsMetricsTable = ({
     [headers],
   );
 
-  const HIDDEN_BY_DEFAULT = ["Status", "Submission", "Visibility"];
+  const HIDDEN_BY_DEFAULT = ["Submission", "Visibility"];
 
   const [columnVisibility, setColumnVisibility] = useState(() => {
     const initial = {};
