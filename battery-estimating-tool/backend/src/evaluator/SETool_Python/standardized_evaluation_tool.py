@@ -5,8 +5,9 @@ CLI entry point for processing a single battery SOC estimation model submission.
 Usage:
     python standardized_evaluation_tool.py "uploads/user1/TestModel"
 
-The path argument points to a directory that contains the submitted .zip file
-(and nothing else, or at least one .zip).  The tool will:
+The path argument points to a submission directory containing a `model/`
+subdirectory with the submitted .zip file (and nothing else, or at least one
+.zip in `model/`). The tool will:
   1. Validate and evaluate the model.
   2. On success – write results.zip to
          <submission_path>/results/results.zip
@@ -81,12 +82,14 @@ def main():
     if not os.path.isdir(submission_path):
         _fail(f"Submission path does not exist or is not a directory: {submission_path}")
         
-    # Locate the zip file
-    zip_files = glob.glob(os.path.join(submission_path, "*.zip"))
+    # Locate the zip file — the model itself lives in a "model" subdirectory,
+    # a sibling of the "results" directory this tool writes output to.
+    model_dir = os.path.join(submission_path, "model")
+    zip_files = glob.glob(os.path.join(model_dir, "*.zip"))
     if not zip_files:
-        _fail(f"No .zip file found in submission directory: {submission_path}")
+        _fail(f"No .zip file found in model directory: {model_dir}")
     if len(zip_files) > 1:
-        _fail(f"Multiple .zip files found in submission directory – expected exactly one: {submission_path}")
+        _fail(f"Multiple .zip files found in model directory – expected exactly one: {model_dir}")
     
     zip_path = zip_files[0]
     

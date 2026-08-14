@@ -11,6 +11,7 @@
 import "dotenv/config";
 import crypto from "crypto";
 import path from "path";
+import fs from "fs/promises";
 import { db } from "@/db/index";
 import { models } from "@/db/schema";
 
@@ -23,10 +24,12 @@ if (!userId) {
 
 function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
   // Each entry below has a placeholder filePath ("./uploads/test") since
-  // there's no real uploaded file to point at. Map in a real storageId and
-  // matching filePath (same uploads/{userId}/{storageId} convention as the
-  // actual upload flow) so these rows pass deleteModel's path-traversal
-  // guard instead of always failing it as "suspicious".
+  // there's no real uploaded file to point at yet. Map in a real storageId,
+  // filePath, zipFilePath/resultsPath, status and download tokens (same
+  // uploads/{userId}/{storageId}/{model,results} convention as the actual
+  // upload + evaluation flow) so these rows pass deleteModel's path-traversal
+  // guard and the Submissions page's download buttons actually work — see
+  // writeSeedFiles, which creates real (empty) zips at those paths.
   const rawModels: Omit<typeof models.$inferInsert, "storageId">[] = [
     {
       name: "EKF Battery SOC Estimator",
@@ -809,12 +812,50 @@ function generateSeedModels(userId: string): (typeof models.$inferInsert)[] {
 
   return rawModels.map((model) => {
     const storageId = crypto.randomUUID();
+    const filePath = path.join(process.env.UPLOAD_DIR ?? "./uploads", userId, storageId);
+    const zipFilePath = path.join(filePath, "model", "model.zip");
+
+    // Only "ready" (already-evaluated) rows get results + download tokens —
+    // matches the real lifecycle, where results only exist once evaluation
+    // has actually completed.
+    const ready = model.alreadyEvaluated === true;
+
     return {
       ...model,
       storageId,
-      filePath: path.join(process.env.UPLOAD_DIR ?? "./uploads", userId, storageId),
+      filePath,
+      zipFilePath,
+      status: ready ? "ready" as const : "pending" as const,
+      ...(ready && {
+        resultsPath: path.join(filePath, "results", "results.zip"),
+        modelFileToken: crypto.randomUUID(),
+        resultsFileToken: crypto.randomUUID(),
+      }),
     };
   });
+}
+
+// A minimal valid (empty) zip archive — just enough for `model.zip` /
+// `results.zip` to actually exist on disk and be downloadable, matching the
+// uploads/{userId}/{storageId}/model/ and .../results/ layout the real
+// upload + evaluation flow writes to.
+const EMPTY_ZIP = Buffer.from([
+  0x50, 0x4b, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00,
+]);
+
+async function writeSeedFiles(seedModels: (typeof models.$inferInsert)[]) {
+  for (const model of seedModels) {
+    if (model.zipFilePath) {
+      await fs.mkdir(path.dirname(model.zipFilePath), { recursive: true });
+      await fs.writeFile(model.zipFilePath, EMPTY_ZIP);
+    }
+    if (model.resultsPath) {
+      await fs.mkdir(path.dirname(model.resultsPath), { recursive: true });
+      await fs.writeFile(model.resultsPath, EMPTY_ZIP);
+    }
+  }
 }
 
 async function seed() {
@@ -822,6 +863,9 @@ async function seed() {
   console.log(`Using userId: ${userId}`);
 
   const seedModels = generateSeedModels(userId);
+
+  console.log("Writing placeholder model/results zips...");
+  await writeSeedFiles(seedModels);
 
   console.log(`Inserting ${seedModels.length} models...`);
   const inserted = await db

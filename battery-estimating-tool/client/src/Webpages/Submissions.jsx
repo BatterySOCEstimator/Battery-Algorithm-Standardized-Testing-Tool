@@ -33,9 +33,13 @@ const formatData = (data) => {
       obj[col] = value ?? "-";
     });
 
-    // Not a visible table column, but the edit dialog needs the model's
-    // actual current description to pre-populate its field.
+    // Not visible table columns, but the row actions menu needs these:
+    // the edit dialog needs the model's actual current description to
+    // pre-populate its field, and the download tokens back the Download
+    // Model / Download Results links (only usable once Status is "ready").
     obj.Description = row.description ?? "";
+    obj.ModelFileToken = row.modelFileToken ?? null;
+    obj.ResultsFileToken = row.resultsFileToken ?? null;
 
     return obj;
   });

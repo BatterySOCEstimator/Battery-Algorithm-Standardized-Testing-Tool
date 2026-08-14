@@ -144,7 +144,8 @@ def run_evaluation(processing_folder, submission_dir, data, rootfolder, config, 
     # ---- Save Results ----
     # Bundle results into a zip and write to the canonical output path
     #    <submission_dir>/results/results.zip
-    #    (submission_dir is already  uploads/<userId>/<modelName>)
+    #    (submission_dir is uploads/<userId>/<storageId>, sibling of the
+    #    submission_dir/model directory the .zip was found in)
     results_dir = os.path.join(submission_dir, "results")
     os.makedirs(results_dir, exist_ok=True)
     results_zip_path = os.path.join(results_dir, "results.zip")

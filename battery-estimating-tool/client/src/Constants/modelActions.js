@@ -81,3 +81,31 @@ export function deleteModel(id) {
     { successTitle: "Submission deleted", actionLabel: "Delete" },
   );
 }
+
+// Downloads a model/results file without navigating away or opening a new
+// tab: fetches it as a Blob and saves it via a throwaway <a download> click
+// (same technique as Constants/csv.js's downloadCsv), then revokes the
+// object URL. GET /api/model/download/:token doesn't require auth, but a
+// plain <a href> or window.open would either navigate the page or leave a
+// blank tab behind — this stays entirely on the current page.
+export async function downloadModelFile(token, filename) {
+  try {
+    const response = await fetch(`/api/model/download/${token}`);
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(extractErrorMessage(text, response.status));
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    toastManager.add({ type: "error", title: "Download failed", description: error.message });
+  }
+}

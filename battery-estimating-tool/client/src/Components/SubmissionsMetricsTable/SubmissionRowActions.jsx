@@ -5,6 +5,8 @@ import {
   IconPencil,
   IconTrash,
   IconAlertTriangle,
+  IconFileZip,
+  IconChartBar,
 } from "@tabler/icons-react";
 
 import { Button } from "#Components/ui/button";
@@ -34,7 +36,12 @@ import {
   MODEL_NAME_MAX_LENGTH,
   MODEL_DESCRIPTION_MAX_LENGTH,
 } from "../../Constants/Helperfunc.js";
-import { updateModel, deleteModel } from "#Constants/modelActions";
+import { updateModel, deleteModel, downloadModelFile } from "#Constants/modelActions";
+
+// Strip characters that aren't safe in a filename across OSes, so the
+// downloaded file is still named after the model even if its display name
+// has slashes, colons, etc. in it.
+const sanitizeFilename = (name) => name.replace(/[\\/:*?"<>|]/g, "_").trim() || "model";
 
 // Per-row "..." actions menu for the submissions table: toggle privacy,
 // edit the model's basic info, or delete it. Each action calls its real
@@ -98,6 +105,11 @@ const SubmissionRowActions = ({ row, onRowUpdate, onRowDelete }) => {
     if (success) onRowDelete(row.Submission);
   };
 
+  // Only available once evaluation has actually produced a model + results
+  // to download.
+  const canDownload = row.Status === "ready";
+  const downloadName = sanitizeFilename(row["Model Name"] ?? "model");
+
   // Opening a Dialog from a DropdownMenuItem's onSelect, in the same tick
   // the menu closes, can get its own "outside click" dismissed by the
   // menu's own close handling. Deferring to the next macrotask lets the
@@ -127,6 +139,21 @@ const SubmissionRowActions = ({ row, onRowUpdate, onRowDelete }) => {
             <IconPencil className="h-4 w-4" />
             Edit
           </DropdownMenuItem>
+          {canDownload && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => downloadModelFile(row.ModelFileToken, `${downloadName}.zip`)}>
+                <IconFileZip className="h-4 w-4" />
+                Download Model
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => downloadModelFile(row.ResultsFileToken, `${downloadName}-results.zip`)}
+              >
+                <IconChartBar className="h-4 w-4" />
+                Download Results
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"

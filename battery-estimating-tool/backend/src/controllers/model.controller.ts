@@ -44,7 +44,8 @@ const MODEL_DESCRIPTION_MAX_LENGTH = 1000;
  * @throws {500} If the database insert fails.
  *
  * @remarks
- * - The model's `filePath` is set to a directory under `UPLOAD_DIR/{userId}/{name}`.
+ * - The model's `filePath` is set to a directory under `UPLOAD_DIR/{userId}/{storageId}`,
+ *   with the uploaded file itself under that directory's `model/` subfolder.
  * - The model's initial `status` is always `"pending"`.
  * - A confirmation email is sent to the user on both success and failure.
  */
@@ -133,8 +134,10 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
 
   try {
 
-    // Path to actual zip file
-    const relativeZipFilePath = path.join(modelDir, modelFileName);
+    // Multer wrote the file under modelDir/model (see model.middleware.ts's
+    // storage.destination) — the evaluator writes results/ as a sibling of
+    // that within modelDir, so modelDir itself stays the storageId root.
+    const relativeZipFilePath = path.join(modelDir, 'model', modelFileName);
     const zipFilePath = path.resolve(relativeZipFilePath);
 
     // Insert new model in DB
