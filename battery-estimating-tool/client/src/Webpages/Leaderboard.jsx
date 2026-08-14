@@ -11,6 +11,7 @@ import { Checkbox } from "#Components/ui/checkbox";
 import { Label } from "#Components/ui/label";
 import { Tooltip, TooltipTrigger, TooltipContent } from "#Components/ui/tooltip";
 import { IconHelpCircle } from "@tabler/icons-react";
+import useHiddenModels from "../Hooks/useHiddenModels";
 
 // EXPOSED FUNCTIONS FOR TESTING
 import {
@@ -77,6 +78,11 @@ const Leaderboard = ({ user }) => {
   // private ones) but hidden from the table/downloads unless this is on.
   const [showPrivate, setShowPrivate] = useState(false);
 
+  // Personal "hide this model from my view" preference (device-local, not
+  // server-side) — shared with the Submissions page via the same storage.
+  const { hiddenIds, hideModel, unhideModel } = useHiddenModels();
+  const [showHidden, setShowHidden] = useState(false);
+
   const handleFilterChange = (label, value) => {
     setSelectedFilters((prev) => ({
       ...prev,
@@ -116,6 +122,7 @@ const Leaderboard = ({ user }) => {
     const filtered = originalData.filter((item) => {
       return (
         (showPrivate || item.Visibility !== "Private") &&
+        (showHidden || !hiddenIds.has(item.Submission)) &&
         (item.Author ?? "")
           .toLowerCase()
           .includes(selectedFilters["Filter by Author"].toLowerCase()) &&
@@ -130,7 +137,7 @@ const Leaderboard = ({ user }) => {
     });
 
     setFormattedData(filtered);
-  }, [selectedFilters, originalData, showPrivate]);
+  }, [selectedFilters, originalData, showPrivate, showHidden, hiddenIds]);
 
   // Display loading state while data is being fetched
   if (loading)
@@ -174,6 +181,11 @@ const Leaderboard = ({ user }) => {
           setFormattedData={setFormattedData}
           originalData={originalData}
           showPrivate={showPrivate}
+          hiddenIds={hiddenIds}
+          onHideRow={hideModel}
+          onUnhideRow={unhideModel}
+          showHidden={showHidden}
+          onToggleShowHidden={() => setShowHidden((prev) => !prev)}
           filters={
             <>
               <LabeledSearchInput

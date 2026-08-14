@@ -4,6 +4,7 @@ import LabeledSearchInput from "../Components/LabeledSearchInput/LabeledSearchIn
 import SubmissionsMetricsTable from "../Components/SubmissionsMetricsTable/SubmissionsMetricsTable";
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import useRequireAuth from "../Hooks/useRequireAuth";
+import useHiddenModels from "../Hooks/useHiddenModels";
 import { modelTypes, submissionsColumns, columnKeyMap } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 // Auth helper to obtain current user information
@@ -33,11 +34,10 @@ const formatData = (data) => {
       obj[col] = value ?? "-";
     });
 
-    // Not visible table columns, but the row actions menu needs these:
-    // the edit dialog needs the model's actual current description to
-    // pre-populate its field, and the download tokens back the Download
-    // Model / Download Results links (only usable once Status is "ready").
-    obj.Description = row.description ?? "";
+    // Not a visible table column, but the row actions menu needs these to
+    // back the Download Model / Download Results links (only usable once
+    // Status is "ready"). Description is now a real column (see the loop
+    // above), so the edit dialog already gets it from there.
     obj.ModelFileToken = row.modelFileToken ?? null;
     obj.ResultsFileToken = row.resultsFileToken ?? null;
 
@@ -48,6 +48,11 @@ const formatData = (data) => {
 const Submissions = ({ user }) => {
   // Wait for authentication check before showing user data
   const { loading: authLoading } = useRequireAuth();
+
+  // Personal "hide this model from my view" preference (device-local, not
+  // server-side) — shared with the Leaderboard page via the same storage.
+  const { hiddenIds, hideModel, unhideModel } = useHiddenModels();
+  const [showHidden, setShowHidden] = useState(false);
 
   // Store both the raw formatted dataset and the currently displayed dataset
   const [originalData, setOriginalData] = useState([]);
@@ -127,6 +132,7 @@ const Submissions = ({ user }) => {
     if (!originalData) return;
     const filtered = originalData.filter((item) => {
       return (
+        (showHidden || !hiddenIds.has(item.Submission)) &&
         (item["Model Name"] ?? "")
           .toLowerCase()
           .includes(selectedFilters["Title"].toLowerCase()) &&
@@ -138,7 +144,7 @@ const Submissions = ({ user }) => {
     });
 
     setFormattedData(filtered);
-  }, [selectedFilters, originalData]);
+  }, [selectedFilters, originalData, showHidden, hiddenIds]);
 
   // Top-level states: loading, authPending or error
   if (loading)
@@ -180,6 +186,11 @@ const Submissions = ({ user }) => {
           onRowUpdate={handleRowUpdate}
           onRowDelete={handleRowDelete}
           originalData={originalData}
+          hiddenIds={hiddenIds}
+          onHideRow={hideModel}
+          onUnhideRow={unhideModel}
+          showHidden={showHidden}
+          onToggleShowHidden={() => setShowHidden((prev) => !prev)}
           filters={
             <>
               <LabeledSearchInput

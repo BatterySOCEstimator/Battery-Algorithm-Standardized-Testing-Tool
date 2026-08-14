@@ -12,6 +12,12 @@ import { Button } from "#Components/ui/button";
 import { Card } from "#Components/ui/card";
 import ColumnsMenu from "../ColumnsMenu/ColumnsMenu";
 import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "#Components/ui/context-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -36,6 +42,8 @@ import {
   IconTable,
   IconDatabase,
   IconChevronRight,
+  IconEye,
+  IconEyeOff,
 } from "@tabler/icons-react";
 
 const PAGE_SIZES = [10, 25, 50, 100];
@@ -52,6 +60,11 @@ const SubmissionsMetricsTable = ({
   originalData,
   onRowUpdate,
   onRowDelete,
+  hiddenIds,
+  onHideRow,
+  onUnhideRow,
+  showHidden,
+  onToggleShowHidden,
 }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
@@ -139,12 +152,19 @@ const SubmissionsMetricsTable = ({
 
   // Short headers stay compact; headers with more words get a wider column
   // so their text still wraps to only a couple of lines instead of many.
+  // Description is free text and can run long, so it gets its own wider,
+  // truncated (not wrapped) treatment instead.
   const getHeaderWidthClass = (col) => {
+    if (col === "Description") return "max-w-60";
     const wordCount = col.split(" ").length;
     if (wordCount >= 4) return "max-w-40";
     if (wordCount === 3) return "max-w-40";
     return "max-w-28";
   };
+
+  // How many of the models this table would otherwise show are currently
+  // hidden — shown as a count on the "Show Hidden" toggle.
+  const hiddenCount = (originalData ?? []).filter((row) => hiddenIds?.has(row.Submission)).length;
 
   const getSortIcon = (col) => {
     if (sortConfig.key !== col)
@@ -238,6 +258,16 @@ const SubmissionsMetricsTable = ({
             visibility={columnVisibility}
             onVisibilityChange={setColumnVisibility}
           />
+
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={onToggleShowHidden}>
+            {showHidden ? (
+              <IconEye className="h-4 w-4" />
+            ) : (
+              <IconEyeOff className="h-4 w-4" />
+            )}
+            {showHidden ? "Showing Hidden" : "Show Hidden"}
+            {hiddenCount > 0 && ` (${hiddenCount})`}
+          </Button>
         </div>
       </div>
 
@@ -276,30 +306,65 @@ const SubmissionsMetricsTable = ({
                 ))}
               </TableRow>
             ) : (
-              pagedData.map((row) => (
-                // Keyed by the model's own id, not page position — a stable
-                // key here matters because SubmissionRowActions seeds its
-                // edit-form fields from `row` only once, on mount. A
-                // position-based key let a reordered/filtered row (e.g.
-                // after toggling privacy) reuse another model's component
-                // instance and show stale edit data for the wrong model.
-                <TableRow key={row.Submission}>
-                  <TableCell className="text-center">
-                    <SubmissionRowActions
-                      row={row}
-                      onRowUpdate={onRowUpdate}
-                      onRowDelete={onRowDelete}
-                    />
-                  </TableCell>
-                  {visibleHeaders.map((col) => (
-                    <TableCell key={col} className="text-center">
-                      {col === "Submitted At"
-                        ? (row["Submitted at"] ?? "-")
-                        : (row[col] ?? "-")}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              pagedData.map((row) => {
+                const rowHidden = hiddenIds?.has(row.Submission);
+                return (
+                  // Keyed by the model's own id, not page position — a stable
+                  // key here matters because SubmissionRowActions seeds its
+                  // edit-form fields from `row` only once, on mount. A
+                  // position-based key let a reordered/filtered row (e.g.
+                  // after toggling privacy) reuse another model's component
+                  // instance and show stale edit data for the wrong model.
+                  <ContextMenu key={row.Submission}>
+                    <ContextMenuTrigger
+                      render={
+                        <tr
+                          data-slot="table-row"
+                          className={cn(
+                            "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+                            rowHidden && "opacity-50",
+                          )}
+                        />
+                      }
+                    >
+                      <TableCell className="text-center">
+                        <SubmissionRowActions
+                          row={row}
+                          onRowUpdate={onRowUpdate}
+                          onRowDelete={onRowDelete}
+                        />
+                      </TableCell>
+                      {visibleHeaders.map((col) => (
+                        <TableCell
+                          key={col}
+                          title={col === "Description" ? row[col] : undefined}
+                          className={cn(
+                            "text-center",
+                            col === "Description" && "max-w-60 truncate text-left",
+                          )}
+                        >
+                          {col === "Submitted At"
+                            ? (row["Submitted at"] ?? "-")
+                            : (row[col] ?? "-")}
+                        </TableCell>
+                      ))}
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      {rowHidden ? (
+                        <ContextMenuItem onClick={() => onUnhideRow(row.Submission)}>
+                          <IconEye className="h-4 w-4" />
+                          Unhide
+                        </ContextMenuItem>
+                      ) : (
+                        <ContextMenuItem onClick={() => onHideRow(row.Submission)}>
+                          <IconEyeOff className="h-4 w-4" />
+                          Hide
+                        </ContextMenuItem>
+                      )}
+                    </ContextMenuContent>
+                  </ContextMenu>
+                );
+              })
             )}
           </TableBody>
         </Table>

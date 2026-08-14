@@ -12,6 +12,12 @@ import { Button } from "#Components/ui/button";
 import { Card } from "#Components/ui/card";
 import ColumnsMenu from "../ColumnsMenu/ColumnsMenu";
 import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "#Components/ui/context-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -35,6 +41,8 @@ import {
   IconTable,
   IconDatabase,
   IconChevronRight,
+  IconEye,
+  IconEyeOff,
 } from "@tabler/icons-react";
 
 const PAGE_SIZES = [10, 25, 50, 100];
@@ -57,6 +65,11 @@ const LeaderBoardMetricsTable = ({
   filters,
   originalData,
   showPrivate,
+  hiddenIds,
+  onHideRow,
+  onUnhideRow,
+  showHidden,
+  onToggleShowHidden,
 }) => {
   const [sortConfig, setSortConfig] = useState({
     key: "Weighted Error",
@@ -153,12 +166,19 @@ const LeaderBoardMetricsTable = ({
 
   // Short headers stay compact; headers with more words get a wider column
   // so their text still wraps to only a couple of lines instead of many.
+  // Description is free text and can run long, so it gets its own wider,
+  // truncated (not wrapped) treatment instead.
   const getHeaderWidthClass = (col) => {
+    if (col === "Description") return "max-w-60";
     const wordCount = col.split(" ").length;
     if (wordCount >= 4) return "max-w-40";
     if (wordCount === 3) return "max-w-40";
     return "max-w-28";
   };
+
+  // How many of the models this table would otherwise show are currently
+  // hidden — shown as a count on the "Show Hidden" toggle.
+  const hiddenCount = (originalData ?? []).filter((row) => hiddenIds?.has(row.Submission)).length;
 
   const getSortIcon = (col) => {
     if (sortConfig.key !== col)
@@ -261,6 +281,16 @@ const LeaderBoardMetricsTable = ({
             visibility={columnVisibility}
             onVisibilityChange={setColumnVisibility}
           />
+
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={onToggleShowHidden}>
+            {showHidden ? (
+              <IconEye className="h-4 w-4" />
+            ) : (
+              <IconEyeOff className="h-4 w-4" />
+            )}
+            {showHidden ? "Showing Hidden" : "Show Hidden"}
+            {hiddenCount > 0 && ` (${hiddenCount})`}
+          </Button>
         </div>
       </div>
 
@@ -310,41 +340,69 @@ const LeaderBoardMetricsTable = ({
                 ))}
               </TableRow>
             ) : (
-              pagedData.map((row, index) => (
-                <TableRow
-                  key={page * pageSize + index}
-                  className={cn(row.Visibility === "Private" && "bg-amber-500/10")}
-                >
-                  {visibleHeaders.map((col) => (
-                    <TableCell
-                      key={col}
-                      className={cn(
-                        "text-center",
-                        col === "Ranking" && RANKING_COLUMN_CLASSES,
-                      )}
+              pagedData.map((row) => {
+                const rowHidden = hiddenIds?.has(row.Submission);
+                return (
+                  <ContextMenu key={row.Submission}>
+                    <ContextMenuTrigger
+                      render={
+                        <tr
+                          data-slot="table-row"
+                          className={cn(
+                            "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+                            row.Visibility === "Private" && "bg-amber-500/10",
+                            rowHidden && "opacity-50",
+                          )}
+                        />
+                      }
                     >
-                      {col === "Ranking" ? (
-                        MEDAL_STYLES[row.Ranking] ? (
-                          <span
-                            className={cn(
-                              "inline-flex size-6 items-center justify-center rounded-full text-xs font-semibold",
-                              MEDAL_STYLES[row.Ranking],
-                            )}
-                          >
-                            {row.Ranking}
-                          </span>
-                        ) : (
-                          <span className="text-sm font-medium">{row.Ranking}</span>
-                        )
-                      ) : col === "Submitted" ? (
-                        row["Submitted at"]?.split(",")[0]
+                      {visibleHeaders.map((col) => (
+                        <TableCell
+                          key={col}
+                          title={col === "Description" ? row[col] : undefined}
+                          className={cn(
+                            "text-center",
+                            col === "Ranking" && RANKING_COLUMN_CLASSES,
+                            col === "Description" && "max-w-60 truncate text-left",
+                          )}
+                        >
+                          {col === "Ranking" ? (
+                            MEDAL_STYLES[row.Ranking] ? (
+                              <span
+                                className={cn(
+                                  "inline-flex size-6 items-center justify-center rounded-full text-xs font-semibold",
+                                  MEDAL_STYLES[row.Ranking],
+                                )}
+                              >
+                                {row.Ranking}
+                              </span>
+                            ) : (
+                              <span className="text-sm font-medium">{row.Ranking}</span>
+                            )
+                          ) : col === "Submitted" ? (
+                            row["Submitted at"]?.split(",")[0]
+                          ) : (
+                            (row[col] ?? "-")
+                          )}
+                        </TableCell>
+                      ))}
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      {rowHidden ? (
+                        <ContextMenuItem onClick={() => onUnhideRow(row.Submission)}>
+                          <IconEye className="h-4 w-4" />
+                          Unhide
+                        </ContextMenuItem>
                       ) : (
-                        (row[col] ?? "-")
+                        <ContextMenuItem onClick={() => onHideRow(row.Submission)}>
+                          <IconEyeOff className="h-4 w-4" />
+                          Hide
+                        </ContextMenuItem>
                       )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+                    </ContextMenuContent>
+                  </ContextMenu>
+                );
+              })
             )}
           </TableBody>
         </Table>

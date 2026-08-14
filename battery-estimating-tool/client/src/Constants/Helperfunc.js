@@ -53,7 +53,8 @@ export const columns = [
   'Current Sensor Offset Error',
   'All Drive Cycles Average RMSE',
   'All Drive Cycles Average MAE',
-  'All Drive Cycles Average MAXE'
+  'All Drive Cycles Average MAXE',
+  'Description'
 ];
 //Constants for table display on submissions page
 export const submissionsColumns = [
@@ -85,7 +86,8 @@ export const submissionsColumns = [
   'Current Sensor Offset Error',
   'All Drive Cycles Average RMSE',
   'All Drive Cycles Average MAE',
-  'All Drive Cycles Average MAXE'
+  'All Drive Cycles Average MAXE',
+  'Description'
 ];
 //Maps raw JSON keys to readable column names
 export const columnKeyMap = {
@@ -120,4 +122,5 @@ export const columnKeyMap = {
   'All Drive Cycles Average RMSE': 'allDriveCyclesAvgRmse',
   'All Drive Cycles Average MAE': 'allDriveCyclesAvgMae',
   'All Drive Cycles Average MAXE': 'allDriveCyclesAvgMaxe',
+  'Description': 'description',
 };
