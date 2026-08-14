@@ -4,7 +4,7 @@ import fs from 'fs';
 import { db } from '../db';
 import crypto from 'crypto';
 import { models, modelTypeEnum } from '../db/schema';
-import { and, eq, or } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { sendEmail } from '@/services/email.service';
 import { logger } from '@/services/logger.service';
 import { runEvaluatorContainer } from '@/services/evaluator.service';
@@ -235,15 +235,19 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
-  // Find the model with specified id owned by user
+  // Find the model by id — ownership is checked separately below (instead
+  // of filtering by userId here) so admins can delete models they don't own.
   const [model] = await db
     .select()
     .from(models)
-    .where(and(eq(models.id, id), eq(models.userId, userId)))
+    .where(eq(models.id, id))
     .limit(1);
 
-  // If no model found
-  if (!model) {
+  // If no model found, or the requester neither owns it nor is an admin —
+  // 404 either way, so a non-owner can't tell "doesn't exist" apart from
+  // "exists but isn't yours".
+  const isAdmin = (req as any).user?.role === 'admin';
+  if (!model || (model.userId !== userId && !isAdmin)) {
     logger.warn('model/delete - Model not found', { modelId: id, userId, ip: req.ip });
     res.status(404).json({ error: 'Model not found.' });
     return;
@@ -252,8 +256,10 @@ export const deleteModel = async (req: Request, res: Response): Promise<void> =>
   // Get model name (SHOULD be attached, but default to Unknown just in case)
   const name = model.name ?? 'Unknown Model';
 
-  // Check if filePath is sus to prevent any deletion of folders we don't want to delete :P  
-  const expectedBase = path.resolve(process.env.UPLOAD_DIR ?? './uploads', userId);
+  // Check if filePath is sus to prevent any deletion of folders we don't want
+  // to delete :P — based on the model's own owner, not the requester, so an
+  // admin deleting someone else's model doesn't trip this on their own path.
+  const expectedBase = path.resolve(process.env.UPLOAD_DIR ?? './uploads', model.userId);
   const resolvedFilePath = path.resolve(model.filePath);
 
   if (!resolvedFilePath.startsWith(expectedBase)) {
@@ -347,15 +353,19 @@ export const updateModel = async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
-  // Find the model with specified id owned by user
+  // Find the model by id — ownership is checked separately below (instead
+  // of filtering by userId here) so admins can edit models they don't own.
   const [model] = await db
     .select()
     .from(models)
-    .where(and(eq(models.id, id), eq(models.userId, userId)))
+    .where(eq(models.id, id))
     .limit(1);
 
-  // If no model found
-  if (!model) {
+  // If no model found, or the requester neither owns it nor is an admin —
+  // 404 either way, so a non-owner can't tell "doesn't exist" apart from
+  // "exists but isn't yours".
+  const isAdmin = (req as any).user?.role === 'admin';
+  if (!model || (model.userId !== userId && !isAdmin)) {
     logger.warn('model/update - Model not found', { modelId: id, userId, ip: req.ip });
     res.status(404).json({ error: 'Model not found.' });
     return;

@@ -1,11 +1,21 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { IconMenu2, IconX } from "@tabler/icons-react";
+import { NavLink, Link } from "react-router-dom";
+import { IconMenu2, IconX, IconChevronDown } from "@tabler/icons-react";
 
 import { logout } from "../../auth-client.ts";
 import { Button, buttonVariants } from "#Components/ui/button";
 import { Avatar, AvatarFallback } from "#Components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "#Components/ui/dropdown-menu";
 import { cn } from "#Constants/cn";
+
+// Admin-only nav entries — a dropdown rather than a single link since more
+// admin pages are expected later.
+const ADMIN_LINKS = [{ to: "/admin/users", label: "Users" }];
 
 const NAV_LINKS = [
   { to: "/leaderboard", label: "Leaderboard" },
@@ -58,6 +68,22 @@ const StyledNavbar = ({ user }) => {
                 {label}
               </NavLink>
             ))}
+
+            {user?.role === "admin" && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="inline-flex items-center gap-1 text-base font-medium text-foreground/70! hover:text-foreground!">
+                  Admin
+                  <IconChevronDown className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {ADMIN_LINKS.map(({ to, label }) => (
+                    <DropdownMenuItem key={to} render={<Link to={to} />}>
+                      {label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {user ? (

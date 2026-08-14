@@ -51,6 +51,12 @@ const formatData = (data) => {
       obj[col] = value ?? "-";
     });
 
+    // Not a visible table column, but the admin row actions menu needs
+    // these to back the Download Model / Download Results links (only
+    // usable once Status is "ready").
+    obj.ModelFileToken = row.modelFileToken ?? null;
+    obj.ResultsFileToken = row.resultsFileToken ?? null;
+
     return obj;
   });
 };
@@ -88,6 +94,24 @@ const Leaderboard = ({ user }) => {
       ...prev,
       [label]: value,
     }));
+  };
+
+  const isAdmin = user?.role === "admin";
+
+  // Applies a row-action's changes to local state right away, ahead of the
+  // backend actually persisting them — same pattern as Submissions.jsx.
+  // Only reachable by admins (the actions column only renders for them).
+  const handleRowUpdate = (id, changes) => {
+    const patch = (list) =>
+      list.map((row) => (row.Submission === id ? { ...row, ...changes } : row));
+    setOriginalData(patch);
+    setFormattedData(patch);
+  };
+
+  const handleRowDelete = (id) => {
+    const remove = (list) => list.filter((row) => row.Submission !== id);
+    setOriginalData(remove);
+    setFormattedData(remove);
   };
 
   // Fetches the leaderboard data. Runs on every mount, so switching to this
@@ -181,6 +205,9 @@ const Leaderboard = ({ user }) => {
           setFormattedData={setFormattedData}
           originalData={originalData}
           showPrivate={showPrivate}
+          isAdmin={isAdmin}
+          onRowUpdate={handleRowUpdate}
+          onRowDelete={handleRowDelete}
           hiddenIds={hiddenIds}
           onHideRow={hideModel}
           onUnhideRow={unhideModel}

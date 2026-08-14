@@ -14,6 +14,8 @@ import Login from "./Webpages/Login";
 import ModelComparison from "./Webpages/ModelComparison";
 import LoginError from "./Webpages/LoginError";
 import HelpTopic from "./Webpages/HelpTopic";
+import AdminUsers from "./Webpages/AdminUsers";
+import NotFound from "./Webpages/NotFound";
 import { getUserInfo } from "./auth-client.ts";
 
 const AppRouter = () => {
@@ -43,6 +45,8 @@ const AppRouter = () => {
           element={<Login user={user} setUser={setUser} />}
         />
         <Route path="/login-error" element={<LoginError />} />
+        <Route path="/admin/users" element={<AdminUsers user={user} />} />
+        <Route path="*" element={<NotFound user={user} />} />
       </Routes>
     </Router>
   );

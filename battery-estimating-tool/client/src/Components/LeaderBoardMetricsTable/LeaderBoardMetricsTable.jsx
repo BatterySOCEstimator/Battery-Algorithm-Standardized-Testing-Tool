@@ -33,6 +33,7 @@ import {
   DialogDescription,
 } from "#Components/ui/dialog";
 import { toCsv, downloadCsv } from "#Constants/csv";
+import SubmissionRowActions from "../SubmissionsMetricsTable/SubmissionRowActions";
 import {
   IconArrowUp,
   IconArrowDown,
@@ -65,6 +66,9 @@ const LeaderBoardMetricsTable = ({
   filters,
   originalData,
   showPrivate,
+  isAdmin,
+  onRowUpdate,
+  onRowDelete,
   hiddenIds,
   onHideRow,
   onUnhideRow,
@@ -298,6 +302,9 @@ const LeaderBoardMetricsTable = ({
         <Table className="w-max min-w-full">
           <TableHeader>
             <TableRow>
+              {/* Actions column is fixed/first, admin-only, and not part of
+                  the Columns-visibility toggle — it's controls, not data. */}
+              {isAdmin && <TableHead className="w-10" />}
               {visibleHeaders.map((col) =>
                 col === "Ranking" ? (
                   <TableHead
@@ -327,6 +334,7 @@ const LeaderBoardMetricsTable = ({
           <TableBody>
             {pagedData.length === 0 ? (
               <TableRow>
+                {isAdmin && <TableCell />}
                 {visibleHeaders.map((col) => (
                   <TableCell
                     key={col}
@@ -356,6 +364,15 @@ const LeaderBoardMetricsTable = ({
                         />
                       }
                     >
+                      {isAdmin && (
+                        <TableCell className="text-center">
+                          <SubmissionRowActions
+                            row={row}
+                            onRowUpdate={onRowUpdate}
+                            onRowDelete={onRowDelete}
+                          />
+                        </TableCell>
+                      )}
                       {visibleHeaders.map((col) => (
                         <TableCell
                           key={col}

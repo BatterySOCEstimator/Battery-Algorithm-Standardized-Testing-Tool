@@ -142,6 +142,16 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* Force the vertical scrollbar to always render, even on pages short
+       enough not to need it. `scrollbar-gutter: stable` alone reserves the
+       same space but leaves it blank when there's nothing to scroll, which
+       reads as a stray gap next to the navbar — an always-on scrollbar
+       fills that space with a real, expected UI element instead, and still
+       prevents the layout shift from Base UI's background-scroll lock
+       toggling the scrollbar off while a menu/dialog is open. */
+    overflow-y: scroll;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
