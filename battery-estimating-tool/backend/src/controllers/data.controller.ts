@@ -135,15 +135,23 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
         return res.status(400).json({ error: `modelType must be one of: ${VALID_MODEL_TYPES.join(', ')}` });
     }
 
-    // Return public models, plus private models owned by the requesting user, that have been evaluated
-    const visibilityFilter = userId
-        ? or(eq(models.isPrivate, false), eq(models.userId, userId))!
-        : eq(models.isPrivate, false);
+    const isAdmin = (req as any).user?.role === 'admin';
 
-    const filters: SQL[] = [
-        visibilityFilter,
-        eq(models.alreadyEvaluated, true),
-    ];
+    // Return public models, plus private models owned by the requesting
+    // user, that have been evaluated. Admins get no visibility restriction
+    // at all (every private model, not just their own) — the frontend's
+    // "Show private models" checkbox still gates what's actually displayed
+    // and downloaded, same as it already does for a normal user's own
+    // private models, so nothing extra leaks out just from this endpoint
+    // returning more rows.
+    const visibilityFilter = isAdmin
+        ? null
+        : userId
+            ? or(eq(models.isPrivate, false), eq(models.userId, userId))!
+            : eq(models.isPrivate, false);
+
+    const filters: SQL[] = [eq(models.alreadyEvaluated, true)];
+    if (visibilityFilter) filters.push(visibilityFilter);
 
     // Push filters
     if (name) filters.push(ilike(models.name, `%${name}%`));
@@ -172,7 +180,7 @@ export const fetchLeaderboardData = async (req: Request, res: Response) => {
             .limit(parsedLimit)
             .offset(parsedOffset);
 
-        logger.info('data/leaderboard - Query successful', { results: data.length, filters: { name, modelType, dateFrom, dateTo }, sortBy, order, limit: parsedLimit, offset: parsedOffset, userId });
+        logger.info('data/leaderboard - Query successful', { results: data.length, filters: { name, modelType, dateFrom, dateTo }, sortBy, order, limit: parsedLimit, offset: parsedOffset, userId, isAdmin });
         return res.json({ data, limit: parsedLimit, offset: parsedOffset, order, sortBy, results: data.length });
     } catch (err) {
         logger.error('data/leaderboard - DB query failed', { err, ip: req.ip, userId });

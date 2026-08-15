@@ -1,8 +1,8 @@
 // SubmitModel page: UI and logic to upload a new model submission.
 // Imports: React hooks, drag-drop helpers, UI toolkit and project helpers.
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { IconUpload, IconFile, IconX } from "@tabler/icons-react";
+import { IconUpload, IconFile, IconX, IconUserSearch, IconUserCircle } from "@tabler/icons-react";
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import { Button } from "#Components/ui/button";
 import { Card } from "#Components/ui/card";
@@ -12,6 +12,13 @@ import { Label } from "#Components/ui/label";
 import { Switch } from "#Components/ui/switch";
 import { Alert, AlertDescription } from "#Components/ui/alert";
 import { Spinner } from "#Components/ui/spinner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "#Components/ui/dialog";
 import LabeledSelect from "../Components/LabeledSelect/LabeledSelect";
 import {
   modelTypes,
@@ -45,6 +52,38 @@ const SubmitModel = ({ user }) => {
   // Submission state and user feedback messages
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type: "success"|"destructive", message: string }
+
+  // Admin-only: submit this model as though another user uploaded it. The
+  // picked user's id rides along as ?onBehalfOfUserId= on the upload
+  // request — the backend re-checks admin status itself from the session,
+  // this is just the UI for picking who.
+  const isAdmin = user?.role === "admin";
+  const [submitAsUser, setSubmitAsUser] = useState(null); // { id, name, email, username } | null
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const [userResults, setUserResults] = useState([]);
+
+  // Debounced search against the admin-only user list, refetched whenever
+  // the picker is open and the search text changes.
+  useEffect(() => {
+    if (!pickerOpen) return;
+
+    const timeout = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/model/users?search=${encodeURIComponent(userSearch)}`,
+          { credentials: "include" },
+        );
+        if (!response.ok) return;
+        const data = await response.json();
+        setUserResults(data.users ?? []);
+      } catch {
+        // Leave the previous results showing rather than clearing the list.
+      }
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [pickerOpen, userSearch]);
 
   // onDrop: pick the first accepted file and store it
   // If it's a .zip we keep it separate so the backend can handle zips differently
@@ -101,14 +140,14 @@ const SubmitModel = ({ user }) => {
 
     setSubmitting(true);
     try {
-      const response = await fetch(
-        `/api/model/upload?name=${encodeURIComponent(sanitizedName)}`,
-        {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        }
-      );
+      const params = new URLSearchParams({ name: sanitizedName });
+      if (isAdmin && submitAsUser) params.set("onBehalfOfUserId", submitAsUser.id);
+
+      const response = await fetch(`/api/model/upload?${params.toString()}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
 
       if (!response.ok) {
         const err = await response.text();
@@ -116,7 +155,12 @@ const SubmitModel = ({ user }) => {
       }
 
       // Success: show message and reset form fields
-      setFeedback({ type: "success", message: "Model uploaded successfully!" });
+      setFeedback({
+        type: "success",
+        message: submitAsUser
+          ? `Model uploaded successfully as ${submitAsUser.name}!`
+          : "Model uploaded successfully!",
+      });
       setName("");
       setDescription("");
       setIsPrivate(false);
@@ -153,6 +197,77 @@ const SubmitModel = ({ user }) => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Admin-only: submit this model as another user */}
+        {isAdmin && (
+          <div className="flex w-full max-w-3xl items-center justify-between">
+            {submitAsUser ? (
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <IconUserCircle className="size-4 text-muted-foreground" />
+                Submitting as <strong>{submitAsUser.name}</strong>
+                <span className="text-muted-foreground">({submitAsUser.email})</span>
+                <button
+                  type="button"
+                  onClick={() => setSubmitAsUser(null)}
+                  className="text-muted-foreground underline hover:text-foreground"
+                >
+                  Reset to self
+                </button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => setPickerOpen(true)}
+              >
+                <IconUserSearch className="h-4 w-4" />
+                Submit as another user
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Admin-only: picker for who to submit the model as */}
+        <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Submit as another user</DialogTitle>
+              <DialogDescription>
+                Search by name, username, or email. The model will be uploaded and
+                attributed to whichever user you pick.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              type="text"
+              autoFocus
+              placeholder="Search users..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+            />
+            <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
+              {userResults.length === 0 ? (
+                <p className="px-1 py-2 text-sm text-muted-foreground">No users found.</p>
+              ) : (
+                userResults.map((candidate) => (
+                  <button
+                    key={candidate.id}
+                    type="button"
+                    onClick={() => {
+                      setSubmitAsUser(candidate);
+                      setPickerOpen(false);
+                      setUserSearch("");
+                    }}
+                    className="flex flex-col items-start rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted"
+                  >
+                    <span className="text-sm font-medium text-foreground">{candidate.name}</span>
+                    <span className="text-xs text-muted-foreground">{candidate.email}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Name, Description, Privacy */}
         <Card className="w-full max-w-3xl p-6">

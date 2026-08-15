@@ -1,5 +1,5 @@
-import { deleteModel, downloadFile, downloadTrainingData, test, updateModel, uploadModel } from "@/controllers/model.controller";
-import { checkModelNameUnique, uploadMiddleware } from "@/middleware/model.middleware";
+import { deleteModel, downloadFile, downloadTrainingData, listSubmittableUsers, test, updateModel, uploadModel } from "@/controllers/model.controller";
+import { checkModelNameUnique, resolveSubmissionOwner, uploadMiddleware } from "@/middleware/model.middleware";
 import { requireAuth, checkBanStatus, requireRole } from "@/middleware/auth.middleware";
 
 import { Router } from "express";
@@ -9,10 +9,14 @@ const router = Router();
 router.post('/upload',
     requireAuth,            // Require authentication -- may need to comment out for testing
     checkBanStatus,         // Check if user is banned -- may need to comment out for testing
-    checkModelNameUnique,   // Check if name is unique 
-    uploadMiddleware,       // Check if valid file types 
+    resolveSubmissionOwner, // Resolve who the model is attributed to (self, or an admin's ?onBehalfOfUserId=)
+    checkModelNameUnique,   // Check if name is unique (scoped to the resolved owner)
+    uploadMiddleware,       // Check if valid file types
     uploadModel             // Actual controller function
 );
+
+// Admin-only: list users an admin can submit a model on behalf of.
+router.get("/users", requireAuth, checkBanStatus, requireRole("admin"), listSubmittableUsers);
 
 router.delete("/delete/:id",
     requireAuth,         // Require authentication -- may need to comment out for testing

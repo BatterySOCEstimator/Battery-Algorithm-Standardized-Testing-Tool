@@ -253,8 +253,9 @@ const Leaderboard = ({ user }) => {
                     <IconHelpCircle className="h-4 w-4" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    If you are signed in, your private models will display on the
-                    leaderboard and in downloaded CSV files when this box is checked.
+                    {isAdmin
+                      ? "As an admin, checking this reveals every private model, not just your own, on the leaderboard and in downloaded CSV files."
+                      : "If you are signed in, your private models will display on the leaderboard and in downloaded CSV files when this box is checked."}
                   </TooltipContent>
                 </Tooltip>
               </div>

@@ -8,7 +8,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 // DB imports
 import { db } from '@/db';
-import { models } from '@/db/schema';
+import { models, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { logger } from '@/services/logger.service';
 
@@ -28,9 +28,10 @@ const ALLOWED_MIMETYPES = config.upload.allowedMimetypes;
  * keeping both under one storageId directory that download endpoints can
  * serve either half of.
  *
- * Requires `req.user.id` (set by auth middleware) and `req.storageId` (set by
- * {@link uploadMiddleware}) to be present — if either is missing, the upload
- * is rejected with an error.
+ * Requires `req.submissionOwner.id` (set by {@link resolveSubmissionOwner} —
+ * the requester, unless an admin is submitting on behalf of someone else)
+ * and `req.storageId` (set by {@link uploadMiddleware}) to be present — if
+ * either is missing, the upload is rejected with an error.
  *
  * @remarks
  * Files are stored using their original filename. If two files with the same name
@@ -39,7 +40,7 @@ const ALLOWED_MIMETYPES = config.upload.allowedMimetypes;
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
 
-    const userId = (req as any).user?.id;
+    const userId = (req as any).submissionOwner?.id;
     const storageId = (req as any).storageId;
 
     if (!userId) return cb(new Error('No User found.'), '');
@@ -132,23 +133,94 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
 };
 
 /**
+ * Resolves who a model upload should be attributed to, before either
+ * {@link checkModelNameUnique} or {@link uploadMiddleware} run — both need
+ * the resolved owner's id (for the per-user uniqueness check and the
+ * uploads/{ownerId}/... storage path respectively), not necessarily the
+ * requester's own id.
+ *
+ * Defaults to the requester. Admins may instead submit on behalf of another
+ * user via `?onBehalfOfUserId=<id>` (same query-param convention as `name`,
+ * since the multipart body isn't parsed yet at this point in the chain).
+ *
+ * The admin check is entirely server-side, read from `req.user.role` as set
+ * by session-backed auth middleware — a non-admin can't grant themselves
+ * this by adding the query param themselves, and doing so is rejected
+ * outright (403) rather than silently falling back to self, so a tampered
+ * request fails loudly instead of quietly submitting as the wrong person.
+ *
+ * Sets `req.submissionOwner = { id, email }`.
+ *
+ * Expects `req.user` to be populated — apply {@link requireAuth} before this middleware.
+ *
+ * @throws {401} If `req.user.id` is missing.
+ * @throws {403} If `onBehalfOfUserId` is provided by a non-admin.
+ * @throws {400} If `onBehalfOfUserId` is provided but that user doesn't exist.
+ * @throws {500} If the database query fails.
+ */
+export const resolveSubmissionOwner = async (req: Request, res: Response, next: NextFunction) => {
+  const requester = (req as any).user;
+
+  if (!requester?.id) {
+    logger.warn('resolveSubmissionOwner - Unauthorized', { ip: req.ip, method: req.method, path: req.path });
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const onBehalfOfUserId = req.query.onBehalfOfUserId as string | undefined;
+
+  if (!onBehalfOfUserId) {
+    (req as any).submissionOwner = { id: requester.id, email: requester.email };
+    next();
+    return;
+  }
+
+  if (requester.role !== 'admin') {
+    logger.warn('resolveSubmissionOwner - Non-admin attempted to submit on behalf of another user', {
+      requesterId: requester.id, onBehalfOfUserId, ip: req.ip,
+    });
+    res.status(403).json({ error: 'Only admins can submit a model on behalf of another user.' });
+    return;
+  }
+
+  try {
+    const [target] = await db.select().from(user).where(eq(user.id, onBehalfOfUserId)).limit(1);
+
+    if (!target) {
+      logger.warn('resolveSubmissionOwner - Target user not found', { requesterId: requester.id, onBehalfOfUserId, ip: req.ip });
+      res.status(400).json({ error: 'The selected user does not exist.' });
+      return;
+    }
+
+    logger.info('resolveSubmissionOwner - Admin submitting on behalf of another user', {
+      adminId: requester.id, targetUserId: target.id, ip: req.ip,
+    });
+    (req as any).submissionOwner = { id: target.id, email: target.email };
+    next();
+  } catch (err) {
+    logger.error('resolveSubmissionOwner - DB query failed', { err, requesterId: requester.id, onBehalfOfUserId, ip: req.ip });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Middleware that ensures a model name is unique per user before proceeding.
  *
  * Must be applied BEFORE {@link uploadMiddleware} so that files are only written
- * to disk if the name passes the uniqueness check.
- *
- * Expects `req.user` to be populated — apply {@link requireAuth} before this middleware.
+ * to disk if the name passes the uniqueness check, and AFTER
+ * {@link resolveSubmissionOwner} so the check is scoped to the resolved
+ * owner (which may not be the requester).
  *
  * @param req - Express request object. Expects:
  *   - `req.query.name` — The model name to check (required query parameter).
  *     Must match the `name` field sent in the multipart form body so that the
  *     uniqueness check and the saved file path stay in sync.
- *   - `req.user.id` — ID of the authenticated user (set by auth middleware).
+ *   - `req.submissionOwner.id` — Set by {@link resolveSubmissionOwner}.
  * @param res - Express response object used to return errors.
  * @param next - Express next function, called only if the name is unique.
  *
  * @throws {400} If `name` query parameter is not provided.
- * @throws {401} If `req.user.id` is missing.
+ * @throws {401} If `req.submissionOwner.id` is missing.
  * @throws {409} If a model with the given name already exists for this user.
  * @throws {500} If the database query fails.
  *
@@ -158,7 +230,7 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
  */
 export const checkModelNameUnique = async (req: Request, res: Response, next: NextFunction) => {
 
-  const userId = (req as any).user?.id;
+  const userId = (req as any).submissionOwner?.id;
 
   // Check if there is a userId
   if (!userId) {

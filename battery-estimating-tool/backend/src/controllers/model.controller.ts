@@ -3,8 +3,8 @@ import path from 'path';
 import fs from 'fs';
 import { db } from '../db';
 import crypto from 'crypto';
-import { models, modelTypeEnum } from '../db/schema';
-import { eq, or } from 'drizzle-orm';
+import { models, modelTypeEnum, user } from '../db/schema';
+import { eq, ilike, or } from 'drizzle-orm';
 import { sendEmail } from '@/services/email.service';
 import { logger } from '@/services/logger.service';
 import { runEvaluatorContainer } from '@/services/evaluator.service';
@@ -22,8 +22,9 @@ const MODEL_DESCRIPTION_MAX_LENGTH = 1000;
  *
  * @param req - Express request object. Must include:
  *   - `req.files` — One or more uploaded files (via Multer).
- *   - `req.user.id` — ID of the authenticated user (set by auth middleware).
- *   - `req.user.email` — Email of the authenticated user (set by auth middleware).
+ *   - `req.submissionOwner.id` / `.email` — Who the model is attributed to
+ *     (set by `resolveSubmissionOwner` — the requester, unless an admin is
+ *     submitting on behalf of someone else).
  *   - `req.body.name` — Name of the model (required).
  *   - `req.body.description` — Description of the model (required).
  *   - `req.body.isPrivate` — Whether the model is private (optional, defaults to false).
@@ -67,9 +68,13 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
-  // const userId = "e61tIWQu45pnJew9tti6zaY5FYIBuK0f" // FOR TESTING
-  const userId = (req as any).user?.id;
-  const userEmail = (req as any).user?.email;
+  // The model's owner — the requester themselves, unless resolveSubmissionOwner
+  // resolved an admin's ?onBehalfOfUserId= to someone else. requesterId is
+  // kept separately purely for audit logging (who actually performed the
+  // upload), never used for ownership/authorization decisions below.
+  const userId = (req as any).submissionOwner?.id;
+  const userEmail = (req as any).submissionOwner?.email;
+  const requesterId = (req as any).user?.id;
 
   // Check if there is a userId
   if (!userId) {
@@ -162,7 +167,7 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
       );
     }
 
-    logger.info('model/upload - Model uploaded successfully', { modelId: model.id, modelName: name, userId, fileCount: files.length });
+    logger.info('model/upload - Model uploaded successfully', { modelId: model.id, modelName: name, userId, requesterId, fileCount: files.length });
     // Send success to client
     res.status(201).json({
       message: 'Model uploaded successfully.',
@@ -186,6 +191,55 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     }
 
     res.status(500).json({ error: 'Failed to save model to database.' });
+  }
+};
+
+/**
+ * Lists users an admin can submit a model on behalf of (via `uploadModel`'s
+ * `?onBehalfOfUserId=`). Admin-only — enforced by `requireRole('admin')` on
+ * the route, not by anything in this controller.
+ *
+ * Returns only the minimal fields the picker needs — never password/session
+ * data (better-auth keeps those in separate tables anyway, but this also
+ * avoids returning ban status, etc. that the picker has no use for).
+ *
+ * @param req - Express request object. Optional `req.query.search` filters
+ *   by name/email/username (case-insensitive partial match).
+ * @param res - Express response object.
+ *
+ * @returns `{ users: { id, name, email, username }[] }`, capped at 50 results.
+ * @throws {500} If the database query fails.
+ */
+export const listSubmittableUsers = async (req: Request, res: Response): Promise<void> => {
+  const adminId = (req as any).user?.id;
+  const search = (req.query.search as string | undefined)?.trim();
+
+  try {
+    const filters = search
+      ? or(
+        ilike(user.name, `%${search}%`),
+        ilike(user.email, `%${search}%`),
+        ilike(user.username, `%${search}%`),
+      )
+      : undefined;
+
+    const results = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+      })
+      .from(user)
+      .where(filters)
+      .orderBy(user.name)
+      .limit(50);
+
+    logger.info('model/users - Query successful', { adminId, search, results: results.length });
+    res.json({ users: results });
+  } catch (err) {
+    logger.error('model/users - DB query failed', { err, adminId, search, ip: req.ip });
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
