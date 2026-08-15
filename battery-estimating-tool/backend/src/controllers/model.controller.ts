@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { models, modelTypeEnum, user } from '../db/schema';
 import { eq, ilike, or } from 'drizzle-orm';
 import { sendEmail } from '@/services/email.service';
+import { createNotification } from '@/services/notification.service';
 import { logger } from '@/services/logger.service';
 import { runEvaluatorContainer } from '@/services/evaluator.service';
 
@@ -166,6 +167,13 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
         `<p>Your model <strong>${name}</strong> has been uploaded and is pending evaluation.</p>`
       );
     }
+
+    void createNotification(
+      userId,
+      'success',
+      'Model uploaded successfully',
+      `Your model "${name}" has been uploaded and is pending evaluation.`
+    );
 
     logger.info('model/upload - Model uploaded successfully', { modelId: model.id, modelName: name, userId, requesterId, fileCount: files.length });
     // Send success to client
@@ -676,6 +684,12 @@ async function runEvaluation(
       void sendEmail(userEmail, 'Model evaluation failed',
         `<p>Your model <strong>${modelName}</strong> could not be evaluated. Please contact the site Administrator.</p>`);
     }
+    void createNotification(
+      userId,
+      'error',
+      'Model evaluation failed',
+      `Your model "${modelName}" could not be evaluated. Please contact the site Administrator.`
+    );
     return;
   }
 
@@ -735,11 +749,23 @@ async function runEvaluation(
          <p>Complexity: <strong>${complexity}</strong></p>
          <p>Download the results <a href="${resultsUrl}">here.</a></p>`);
     }
+    void createNotification(
+      userId,
+      'success',
+      'Model evaluation complete',
+      `Your model "${modelName}" has been evaluated. Weighted Error: ${weightedError}.`
+    );
   } catch (err) {
     logger.error('model/evaluate - Failed to update DB', { modelId, userId, err });
     if (userEmail) {
       void sendEmail(userEmail, 'Model evaluation failed',
         `<p>Your model <strong>${modelName}</strong> was evaluated but results could not be saved.</p>`);
     }
+    void createNotification(
+      userId,
+      'error',
+      'Model evaluation failed',
+      `Your model "${modelName}" was evaluated but results could not be saved.`
+    );
   }
 }

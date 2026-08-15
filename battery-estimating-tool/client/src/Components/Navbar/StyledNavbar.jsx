@@ -4,13 +4,13 @@ import { IconMenu2, IconX, IconChevronDown } from "@tabler/icons-react";
 
 import { logout } from "../../auth-client.ts";
 import { Button, buttonVariants } from "#Components/ui/button";
-import { Avatar, AvatarFallback } from "#Components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from "#Components/ui/dropdown-menu";
+import NotificationBell from "./NotificationBell";
 import { cn } from "#Constants/cn";
 
 // Admin-only nav entries — a dropdown rather than a single link since more
@@ -88,16 +88,7 @@ const StyledNavbar = ({ user }) => {
 
           {user ? (
             <div className="flex items-center gap-2">
-              <Avatar className="size-10">
-                <AvatarFallback className="bg-muted-foreground text-background">
-                  {user.name
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
+              <NotificationBell user={user} />
               <span className="text-base font-medium">{user.name}</span>
               <Button variant="outline" onClick={logout}>
                 Logout
