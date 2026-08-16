@@ -5,7 +5,7 @@ import SubmissionsMetricsTable from "../Components/SubmissionsMetricsTable/Submi
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import useRequireAuth from "../Hooks/useRequireAuth";
 import useHiddenModels from "../Hooks/useHiddenModels";
-import { modelTypes, submissionsColumns, columnKeyMap } from "../Constants/Helperfunc.js";
+import { modelTypes, submissionsColumns, columnKeyMap, formatComplexity } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 // Auth helper to obtain current user information
 import { getUserInfo } from "../auth-client.ts";
@@ -29,6 +29,10 @@ const formatData = (data) => {
       // Format timestamps for display
       if (key === "createdAt" || key === "updatedAt") {
         value = new Date(value).toLocaleString();
+      }
+
+      if (key === "complexity") {
+        value = formatComplexity(value);
       }
 
       obj[col] = value ?? "-";

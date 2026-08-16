@@ -713,6 +713,14 @@ async function runEvaluation(
     isocError, currentSensorError,
   ] = testScores;
 
+
+  // Format complexity from "x,y,z" to  "y ±1"
+  // Cast to string, spliut by comma and make into list to get middle number
+  const complexityParts = String(complexity).split(',').map((p) => p.trim());
+  const formattedComplexity = complexityParts.length === 3
+    ? `${complexityParts[1]} ±1`
+    : String(complexity);
+
   try {
     const modelFileToken = crypto.randomUUID();
     const resultsFileToken = crypto.randomUUID();
@@ -724,7 +732,7 @@ async function runEvaluation(
         status: 'ready',
         resultsPath,
         weightedError,
-        complexity: String(complexity),
+        complexity: formattedComplexity,
         allCells, blindCells, nonBlindedCells, charging,
         payload80kg, payload448kgWithHvac, payload448kgNoHvac, payload1000kg,
         standardCycles, customCycles,
@@ -746,7 +754,7 @@ async function runEvaluation(
       void sendEmail(userEmail, 'Model evaluation complete',
         `<p>Your model <strong>${modelName}</strong> has been evaluated.</p>
          <p>Weighted Error: <strong>${weightedError}</strong></p>
-         <p>Complexity: <strong>${complexity}</strong></p>
+         <p>Complexity: <strong>${formattedComplexity}</strong></p>
          <p>Download the results <a href="${resultsUrl}">here.</a></p>`);
     }
     void createNotification(

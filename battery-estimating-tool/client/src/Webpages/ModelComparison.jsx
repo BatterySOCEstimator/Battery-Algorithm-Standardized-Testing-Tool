@@ -13,7 +13,7 @@ import { IconX } from "@tabler/icons-react";
 //import useRequireAuth from "../Hooks/useRequireAuth"
 
 // Constants and utilities
-import { modelTypes, columnKeyMap, columns } from "../Constants/Helperfunc.js";
+import { modelTypes, columnKeyMap, columns, formatComplexity } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 import ModelCharts from "../Components/ModelCharts/ModelCharts.jsx";
 
@@ -64,6 +64,10 @@ const formatData = (data) => {
 
       if (key === "createdAt" || key === "updatedAt") {
         value = new Date(value).toLocaleString();
+      }
+
+      if (key === "complexity") {
+        value = formatComplexity(value);
       }
 
       obj[col] = value ?? "-";

@@ -21,10 +21,19 @@ export const modelTypes = [
   "Hybrid Model",
   "Not Specified"
 ];
+// Format complexity from "x,y,z" to  "y ±1"
+// Cast to string, spliut by comma and make into list to get middle number (for display)
+export function formatComplexity(value) {
+  if (!value) return value;
+  const parts = String(value).split(',').map((p) => p.trim());
+  if (parts.length !== 3) return value;
+  return `${parts[1]} ±1`;
+}
+
 //Constants for table display on leaderboards
 export const columns = [
   'Submission',
-  'Author', 
+  'Author',
   'Affiliation',
   'Model Name',
   'Model Type',
@@ -33,6 +42,7 @@ export const columns = [
   'Submitted at',
   'Completed at',
   'Weighted Error',
+  'Complexity',
   'All Cells',
   'Blinded Cells',
   'Non-Blinded Cells',
@@ -66,6 +76,7 @@ export const submissionsColumns = [
   'Submitted at',
   'Completed at',
   'Weighted Error',
+  'Complexity',
   'All Cells',
   'Blinded Cells',
   'Non-Blinded Cells',
@@ -101,6 +112,7 @@ export const columnKeyMap = {
   'Submitted at': 'createdAt',
   'Completed at': 'updatedAt',
   'Weighted Error': 'weightedError',
+  'Complexity': 'complexity',
   'All Cells': 'allCells',
   'Blinded Cells': 'blindCells',
   'Non-Blinded Cells': 'nonBlindedCells',
