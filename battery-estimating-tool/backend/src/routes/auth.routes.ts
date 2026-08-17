@@ -1,8 +1,12 @@
 import { Router } from "express";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "@/services/auth";
+import { getBanReason } from "@/controllers/auth.controller";
 
 const router = Router();
+
+// Must come before the better-auth catch-all below so it isn't swallowed by it.
+router.post("/ban-reason", getBanReason);
 
 
 // Pre-validate sign-up fields before Better Auth handles the request

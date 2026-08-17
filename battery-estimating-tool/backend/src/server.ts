@@ -12,6 +12,7 @@ import authRoutes from "@/routes/auth.routes";
 import modelRoutes from "@/routes/model.routes"
 import dataRoutes from "@/routes/data.routes"
 import notificationRoutes from "@/routes/notification.routes"
+import adminRoutes from "@/routes/admin.routes"
 import morgan from 'morgan';
 import { logger } from '@/services/logger.service';
 import path from "path";
@@ -43,6 +44,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/model", modelRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Serve React static files in production
 if (process.env.NODE_ENV === 'production') {

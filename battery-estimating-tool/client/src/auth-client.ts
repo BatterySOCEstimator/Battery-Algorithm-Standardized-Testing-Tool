@@ -62,8 +62,43 @@ export async function login(options: {
     return new Promise<void>((resolve, reject) => {
         const callbacks = {
             onSuccess: () => resolve(),
-            onError: (ctx: any) => {
-                if (ctx.error.status === 403) {
+            // Routes on the actual error *code*, not just the HTTP status — a
+            // banned account and an unverified email both come back as 403,
+            // so checking status alone (the old behavior) misrouted every
+            // banned login into the "please verify your email" message.
+            onError: async (ctx: any) => {
+                const code = ctx.error.code;
+
+                if (code === "BANNED_USER") {
+                    let message =
+                        "Your account has been banned. Please contact support if you believe this is an error.";
+                    // /api/auth/ban-reason independently re-verifies the password
+                    // before ever revealing the reason (see its backend
+                    // implementation) — this sign-in attempt already proved these
+                    // credentials are valid, so it's safe to ask for it here.
+                    // Whichever identifier was actually used to sign in (email or
+                    // username) is what gets sent — the login form accepts either.
+                    try {
+                        const res = await fetch("/api/auth/ban-reason", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                            body: JSON.stringify(
+                                email ? { email, password } : { username, password }
+                            ),
+                        });
+                        const data = await res.json();
+                        if (data?.banned && data?.reason) {
+                            message = `Your account has been banned. Reason: ${data.reason}`;
+                        }
+                    } catch {
+                        // Falls back to the generic message above.
+                    }
+                    reject(new Error(message));
+                    return;
+                }
+
+                if (code === "EMAIL_NOT_VERIFIED") {
                     authClient.signOut();
                     resendVerificationEmail(email ?? "");
                     reject(
@@ -71,9 +106,10 @@ export async function login(options: {
                             "Please verify your email before signing in. Check your inbox."
                         )
                     );
-                } else {
-                    reject(new Error(ctx.error.message ?? "Login failed. Please try again."));
+                    return;
                 }
+
+                reject(new Error(ctx.error.message ?? "Login failed. Please try again."));
             },
         };
 

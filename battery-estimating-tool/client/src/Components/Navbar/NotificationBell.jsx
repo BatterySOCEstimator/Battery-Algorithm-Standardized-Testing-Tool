@@ -85,7 +85,7 @@ const NotificationBell = ({ user }) => {
                       type="button"
                       onClick={() => clear(notification.id)}
                       aria-label="Dismiss notification"
-                      className="shrink-0 rounded-md p-0.5 text-muted-foreground opacity-0 outline-none transition-opacity hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
+                      className="shrink-0 rounded-md p-0.5 text-muted-foreground outline-none transition-colors hover:text-foreground"
                     >
                       <IconX className="size-3.5" />
                     </button>
