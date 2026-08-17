@@ -2,7 +2,7 @@
 // Imports: React hooks, drag-drop helpers, UI toolkit and project helpers.
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { IconUpload, IconFile, IconX, IconUserSearch, IconUserCircle } from "@tabler/icons-react";
+import { IconUpload, IconFile, IconFileZip, IconX, IconUserSearch, IconUserCircle } from "@tabler/icons-react";
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import { Button } from "#Components/ui/button";
 import { Card } from "#Components/ui/card";
@@ -12,6 +12,15 @@ import { Label } from "#Components/ui/label";
 import { Switch } from "#Components/ui/switch";
 import { Alert, AlertDescription } from "#Components/ui/alert";
 import { Spinner } from "#Components/ui/spinner";
+import {
+  Attachment,
+  AttachmentMedia,
+  AttachmentContent,
+  AttachmentTitle,
+  AttachmentDescription,
+  AttachmentActions,
+  AttachmentAction,
+} from "#Components/ui/attachment";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +39,19 @@ import useRequireAuth from "../Hooks/useRequireAuth";
 // Small sanitizer to remove leading/trailing whitespace and strip <,>
 // to avoid basic injection of markup in free-text fields.
 const sanitize = (str) => str.trim().replace(/[<>]/g, "");
+
+// Human-readable file size, e.g. 512 -> "512 B", 4300 -> "4.2 KB"
+const formatFileSize = (bytes) => {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB"];
+  let value = bytes / 1024;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  return `${value.toFixed(1)} ${units[unitIndex]}`;
+};
 
 const SubmitModel = ({ user }) => {
   // Prevent rendering until auth check completes
@@ -344,12 +366,35 @@ const SubmitModel = ({ user }) => {
           )}
         </Button>
 
-        {/* Preview uploaded filename (zip or single file) */}
+        {/* Preview uploaded file (zip or single file) */}
         {(file || zipFile) && (
-          <Card className="flex w-full max-w-3xl flex-row items-center gap-2 px-4 py-3 text-sm font-medium">
-            <IconFile className="size-4 shrink-0 text-muted-foreground" />
-            {(file ?? zipFile).name}
-          </Card>
+          <Attachment className="w-full max-w-3xl">
+            <AttachmentMedia>
+              {zipFile ? (
+                <IconFileZip className="size-4" />
+              ) : (
+                <IconFile className="size-4" />
+              )}
+            </AttachmentMedia>
+            <AttachmentContent>
+              <AttachmentTitle>{(file ?? zipFile).name}</AttachmentTitle>
+              <AttachmentDescription>
+                {formatFileSize((file ?? zipFile).size)}
+              </AttachmentDescription>
+            </AttachmentContent>
+            <AttachmentActions>
+              <AttachmentAction
+                aria-label="Remove file"
+                onClick={() => {
+                  setFile(null);
+                  setZipFile(null);
+                  setDropzoneKey((k) => k + 1);
+                }}
+              >
+                <IconX className="size-3.5" />
+              </AttachmentAction>
+            </AttachmentActions>
+          </Attachment>
         )}
 
         {/* Drop area: supports drag & drop or click to open file picker */}

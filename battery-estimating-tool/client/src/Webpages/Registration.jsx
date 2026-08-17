@@ -3,6 +3,7 @@ import { Card } from "#Components/ui/card";
 import { Input } from "#Components/ui/input";
 import { Button } from "#Components/ui/button";
 import { Alert, AlertDescription } from "#Components/ui/alert";
+import { Spinner } from "#Components/ui/spinner";
 import { cn } from "#Constants/cn";
 import { IconUser, IconMail, IconLock, IconAt, IconSchool } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
@@ -43,6 +44,10 @@ const Registration = () => {
   const [submitted, setSubmitted] = useState(false);
   // Flag indicating successful registration
   const [success, setSuccess] = useState(false);
+  // Server-side failure (email already registered, invalid username, etc.) —
+  // separate from field-level `errors` since it isn't tied to one input.
+  const [serverError, setServerError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle input changes; clear errors for the field as user types
   const handleInputChange = (e) => {
@@ -105,9 +110,10 @@ const Registration = () => {
   };
 
   // Handle form submission: validate fields and call signUp if valid
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
+    setServerError("");
 
     // Check for validation errors
     const validationErrors = validate();
@@ -116,29 +122,45 @@ const Registration = () => {
       return;
     }
 
-    // No errors — proceed with registration
+    // No errors — proceed with registration. The success screen only shows
+    // once the server actually confirms the account was created; issues
+    // like an already-registered email or taken username surface as a
+    // banner on this same form instead.
     setErrors({});
-    setSuccess(true);
+    setIsSubmitting(true);
 
-    signUp({
-      email: values.email,
-      password: values.password,
-      firstName: values.firstName,
-      lastName: values.lastName,
-      username: values.username,
-      academicAffiliation: values.academicAffiliation,
-    });
+    try {
+      await signUp({
+        email: values.email,
+        password: values.password,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        username: values.username,
+        academicAffiliation: values.academicAffiliation,
+      });
+      setSuccess(true);
+    } catch (err) {
+      setServerError(err?.message ?? "Registration failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Success screen: show confirmation and link to login
+  // Success screen. The server returns this same success response both for
+  // a genuinely new account AND for a sign-up attempt against an email
+  // that's already registered (to avoid letting anyone probe which emails
+  // have accounts here) — so the copy stays deliberately non-committal
+  // instead of claiming a new account was just created.
   if (success) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-background px-4 py-8">
         <Card className="w-full max-w-sm p-8 text-center">
-          <h2 className="mb-3 text-2xl font-semibold text-foreground">🎉 You're registered!</h2>
+          <h2 className="mb-3 text-2xl font-semibold text-foreground">📬 Check your inbox</h2>
           <p className="mb-6 text-sm text-muted-foreground">
-            Welcome, <strong className="text-foreground">{values.firstName}</strong>! Your account
-            has been created successfully. Please validate your email before logging in.
+            Thanks, <strong className="text-foreground">{values.firstName}</strong>! If{" "}
+            <strong className="text-foreground">{values.email}</strong> isn't already registered,
+            we've sent a verification link to finish setting up your account. Already have an
+            account? Just sign in instead.
           </p>
           <Link to="/login">
             <Button size="lg">Go to Login</Button>
@@ -167,6 +189,12 @@ const Registration = () => {
             {submitted && Object.keys(errors).length > 0 && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>Please fix the errors below before continuing.</AlertDescription>
+              </Alert>
+            )}
+
+            {serverError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{serverError}</AlertDescription>
               </Alert>
             )}
 
@@ -249,8 +277,15 @@ const Registration = () => {
               />
 
               {/* Register Button */}
-              <Button type="submit" size="lg" className="mt-2">
-                Register
+              <Button type="submit" size="lg" className="mt-2 gap-1.5" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Spinner />
+                    Registering...
+                  </>
+                ) : (
+                  "Register"
+                )}
               </Button>
 
               {/* Link to login page */}

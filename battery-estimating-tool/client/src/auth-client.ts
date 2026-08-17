@@ -20,6 +20,10 @@ export const authClient = createAuthClient({
 
 
 // SIGN UP
+// Resolves only on an actual server-confirmed success and rejects with the
+// real error message otherwise (email already registered, invalid
+// username, etc.) — same shape as login() below, so callers can just
+// `await` it instead of assuming success once the request is fired off.
 export async function signUp(data: {
     email: string;
     password: string;
@@ -29,20 +33,24 @@ export async function signUp(data: {
     academicAffiliation: string;
 }) {
     const { email, password, firstName, lastName, username, academicAffiliation } = data;
-    return authClient.signUp.email(
-        {
-            email, // user email address
-            username,
-            password, // user password -> min 8 characters by default
-            name: `${firstName} ${lastName}`, // user display name
-            firstName,
-            lastName,
-            academicAffiliation,
-        },
-        {
-            onError: (ctx) => alert(ctx.error.message),
-        }
-    );
+    return new Promise<void>((resolve, reject) => {
+        authClient.signUp.email(
+            {
+                email, // user email address
+                username,
+                password, // user password -> min 8 characters by default
+                name: `${firstName} ${lastName}`, // user display name
+                firstName,
+                lastName,
+                academicAffiliation,
+            },
+            {
+                onSuccess: () => resolve(),
+                onError: (ctx) =>
+                    reject(new Error(ctx.error.message ?? "Registration failed. Please try again.")),
+            }
+        );
+    });
 }
 
 // LOGIN -- HANDLES BOTH USERNAME AND EMAIL
