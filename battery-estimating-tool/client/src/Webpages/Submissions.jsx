@@ -5,7 +5,7 @@ import SubmissionsMetricsTable from "../Components/SubmissionsMetricsTable/Submi
 import StyledNavbar from "../Components/Navbar/StyledNavbar";
 import useRequireAuth from "../Hooks/useRequireAuth";
 import useHiddenModels from "../Hooks/useHiddenModels";
-import { modelTypes, submissionsColumns, columnKeyMap, formatComplexity } from "../Constants/Helperfunc.js";
+import { modelTypes, submissionsColumns, columnKeyMap, formatComplexity, formatSizeKb } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 // Auth helper to obtain current user information
 import { getUserInfo } from "../auth-client.ts";
@@ -33,6 +33,10 @@ const formatData = (data) => {
 
       if (key === "complexity") {
         value = formatComplexity(value);
+      }
+
+      if (key === "totalSizeKb") {
+        value = formatSizeKb(value);
       }
 
       obj[col] = value ?? "-";

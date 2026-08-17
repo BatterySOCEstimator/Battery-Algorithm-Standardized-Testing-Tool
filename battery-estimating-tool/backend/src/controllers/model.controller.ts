@@ -146,6 +146,10 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     const relativeZipFilePath = path.join(modelDir, 'model', modelFileName);
     const zipFilePath = path.resolve(relativeZipFilePath);
 
+    // Sum of Multer's actual on-disk byte counts for every uploaded file,
+    // converted to KB — not a client-supplied value.
+    const totalSizeKb = files.reduce((sum, f) => sum + f.size, 0) / 1024;
+
     // Insert new model in DB
     const [model] = await db.insert(models).values({
       name,
@@ -157,6 +161,7 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
       filePath: modelDir,
       zipFilePath,
       status: 'pending',
+      totalSizeKb,
     }).returning();
 
     // Send confirmation email

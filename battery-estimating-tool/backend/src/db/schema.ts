@@ -141,6 +141,10 @@ export const models = pgTable(
     filePath: text("file_path").notNull().default(''),
     zipFilePath: text("zip_file_path").notNull().default(''),
     resultsPath: text('results_path'),
+    // Combined size of every uploaded file for this submission, in KB —
+    // computed server-side from Multer's on-disk byte counts at upload time
+    // (see uploadModel), never trusted from the client.
+    totalSizeKb: doublePrecision('total_size_kb'),
     // FOR DOWNLOAD LINKS
     modelFileToken: text('model_file_token').unique(),
     resultsFileToken: text('results_file_token').unique(),

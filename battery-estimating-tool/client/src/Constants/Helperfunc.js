@@ -30,6 +30,15 @@ export function formatComplexity(value) {
   return `${parts[1]} ±1`;
 }
 
+// Format a size stored in KB (models.totalSizeKb) into a human-readable
+// string, e.g. 512 -> "512 KB", 4300 -> "4.2 MB"
+export function formatSizeKb(kb) {
+  if (kb === null || kb === undefined || kb === "" || isNaN(kb)) return kb;
+  const value = Number(kb);
+  if (value < 1024) return `${value.toFixed(value < 10 ? 1 : 0)} KB`;
+  return `${(value / 1024).toFixed(1)} MB`;
+}
+
 //Constants for table display on leaderboards
 export const columns = [
   'Submission',
@@ -64,6 +73,7 @@ export const columns = [
   'All Drive Cycles Average RMSE',
   'All Drive Cycles Average MAE',
   'All Drive Cycles Average MAXE',
+  'Total Size',
   'Description'
 ];
 //Constants for table display on submissions page
@@ -98,6 +108,7 @@ export const submissionsColumns = [
   'All Drive Cycles Average RMSE',
   'All Drive Cycles Average MAE',
   'All Drive Cycles Average MAXE',
+  'Total Size',
   'Description'
 ];
 //Maps raw JSON keys to readable column names
@@ -134,5 +145,6 @@ export const columnKeyMap = {
   'All Drive Cycles Average RMSE': 'allDriveCyclesAvgRmse',
   'All Drive Cycles Average MAE': 'allDriveCyclesAvgMae',
   'All Drive Cycles Average MAXE': 'allDriveCyclesAvgMaxe',
+  'Total Size': 'totalSizeKb',
   'Description': 'description',
 };

@@ -4,7 +4,7 @@ import LabeledSearchInput from "../Components/LabeledSearchInput/LabeledSearchIn
 import StyledNavbar from "../Components/Navbar/StyledNavbar.jsx";
 
 // Data constants and formatting utilities
-import { modelTypes, columns, columnKeyMap, formatComplexity } from "../Constants/Helperfunc.js";
+import { modelTypes, columns, columnKeyMap, formatComplexity, formatSizeKb } from "../Constants/Helperfunc.js";
 import { useState, useEffect } from "react";
 import { Button } from "#Components/ui/button";
 import { Checkbox } from "#Components/ui/checkbox";
@@ -49,6 +49,10 @@ const formatData = (data) => {
 
       if (key === "complexity") {
         value = formatComplexity(value);
+      }
+
+      if (key === "totalSizeKb") {
+        value = formatSizeKb(value);
       }
 
       // Use a dash for missing values
