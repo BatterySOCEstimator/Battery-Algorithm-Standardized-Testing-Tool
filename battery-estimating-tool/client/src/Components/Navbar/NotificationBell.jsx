@@ -8,16 +8,21 @@ import {
 } from "#Components/ui/dropdown-menu";
 import { cn } from "#Constants/cn";
 import { formatRelativeTime } from "#Constants/relativeTime";
-import useNotifications from "#Hooks/useNotifications";
 
 const MAX_BADGE_COUNT = 9;
 
 // The avatar doubles as the notification trigger: a red badge overlays its
 // corner (a bare dot at exactly 1, a count above that) instead of a separate
 // bell icon next to it. Clicking it opens a scrollable panel of the user's
-// current notifications, kept live by useNotifications.
-const NotificationBell = ({ user }) => {
-  const { notifications, clear, clearAll } = useNotifications(user);
+// current notifications.
+//
+// `notifications`/`clear`/`clearAll` come from a single shared
+// useNotifications(user) call in StyledNavbar, not from this component —
+// StyledNavbar renders two of these (one for the desktop layout, one for
+// the mobile menu, both kept permanently mounted for their CSS animations),
+// and each running its own SSE connection would announce every toast/chime
+// twice.
+const NotificationBell = ({ user, notifications, clear, clearAll }) => {
   const count = notifications.length;
 
   const initials = user?.name

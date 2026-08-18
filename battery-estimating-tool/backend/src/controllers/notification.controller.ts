@@ -20,7 +20,7 @@ export const listNotifications = async (req: Request, res: Response): Promise<vo
       .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.createdAt));
 
-    logger.info('notifications/list - Query successful', { userId, results: data.length });
+    // logger.info('notifications/list - Query successful', { userId, results: data.length });
     res.json({ notifications: data });
   } catch (err) {
     logger.error('notifications/list - DB query failed', { err, userId, ip: req.ip });
@@ -54,7 +54,7 @@ export const clearNotification = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    logger.info('notifications/clear - Notification cleared', { id, userId });
+    // logger.info('notifications/clear - Notification cleared', { id, userId });
     res.status(200).json({ message: 'Notification cleared.' });
   } catch (err) {
     logger.error('notifications/clear - DB delete failed', { err, id, userId, ip: req.ip });
@@ -68,7 +68,7 @@ export const clearAllNotifications = async (req: Request, res: Response): Promis
 
   try {
     await db.delete(notifications).where(eq(notifications.userId, userId));
-    logger.info('notifications/clearAll - All notifications cleared', { userId });
+    // logger.info('notifications/clearAll - All notifications cleared', { userId });
     res.status(200).json({ message: 'All notifications cleared.' });
   } catch (err) {
     logger.error('notifications/clearAll - DB delete failed', { err, userId, ip: req.ip });
@@ -95,7 +95,7 @@ export const streamNotifications = (req: Request, res: Response): void => {
   res.write(':ok\n\n');
 
   registerSseClient(userId, res);
-  logger.debug('notifications/stream - Client connected', { userId });
+  // logger.debug('notifications/stream - Client connected', { userId });
 
   // Keeps idle connections alive through proxies/load balancers that would
   // otherwise time them out.

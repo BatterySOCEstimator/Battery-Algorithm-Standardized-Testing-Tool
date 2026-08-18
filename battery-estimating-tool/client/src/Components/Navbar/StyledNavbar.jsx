@@ -12,6 +12,7 @@ import {
 } from "#Components/ui/dropdown-menu";
 import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "#Components/ui/collapsible";
 import NotificationBell from "./NotificationBell";
+import useNotifications from "#Hooks/useNotifications";
 import { cn } from "#Constants/cn";
 
 // Admin-only nav entries
@@ -165,10 +166,15 @@ const AdminMobileAccordion = ({ pathname, active, navOpen }) => {
   );
 };
 
-const UserActions = ({ user }) =>
+const UserActions = ({ user, notifications, clearNotification, clearAllNotifications }) =>
   user ? (
     <div className="flex items-center gap-2">
-      <NotificationBell user={user} />
+      <NotificationBell
+        user={user}
+        notifications={notifications}
+        clear={clearNotification}
+        clearAll={clearAllNotifications}
+      />
       <span className="text-base font-medium">{user.name}</span>
       <Button variant="outline" onClick={logout}>
         Logout
@@ -195,6 +201,14 @@ const StyledNavbar = ({ user }) => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const isAdminSectionActive = pathname.startsWith("/admin");
+
+  // Called once per navbar, shared by both UserActions renders below (the
+  // always-mounted desktop copy and the mobile CollapsiblePanel copy, which
+  // stays mounted via `keepMounted` even while closed) — each opens a real
+  // SSE connection, so two independent hook instances meant every
+  // notification's toast/chime fired twice.
+  const { notifications, clear: clearNotification, clearAll: clearAllNotifications } =
+    useNotifications(user);
 
   return (
     <nav className="dark border-b border-border bg-background text-foreground">
@@ -235,7 +249,12 @@ const StyledNavbar = ({ user }) => {
               <AdminDesktopMenu pathname={pathname} active={isAdminSectionActive} />
             )}
           </div>
-          <UserActions user={user} />
+          <UserActions
+            user={user}
+            notifications={notifications}
+            clearNotification={clearNotification}
+            clearAllNotifications={clearAllNotifications}
+          />
         </div>
 
         {/* Mobile: hamburger trigger + animated collapsible panel, hidden
@@ -257,7 +276,12 @@ const StyledNavbar = ({ user }) => {
             {user?.role === "admin" && (
               <AdminMobileAccordion pathname={pathname} active={isAdminSectionActive} navOpen={open} />
             )}
-            <UserActions user={user} />
+            <UserActions
+              user={user}
+              notifications={notifications}
+              clearNotification={clearNotification}
+              clearAllNotifications={clearAllNotifications}
+            />
           </CollapsiblePanel>
         </Collapsible>
       </div>
