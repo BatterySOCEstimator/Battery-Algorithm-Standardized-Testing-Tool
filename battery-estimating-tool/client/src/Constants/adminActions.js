@@ -80,3 +80,11 @@ export function unbanUser(id) {
     { successTitle: "User unbanned", actionLabel: "Unban" },
   );
 }
+
+export function revokeSessions(id) {
+  return callEndpoint(
+    `/api/admin/users/${id}/revoke-sessions`,
+    { method: "POST" },
+    { successTitle: "Sessions revoked", actionLabel: "Revoke sessions" },
+  );
+}

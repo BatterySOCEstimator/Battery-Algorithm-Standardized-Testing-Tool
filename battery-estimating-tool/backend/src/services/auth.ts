@@ -139,10 +139,18 @@ export const auth = betterAuth({
     },
 
     session: {
-        // Cache sessions in a JWT cookie to reduce DB lookups on every request
+        // Cache sessions in a JWT cookie to reduce DB lookups on every
+        // request. Kept short (not the 5min+ default some apps use)
+        // because this cache is served straight from the signed cookie
+        // with no DB check in between — a banned user or an
+        // admin-revoked session stays fully valid for as long as their
+        // cached cookie hasn't expired, regardless of what changed
+        // server-side in the meantime. 20s caps that exposure window
+        // to something negligible while still avoiding a DB round trip
+        // on every single authenticated request.
         cookieCache: {
             enabled: true,
-            maxAge: 5 * 60, // 5 mins
+            maxAge: 20, // 20 seconds
             strategy: "jwt"
         }
     },

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IconBan, IconCircleCheck, IconDots } from "@tabler/icons-react";
+import { IconBan, IconCircleCheck, IconDots, IconLogout2 } from "@tabler/icons-react";
 
 import { Button } from "#Components/ui/button";
 import {
@@ -19,16 +19,18 @@ import {
 } from "#Components/ui/dialog";
 import { Textarea } from "#Components/ui/textarea";
 import { Label } from "#Components/ui/label";
-import { banUser, unbanUser } from "#Constants/adminActions";
+import { banUser, unbanUser, revokeSessions } from "#Constants/adminActions";
 
 const BAN_REASON_MAX_LENGTH = 500;
 
-// Per-row "..." actions menu for the admin users table. Currently just the
-// ban/unban toggle (POST /api/admin/users/:id/ban|unban)
-// Only patches the row locally via onRowUpdate once the request actually succeeds.
+// Per-row "..." actions menu for the admin users table: ban/unban
+// (POST /api/admin/users/:id/ban|unban) and force-logout via session
+// revocation (POST /api/admin/users/:id/revoke-sessions).
+// Only patches the row locally via onRowUpdate once a request actually succeeds.
 const UserRowActions = ({ row, currentUserId, onRowUpdate }) => {
   const [banOpen, setBanOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [revokeOpen, setRevokeOpen] = useState(false);
 
   const isSelf = row.id === currentUserId;
 
@@ -54,6 +56,11 @@ const UserRowActions = ({ row, currentUserId, onRowUpdate }) => {
     if (success) onRowUpdate(row.id, { banned: false, banReason: null });
   };
 
+  const handleConfirmRevoke = async () => {
+    setRevokeOpen(false);
+    await revokeSessions(row.id);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -63,6 +70,10 @@ const UserRowActions = ({ row, currentUserId, onRowUpdate }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-44">
+          <DropdownMenuItem onClick={() => openAfterMenuCloses(setRevokeOpen)}>
+            <IconLogout2 className="h-4 w-4" />
+            Revoke Sessions
+          </DropdownMenuItem>
           {row.banned ? (
             <DropdownMenuItem onClick={handleUnban}>
               <IconCircleCheck className="h-4 w-4" />
@@ -85,7 +96,7 @@ const UserRowActions = ({ row, currentUserId, onRowUpdate }) => {
               Ban {row.name}?
             </DialogTitle>
             <DialogDescription>
-              They'll be signed out immediately and unable to log back in until unbanned.
+              They'll be signed out and unable to log back in until unbanned.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-1.5">
@@ -106,6 +117,29 @@ const UserRowActions = ({ row, currentUserId, onRowUpdate }) => {
             </DialogClose>
             <Button variant="destructive" onClick={handleConfirmBan}>
               Ban User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={revokeOpen} onOpenChange={setRevokeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <IconLogout2 className="h-5 w-5 text-destructive" />
+              Revoke sessions for {row.name}?
+            </DialogTitle>
+            <DialogDescription>
+              They'll be signed out of every device and will need to log in again. This
+              doesn't ban the account.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={handleConfirmRevoke}>
+              Revoke Sessions
             </Button>
           </DialogFooter>
         </DialogContent>

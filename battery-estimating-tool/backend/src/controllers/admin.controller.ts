@@ -225,3 +225,50 @@ export const unbanUser = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: 'Failed to unban user.' });
   }
 };
+
+/**
+ * Force-signs a user out everywhere by deleting every row in `session` for
+ * their account — the same mechanism {@link banUser} already uses to make a
+ * ban take effect immediately, exposed here on its own so an admin can log
+ * a user out (e.g. a suspected compromised session) without banning them.
+ *
+ * Admin-only, enforced by `requireRole('admin')` on the route. Unlike
+ * {@link banUser}, an admin targeting their own account is allowed — it
+ * just signs out their other sessions rather than locking them out of
+ * admin capabilities the way a self-ban would.
+ *
+ * @throws {400} If `id` is not a valid user id.
+ * @throws {404} If no user exists with the given id.
+ * @throws {500} If the database delete fails.
+ */
+export const revokeSessions = async (req: Request, res: Response): Promise<void> => {
+  const adminId = (req as any).user?.id;
+  const targetId = req.params.id as string;
+
+  if (!targetId) {
+    res.status(400).json({ error: 'Invalid user id.' });
+    return;
+  }
+
+  try {
+    const [target] = await db.select().from(user).where(eq(user.id, targetId)).limit(1);
+    if (!target) {
+      logger.warn('admin/revoke-sessions - Target user not found', { adminId, targetId, ip: req.ip });
+      res.status(404).json({ error: 'User not found.' });
+      return;
+    }
+
+    const revoked = await db.delete(session).where(eq(session.userId, targetId)).returning({ id: session.id });
+
+    logger.info('admin/revoke-sessions - Sessions revoked', { adminId, targetId, count: revoked.length });
+    res.status(200).json({
+      message: revoked.length > 0
+        ? `Revoked ${revoked.length} active session${revoked.length === 1 ? '' : 's'} for ${target.name}.`
+        : `${target.name} has no active sessions.`,
+      revokedCount: revoked.length,
+    });
+  } catch (err) {
+    logger.error('admin/revoke-sessions - Failed to revoke sessions', { err, adminId, targetId, ip: req.ip });
+    res.status(500).json({ error: 'Failed to revoke sessions.' });
+  }
+};
