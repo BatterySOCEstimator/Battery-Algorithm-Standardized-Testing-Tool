@@ -51,8 +51,14 @@ def process_submission(zip_path, submission_dir, processing_folder,
         {"error": True,  "message": "..."}         on failure
     """
     # Extract zip file into processing folder
+    # Resolved path is checked against processing_folder BEFORE any extraction happens to prevent malicious write :P
     try:
+        abs_processing_folder = os.path.realpath(processing_folder)
         with zipfile.ZipFile(zip_path, 'r') as zf:
+            for info in zf.infolist():
+                member_path = os.path.realpath(os.path.join(processing_folder, info.filename))
+                if member_path != abs_processing_folder and not member_path.startswith(abs_processing_folder + os.sep):
+                    return _fail(f"Zip contains an unsafe path and was rejected: {info.filename}")
             zf.extractall(processing_folder)
         print("Zip extracted successfully.", file=sys.stderr)
     except Exception as e:

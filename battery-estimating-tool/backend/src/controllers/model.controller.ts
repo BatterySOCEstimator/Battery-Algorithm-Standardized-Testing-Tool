@@ -113,20 +113,20 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
-  // Get file name
-  const modelFileName = files?.[0]?.originalname;
-  if (!modelFileName) {
-    logger.warn('model/upload - Missing file name', { name, description, userId, ip: req.ip });
-    res.status(400).json({ error: 'No file provided' });
-    return
-  }
-
   // Reuse the storageId uploadMiddleware generated before Multer ran — that's
   // the directory Multer actually wrote the files to, so the controller must
   // use the same value rather than generating its own here.
   const storageId = (req as any).storageId;
   if (!storageId) {
     logger.warn('model/upload - Missing storageId', { name, userId, ip: req.ip });
+    res.status(500).json({ error: 'Internal server error' });
+    return;
+  }
+
+  // packageModelSubmission already resolved this to a single .zip's path.
+  const zipFilePath = (req as any).zipFilePath;
+  if (!zipFilePath) {
+    logger.warn('model/upload - Missing zipFilePath', { name, userId, ip: req.ip });
     res.status(500).json({ error: 'Internal server error' });
     return;
   }
@@ -140,14 +140,7 @@ export const uploadModel = async (req: Request, res: Response): Promise<void> =>
 
   try {
 
-    // Multer wrote the file under modelDir/model (see model.middleware.ts's
-    // storage.destination) — the evaluator writes results/ as a sibling of
-    // that within modelDir, so modelDir itself stays the storageId root.
-    const relativeZipFilePath = path.join(modelDir, 'model', modelFileName);
-    const zipFilePath = path.resolve(relativeZipFilePath);
-
-    // Sum of Multer's actual on-disk byte counts for every uploaded file,
-    // converted to KB — not a client-supplied value.
+    // Sum of Multer's actual byte counts, converted to KB. Not client-supplied.
     const totalSizeKb = files.reduce((sum, f) => sum + f.size, 0) / 1024;
 
     // Insert new model in DB

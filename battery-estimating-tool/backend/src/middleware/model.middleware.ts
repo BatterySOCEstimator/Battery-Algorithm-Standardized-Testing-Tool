@@ -6,15 +6,17 @@ import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import AdmZip from 'adm-zip';
 // DB imports
 import { db } from '@/db';
 import { models, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { logger } from '@/services/logger.service';
 
-// Only allow Python and MATLAB files
+// Extensions accepted for the top-level upload itself (see app.config.ts).
 const ALLOWED_EXTENSIONS = config.upload.allowedExtensions;
-const ALLOWED_MIMETYPES = config.upload.allowedMimetypes;
+// Extensions accepted inside an uploaded .zip. Nested .zip files are always rejected regardless of this list.
+const ALLOWED_ZIP_CONTENT_EXTENSIONS = config.upload.allowedZipContentExtensions;
 
 /**
  * Multer disk storage configuration.
@@ -61,23 +63,26 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (_req, file, cb) => {
-    // Keep the original filename since files are scoped to their own directory
-    cb(null, file.originalname);
+    // Strip path components from the client-supplied filename before writing it to disk.
+    const safeName = path.basename(file.originalname);
+    if (!safeName || safeName === '.' || safeName === '..') {
+      return cb(new Error('Invalid file name.'), '');
+    }
+    cb(null, safeName);
   },
 });
 
 /**
- * Multer file filter that only allows Python (`.py`) and MATLAB (`.m`) files.
- * Validates by file extension first, falling back to MIME type.
- * Rejects all other file types with an error.
+ * Multer file filter restricting uploads to {@link ALLOWED_EXTENSIONS}.
+ * Extension is the sole check; mimetype is client-supplied and easy to spoof.
  */
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   const ext = path.extname(file.originalname).toLowerCase();
 
-  if (ALLOWED_EXTENSIONS.includes(ext) || ALLOWED_MIMETYPES.includes(file.mimetype)) {
+  if (ALLOWED_EXTENSIONS.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid file type. Only Python (.py) and MATLAB (.m) files are allowed.`));
+    cb(new Error(`Invalid file type. Only ${ALLOWED_EXTENSIONS.join(', ')} files are allowed.`));
   }
 };
 
@@ -130,6 +135,138 @@ export const uploadMiddleware = (req: Request, res: Response, next: NextFunction
     }
     next();
   });
+};
+
+const MODEL_ENTRYPOINT_FILENAME = 'Model.py';
+const GENERATED_ZIP_NAME = 'submission.zip';
+const MAX_LOOSE_FILE_SIZE_BYTES = config.upload.maxLooseFileSizeMb * 1024 * 1024;
+
+/**
+ * Makes sure `model/` ends up with exactly one real `.zip`, whichever way it was submitted:
+ * a direct `.zip` upload (peeked for a root Model.py, not extracted), or one-or-more loose
+ * `.py` files bundled here into `model/submission.zip`. Sets `req.zipFilePath` for uploadModel.
+ * Rejects mixed zip+loose uploads and anything without exactly one Model.py.
+ * Any rejection deletes the storageId directory Multer already wrote.
+ *
+ * @throws {400} Invalid upload shape, missing/duplicate Model.py, oversized file, or unreadable zip.
+ * @throws {500} Packaging the loose files into a zip failed unexpectedly.
+ */
+export const packageModelSubmission = (req: Request, res: Response, next: NextFunction) => {
+  const files = req.files as Express.Multer.File[] | undefined;
+  const userId = (req as any).submissionOwner?.id;
+  const storageId = (req as any).storageId;
+
+  // No files: let uploadModel's own check handle that error.
+  if (!files || files.length === 0) {
+    next();
+    return;
+  }
+
+  const cleanupAndReject = (status: number, message: string, level: 'warn' | 'error' = 'warn', err?: unknown) => {
+    if (userId && storageId) {
+      const dir = path.join(config.upload.uploadDir, userId, storageId);
+      try {
+        fs.rmSync(dir, { recursive: true, force: true });
+      } catch (cleanupErr) {
+        logger.error('packageModelSubmission - Failed to clean up rejected submission', { cleanupErr, userId, storageId, ip: req.ip });
+      }
+    }
+    logger[level]('packageModelSubmission - Rejected', { message, err, userId, storageId, ip: req.ip });
+    res.status(status).json({ error: message });
+  };
+
+  const zipFiles = files.filter((f) => path.extname(f.filename).toLowerCase() === '.zip');
+  const nonZipFiles = files.filter((f) => path.extname(f.filename).toLowerCase() !== '.zip');
+
+  if (zipFiles.length > 0 && nonZipFiles.length > 0) {
+    cleanupAndReject(400, 'Submit either a single .zip file, or one or more loose .py files — not both.');
+    return;
+  }
+  if (zipFiles.length > 1) {
+    cleanupAndReject(400, 'Only one .zip file may be uploaded at a time.');
+    return;
+  }
+
+  // Single zip upload. Checked via getEntries() only, never extracted here, so no zip-bomb risk.
+  if (zipFiles.length === 1) {
+    const zipFilePath = path.resolve(zipFiles[0].path);
+    try {
+      const entries = new AdmZip(zipFilePath).getEntries();
+      const fileEntries = entries.filter((entry) => !entry.isDirectory);
+
+      const disallowedEntry = fileEntries.find((entry) => {
+        const entryExt = path.extname(entry.entryName).toLowerCase();
+        return entryExt === '.zip' || !ALLOWED_ZIP_CONTENT_EXTENSIONS.includes(entryExt);
+      });
+      if (disallowedEntry) {
+        cleanupAndReject(
+          400,
+          `The zip contains a disallowed file: '${disallowedEntry.entryName}'. Only ${ALLOWED_ZIP_CONTENT_EXTENSIONS.join(', ')} files are allowed inside a submitted zip — nested .zip files are never allowed.`,
+        );
+        return;
+      }
+
+      const modelEntrypointCount = fileEntries.filter((entry) => entry.entryName === MODEL_ENTRYPOINT_FILENAME).length;
+      if (modelEntrypointCount === 0) {
+        cleanupAndReject(400, `No ${MODEL_ENTRYPOINT_FILENAME} file found at the root of the submitted zip.`);
+        return;
+      }
+      if (modelEntrypointCount > 1) {
+        cleanupAndReject(400, `The zip must contain exactly one ${MODEL_ENTRYPOINT_FILENAME} at its root — found ${modelEntrypointCount}.`);
+        return;
+      }
+    } catch (err) {
+      cleanupAndReject(400, 'Could not read the submitted zip file.', 'warn', err);
+      return;
+    }
+    (req as any).zipFilePath = zipFilePath;
+    next();
+    return;
+  }
+
+  // Loose files, no zip. Scoped to .py only for now; .mat/.m/.p stay zip-only.
+  const nonPyFile = nonZipFiles.find((f) => path.extname(f.filename).toLowerCase() !== '.py');
+  if (nonPyFile) {
+    cleanupAndReject(400, 'Only .py files are currently supported for individual file uploads. Submit a .zip file for other file types.');
+    return;
+  }
+
+  const oversizedFile = nonZipFiles.find((f) => f.size > MAX_LOOSE_FILE_SIZE_BYTES);
+  if (oversizedFile) {
+    cleanupAndReject(400, `${oversizedFile.filename} exceeds the ${config.upload.maxLooseFileSizeMb}MB limit for individual file uploads.`);
+    return;
+  }
+
+  const modelEntrypointCount = nonZipFiles.filter((f) => f.filename === MODEL_ENTRYPOINT_FILENAME).length;
+  if (modelEntrypointCount === 0) {
+    cleanupAndReject(400, `One of the uploaded files must be named exactly '${MODEL_ENTRYPOINT_FILENAME}'.`);
+    return;
+  }
+  if (modelEntrypointCount > 1) {
+    cleanupAndReject(400, `Exactly one file must be named '${MODEL_ENTRYPOINT_FILENAME}' — found ${modelEntrypointCount}.`);
+    return;
+  }
+
+  try {
+    const zip = new AdmZip();
+    for (const file of nonZipFiles) {
+      // Flat entries at the zip root, where the evaluator expects Model.py.
+      zip.addLocalFile(file.path, '', file.filename);
+    }
+    const modelDir = path.dirname(nonZipFiles[0].path);
+    const generatedZipPath = path.resolve(path.join(modelDir, GENERATED_ZIP_NAME));
+    zip.writeZip(generatedZipPath);
+
+    // Loose originals are redundant now; model/ should end up with just one .zip.
+    for (const file of nonZipFiles) {
+      fs.rmSync(file.path, { force: true });
+    }
+
+    (req as any).zipFilePath = generatedZipPath;
+    next();
+  } catch (err) {
+    cleanupAndReject(500, 'Failed to package submitted files.', 'error', err);
+  }
 };
 
 /**

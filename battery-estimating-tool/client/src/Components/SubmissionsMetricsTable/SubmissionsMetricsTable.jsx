@@ -48,6 +48,9 @@ import {
 
 const PAGE_SIZES = [10, 25, 50, 100];
 
+// Date columns hold a formatted display string, sorted via Date parsing instead of numeric/string compare.
+const DATE_COLUMNS = new Set(["Submitted At", "Completed at"]);
+
 // Metrics table component for the submissions page
 // Uses shadcn/ui Table + DropdownMenu (Base UI / Nova style)
 // Column visibility toggle via the "Columns" dropdown, CSV export via the
@@ -122,13 +125,28 @@ const SubmissionsMetricsTable = ({
     setPage(0);
   };
 
+  const getCellValue = (row, col) => {
+    if (col === "Submitted At") return row["Submitted at"] ?? "";
+    return row[col] ?? "";
+  };
+
   const sortedData = useMemo(() => {
     const { key, direction } = sortConfig;
     if (!key) return formattedData;
 
     return [...formattedData].sort((a, b) => {
-      const valA = a[key];
-      const valB = b[key];
+      // getCellValue resolves renamed display labels like "Submitted At" back to the real row key.
+      const valA = getCellValue(a, key);
+      const valB = getCellValue(b, key);
+
+      // Compare as real dates first; the cell holds a formatted string, not a raw timestamp.
+      if (DATE_COLUMNS.has(key)) {
+        const dateA = new Date(valA).getTime();
+        const dateB = new Date(valB).getTime();
+        if (!isNaN(dateA) && !isNaN(dateB)) {
+          return direction === "asc" ? dateA - dateB : dateB - dateA;
+        }
+      }
 
       const numA = parseFloat(valA);
       const numB = parseFloat(valB);
@@ -177,11 +195,6 @@ const SubmissionsMetricsTable = ({
   };
 
   const [downloadOpen, setDownloadOpen] = useState(false);
-
-  const getCellValue = (row, col) => {
-    if (col === "Submitted At") return row["Submitted at"] ?? "";
-    return row[col] ?? "";
-  };
 
   const handleDownloadCurrentView = () => {
     const rows = sortedData.map((row) =>

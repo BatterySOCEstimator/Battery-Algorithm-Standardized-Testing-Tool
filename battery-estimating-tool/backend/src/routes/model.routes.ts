@@ -1,5 +1,5 @@
 import { deleteModel, downloadFile, downloadTrainingData, listSubmittableUsers, test, updateModel, uploadModel } from "@/controllers/model.controller";
-import { checkModelNameUnique, resolveSubmissionOwner, uploadMiddleware } from "@/middleware/model.middleware";
+import { checkModelNameUnique, resolveSubmissionOwner, uploadMiddleware, packageModelSubmission } from "@/middleware/model.middleware";
 import { requireAuth, checkBanStatus, requireRole } from "@/middleware/auth.middleware";
 
 import { Router } from "express";
@@ -12,6 +12,7 @@ router.post('/upload',
     resolveSubmissionOwner, // Resolve who the model is attributed to (self, or an admin's ?onBehalfOfUserId=)
     checkModelNameUnique,   // Check if name is unique (scoped to the resolved owner)
     uploadMiddleware,       // Check if valid file types
+    packageModelSubmission, // Standardize on-disk shape: model/ ends up with exactly one .zip
     uploadModel             // Actual controller function
 );
 

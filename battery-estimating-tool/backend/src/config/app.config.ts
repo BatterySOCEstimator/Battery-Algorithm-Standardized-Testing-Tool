@@ -2,15 +2,13 @@
 
 export const config = {
   upload: {
-    allowedExtensions: ['.py', '.m', '.zip'] as string[],
-    allowedMimetypes: [
-      'text/x-python',
-      'text/x-python-script',
-      'application/x-python-code',
-      'text/plain',
-      'application/octet-stream',
-    ] as string[],
+    // Extensions allowed for the top-level upload: a single .zip, or one-or-more loose files.
+    allowedExtensions: ['.py', '.zip', '.xlsx'] as string[],
+    // Extensions allowed for files inside a .zip.
+    allowedZipContentExtensions: ['.py', '.md', '.xlsx'] as string[],
     maxFileSizeMb: 100 as number,
+    // Loose files get a stricter size cap since they're zipped in memory server-side.
+    maxLooseFileSizeMb: 10 as number,
     maxFiles: 10 as number,
     uploadDir: process.env.UPLOAD_DIR ?? './uploads',
   },

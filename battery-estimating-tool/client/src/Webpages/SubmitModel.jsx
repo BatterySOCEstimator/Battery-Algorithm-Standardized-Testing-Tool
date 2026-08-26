@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "#Components/ui/alert";
 import { Spinner } from "#Components/ui/spinner";
 import {
   Attachment,
+  AttachmentGroup,
   AttachmentMedia,
   AttachmentContent,
   AttachmentTitle,
@@ -39,6 +40,43 @@ import useRequireAuth from "../Hooks/useRequireAuth";
 // Small sanitizer to remove leading/trailing whitespace and strip <,>
 // to avoid basic injection of markup in free-text fields.
 const sanitize = (str) => str.trim().replace(/[<>]/g, "");
+
+// Pulls the { error } field out of the JSON body instead of showing the raw response.
+const extractErrorMessage = (text, status) => {
+  let message = text || `Server error ${status}`;
+  try {
+    const parsed = JSON.parse(text);
+    message = parsed.error ?? parsed.message ?? message;
+  } catch {
+    // Not JSON; fall back to the raw text.
+  }
+  return message.replace(/^[\w./-]+ - /, "");
+};
+
+const MODEL_ENTRYPOINT_FILENAME = "Model.py";
+
+// Mirrors the backend's validation for fast client-side feedback before hitting the network.
+const validateFiles = (files) => {
+  if (files.length === 0) return "Please upload a model file.";
+
+  const hasZip = files.some((f) => f.name.toLowerCase().endsWith(".zip"));
+  if (hasZip) {
+    if (files.length > 1) return "A .zip upload must be the only file submitted.";
+    return null;
+  }
+
+  if (files.some((f) => !f.name.toLowerCase().endsWith(".py"))) {
+    return "Only .py files are currently supported (besides a single .zip upload).";
+  }
+  const modelEntrypointCount = files.filter((f) => f.name === MODEL_ENTRYPOINT_FILENAME).length;
+  if (modelEntrypointCount === 0) {
+    return `One file must be named exactly '${MODEL_ENTRYPOINT_FILENAME}'.`;
+  }
+  if (modelEntrypointCount > 1) {
+    return `Exactly one file must be named '${MODEL_ENTRYPOINT_FILENAME}' — found ${modelEntrypointCount}.`;
+  }
+  return null;
+};
 
 // Human-readable file size, e.g. 512 -> "512 B", 4300 -> "4.2 KB"
 const formatFileSize = (bytes) => {
@@ -67,9 +105,8 @@ const SubmitModel = ({ user }) => {
   // Dropzone key lets us reset the drop area by bumping the key
   const [dropzoneKey, setDropzoneKey] = useState(0);
 
-  // File state: either a single file or a zip containing many files
-  const [file, setFile] = useState(null);
-  const [zipFile, setZipFile] = useState(null);
+  // File state: either a single .zip, or one-or-more loose .py files
+  const [files, setFiles] = useState([]);
 
   // Submission state and user feedback messages
   const [submitting, setSubmitting] = useState(false);
@@ -107,21 +144,13 @@ const SubmitModel = ({ user }) => {
     return () => clearTimeout(timeout);
   }, [pickerOpen, userSearch]);
 
-  // onDrop: pick the first accepted file and store it
-  // If it's a .zip we keep it separate so the backend can handle zips differently
+  // Appends newly dropped files to the existing selection.
   const onDrop = useCallback((acceptedFiles) => {
-    const uploaded = acceptedFiles[0];
-    if (uploaded?.name.endsWith(".zip")) {
-      setZipFile(uploaded);
-      setFile(null);
-    } else {
-      setFile(uploaded);
-      setZipFile(null);
-    }
+    setFiles((prev) => [...prev, ...acceptedFiles]);
   }, []);
 
-  // Hook up dropzone (single-file uploads)
-  const { getRootProps, getInputProps } = useDropzone({ onDrop, multiple: false });
+  // Hook up dropzone
+  const { getRootProps, getInputProps } = useDropzone({ onDrop, multiple: true });
 
   // handleSubmit: client-side validation + multipart upload
   const handleSubmit = async () => {
@@ -143,9 +172,8 @@ const SubmitModel = ({ user }) => {
         type: "destructive",
         message: `Description must be ${DESCRIPTION_MAX_LENGTH} characters or fewer.`,
       });
-    if (!file && !zipFile) return setFeedback({ type: "destructive", message: "Please upload a model file." });
-
-    const uploadedFile = file ?? zipFile;
+    const fileError = validateFiles(files);
+    if (fileError) return setFeedback({ type: "destructive", message: fileError });
 
     const formData = new FormData();
     formData.append("name", sanitizedName);
@@ -153,10 +181,7 @@ const SubmitModel = ({ user }) => {
     formData.append("isPrivate", isPrivate);
     formData.append("modelType", selectedModelType);
     formData.append("level", selectedLevel);
-    if (uploadedFile.name.endsWith(".zip")) {
-      formData.append("files", uploadedFile);
-      //formData.append("zipFile", uploadedFile); FOR SEPERATE HANDLING IN THE FUTURE ??
-    } else {
+    for (const uploadedFile of files) {
       formData.append("files", uploadedFile);
     }
 
@@ -172,8 +197,8 @@ const SubmitModel = ({ user }) => {
       });
 
       if (!response.ok) {
-        const err = await response.text();
-        throw new Error(err || `Server error ${response.status}`);
+        const text = await response.text();
+        throw new Error(extractErrorMessage(text, response.status));
       }
 
       // Success: show message and reset form fields
@@ -187,8 +212,7 @@ const SubmitModel = ({ user }) => {
       setDescription("");
       setIsPrivate(false);
       setSelectedLevel("dynamic");
-      setFile(null);
-      setZipFile(null);
+      setFiles([]);
       setDropzoneKey((k) => k + 1);
     } catch (error) {
       setFeedback({ type: "destructive", message: `Upload failed: ${error.message}` });
@@ -366,35 +390,33 @@ const SubmitModel = ({ user }) => {
           )}
         </Button>
 
-        {/* Preview uploaded file (zip or single file) */}
-        {(file || zipFile) && (
-          <Attachment className="w-full max-w-3xl">
-            <AttachmentMedia>
-              {zipFile ? (
-                <IconFileZip className="size-4" />
-              ) : (
-                <IconFile className="size-4" />
-              )}
-            </AttachmentMedia>
-            <AttachmentContent>
-              <AttachmentTitle>{(file ?? zipFile).name}</AttachmentTitle>
-              <AttachmentDescription>
-                {formatFileSize((file ?? zipFile).size)}
-              </AttachmentDescription>
-            </AttachmentContent>
-            <AttachmentActions>
-              <AttachmentAction
-                aria-label="Remove file"
-                onClick={() => {
-                  setFile(null);
-                  setZipFile(null);
-                  setDropzoneKey((k) => k + 1);
-                }}
-              >
-                <IconX className="size-3.5" />
-              </AttachmentAction>
-            </AttachmentActions>
-          </Attachment>
+        {/* Preview uploaded files */}
+        {files.length > 0 && (
+          <AttachmentGroup className="w-full max-w-3xl flex-col">
+            {files.map((f, index) => (
+              <Attachment key={`${f.name}-${f.size}-${index}`} className="w-full max-w-none">
+                <AttachmentMedia>
+                  {f.name.toLowerCase().endsWith(".zip") ? (
+                    <IconFileZip className="size-4" />
+                  ) : (
+                    <IconFile className="size-4" />
+                  )}
+                </AttachmentMedia>
+                <AttachmentContent>
+                  <AttachmentTitle>{f.name}</AttachmentTitle>
+                  <AttachmentDescription>{formatFileSize(f.size)}</AttachmentDescription>
+                </AttachmentContent>
+                <AttachmentActions>
+                  <AttachmentAction
+                    aria-label={`Remove ${f.name}`}
+                    onClick={() => setFiles((prev) => prev.filter((_, i) => i !== index))}
+                  >
+                    <IconX className="size-3.5" />
+                  </AttachmentAction>
+                </AttachmentActions>
+              </Attachment>
+            ))}
+          </AttachmentGroup>
         )}
 
         {/* Drop area: supports drag & drop or click to open file picker */}
@@ -408,7 +430,9 @@ const SubmitModel = ({ user }) => {
           <p className="text-lg font-medium text-foreground">
             drag & drop or click to upload your model here
           </p>
-          <p className="text-sm text-muted-foreground">(only .mat and .py files)</p>
+          <p className="text-sm text-muted-foreground">
+            Upload one or more .py files (Including one named Model.py), or a single .zip file.
+          </p>
         </div>
 
       </div>
